@@ -1,0 +1,619 @@
+{% raw %}<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plantain AI — Farm Intelligence Platform</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;0,800;1,600;1,800&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070D09;--surface:rgba(10,22,14,.85);--lime:#2E8B4A;--lime2:#4DB86A;
+  --amber:#D4A017;--amber2:#E8B84B;--text:rgba(255,255,255,.88);
+  --muted:rgba(255,255,255,.38);--border:rgba(255,255,255,.08);
+  --border2:rgba(46,139,74,.2);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden;}
+
+/* GRAIN */
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");}
+
+/* ── NAV ── */
+.lnav{position:fixed;top:0;inset-inline:0;z-index:800;padding:20px 52px;
+  display:flex;justify-content:space-between;align-items:center;transition:all .4s;}
+.lnav.stuck{background:rgba(7,13,9,.94);backdrop-filter:blur(24px);
+  padding:13px 52px;border-bottom:1px solid var(--border);}
+.lbrand{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:800;
+  color:#fff;text-decoration:none;display:flex;align-items:center;gap:10px;letter-spacing:-.3px;}
+.lbrand-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--lime),var(--lime2));
+  border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;}
+.lbrand span{color:var(--amber2);}
+.lnav-links{display:flex;align-items:center;gap:6px;}
+.ln-link{color:var(--muted);text-decoration:none;padding:8px 18px;border-radius:8px;
+  font-family:'Syne',sans-serif;font-size:.8rem;font-weight:600;transition:all .2s;}
+.ln-link:hover{color:#fff;background:rgba(255,255,255,.05);}
+.ln-cta{background:linear-gradient(135deg,var(--lime),var(--lime2));color:#fff;
+  padding:10px 24px;border-radius:10px;font-family:'Syne',sans-serif;font-size:.8rem;
+  font-weight:800;text-decoration:none;transition:all .25s;letter-spacing:.2px;}
+.ln-cta:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(46,139,74,.4);color:#fff;}
+
+/* ── HERO ── */
+.lhero{min-height:100vh;display:flex;align-items:center;position:relative;overflow:hidden;
+  padding:0 52px;}
+.lhero-bg{position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 70% at 60% 45%,rgba(18,75,35,.5) 0%,transparent 65%),
+             radial-gradient(ellipse 40% 40% at 10% 80%,rgba(160,110,8,.12) 0%,transparent 55%),
+             radial-gradient(ellipse 50% 50% at 95% 5%,rgba(8,35,16,.6) 0%,transparent 60%);}
+.lhero-grid{position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(212,160,23,.018) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(212,160,23,.018) 1px,transparent 1px);
+  background-size:72px 72px;}
+.lhero-inner{position:relative;z-index:2;max-width:1220px;margin:0 auto;width:100%;
+  display:grid;grid-template-columns:1fr 520px;gap:64px;align-items:center;
+  padding:100px 0 80px;}
+
+/* Left copy */
+.lh-eyebrow{display:inline-flex;align-items:center;gap:10px;
+  background:rgba(46,139,74,.1);border:1px solid rgba(46,139,74,.25);
+  color:var(--lime2);padding:7px 18px;border-radius:30px;
+  font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:500;
+  letter-spacing:1px;text-transform:uppercase;margin-bottom:26px;
+  opacity:0;animation:fadeUp .7s ease .3s forwards;}
+.lh-dot{width:7px;height:7px;border-radius:50%;background:var(--lime2);
+  animation:blink 2s step-end infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+
+.lh-h1{font-family:'Cormorant Garamond',serif;
+  font-size:clamp(4rem,7.5vw,7rem);font-weight:800;
+  line-height:.9;letter-spacing:-3px;margin-bottom:24px;
+  opacity:0;animation:fadeUp .9s ease .5s forwards;}
+.lh-h1 .w1{display:block;color:#fff;}
+.lh-h1 .w2{display:block;
+  background:linear-gradient(135deg,var(--lime2),var(--amber2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.lh-h1 .w3{display:block;color:rgba(255,255,255,.22);font-style:italic;}
+
+.lh-sub{font-size:.97rem;color:var(--muted);line-height:1.75;max-width:460px;
+  margin-bottom:34px;opacity:0;animation:fadeUp .7s ease .7s forwards;}
+
+.lh-btns{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:46px;
+  opacity:0;animation:fadeUp .7s ease .9s forwards;}
+.lhb-primary{background:linear-gradient(135deg,var(--lime),var(--lime2));color:#fff;
+  padding:15px 38px;border-radius:12px;font-family:'Syne',sans-serif;font-size:.9rem;
+  font-weight:800;text-decoration:none;display:inline-flex;align-items:center;gap:10px;
+  transition:all .3s;box-shadow:0 8px 28px rgba(46,139,74,.35);}
+.lhb-primary:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(46,139,74,.5);color:#fff;}
+.lhb-ghost{background:transparent;color:rgba(255,255,255,.6);
+  border:1.5px solid rgba(255,255,255,.15);padding:15px 30px;border-radius:12px;
+  font-family:'Syne',sans-serif;font-size:.9rem;font-weight:600;text-decoration:none;
+  display:inline-flex;align-items:center;gap:9px;transition:all .25s;}
+.lhb-ghost:hover{color:#fff;border-color:rgba(255,255,255,.35);background:rgba(255,255,255,.04);}
+
+.lh-stats{display:flex;gap:32px;padding-top:28px;border-top:1px solid var(--border);
+  flex-wrap:wrap;opacity:0;animation:fadeUp .7s ease 1.1s forwards;}
+.ls-num{font-family:'Cormorant Garamond',serif;font-size:2.1rem;font-weight:800;
+  color:var(--amber2);display:block;line-height:1;}
+.ls-lbl{font-family:'Syne',sans-serif;font-size:.65rem;text-transform:uppercase;
+  letter-spacing:.8px;color:rgba(255,255,255,.26);margin-top:2px;}
+
+/* ── DASHBOARD CARD (RIGHT) ── */
+.lh-card{opacity:0;animation:fadeLeft 1s ease .6s forwards;}
+@keyframes fadeLeft{from{opacity:0;transform:translateX(36px);}to{opacity:1;transform:translateX(0);}}
+.ldc{background:rgba(7,16,10,.8);backdrop-filter:blur(32px);
+  border:1px solid rgba(46,139,74,.18);border-radius:22px;overflow:hidden;
+  box-shadow:0 40px 80px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.03);}
+
+/* titlebar */
+.ldc-bar{background:rgba(0,0,0,.35);padding:12px 16px;display:flex;align-items:center;
+  gap:7px;border-bottom:1px solid rgba(255,255,255,.05);}
+.ldc-dot{width:10px;height:10px;border-radius:50%;}
+.ldc-title{font-family:'JetBrains Mono',monospace;font-size:.6rem;
+  color:rgba(255,255,255,.2);margin-left:4px;letter-spacing:.5px;}
+
+/* live ticker */
+.ldc-ticker{background:linear-gradient(90deg,var(--lime),#1a6e35);
+  padding:7px 14px;overflow:hidden;display:flex;align-items:center;gap:10px;}
+.lt-label{font-family:'JetBrains Mono',monospace;font-size:.6rem;
+  color:rgba(255,255,255,.7);white-space:nowrap;font-weight:500;}
+.lt-track{overflow:hidden;flex:1;}
+.lt-inner{display:flex;gap:18px;animation:tick 20s linear infinite;white-space:nowrap;}
+.lt-item{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:rgba(255,255,255,.9);font-weight:500;}
+.lt-up{color:#c8f7d5;}.lt-dn{color:#ffd0d0;}
+@keyframes tick{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+
+/* sensor row */
+.ldc-sensors{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;padding:12px 14px 0;}
+.ls-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+  border-radius:9px;padding:10px 8px;text-align:center;}
+.ls-val{font-family:'JetBrains Mono',monospace;font-size:.95rem;font-weight:500;color:#22d3ee;}
+.ls-lbl2{font-size:.58rem;color:rgba(255,255,255,.28);margin-top:2px;}
+.lsv-ok{color:#4ade80!important;}.lsv-warn{color:#fbbf24!important;}.lsv-bad{color:#f87171!important;}
+
+/* feed */
+.ldc-feed{padding:10px 14px;}
+.ldf-row{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;
+  background:rgba(255,255,255,.03);border-radius:9px;margin-bottom:5px;}
+.ldf-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.ldf-text{font-size:.77rem;color:rgba(255,255,255,.7);font-weight:500;line-height:1.35;}
+.ldf-time{font-size:.62rem;color:rgba(255,255,255,.22);font-family:'JetBrains Mono',monospace;margin-top:1px;}
+.ldf-badge{margin-left:auto;flex-shrink:0;padding:2px 9px;border-radius:20px;
+  font-family:'JetBrains Mono',monospace;font-size:.6rem;font-weight:600;}
+
+/* AI typing row */
+.ldc-ai{margin:0 14px 12px;background:linear-gradient(135deg,rgba(46,139,74,.1),rgba(8,145,178,.06));
+  border:1px solid rgba(46,139,74,.2);border-radius:10px;
+  padding:10px 13px;display:flex;align-items:center;gap:9px;}
+.lai-ico{width:30px;height:30px;background:linear-gradient(135deg,var(--lime),var(--lime2));
+  border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-size:.9rem;flex-shrink:0;}
+.lai-text{font-size:.75rem;color:rgba(255,255,255,.55);line-height:1.4;min-height:1.2em;}
+.caret{display:inline-block;width:2px;height:.85em;background:var(--lime2);
+  margin-left:2px;vertical-align:middle;animation:blink .75s step-end infinite;}
+
+/* health bar */
+.ldc-footer{padding:10px 14px;background:rgba(0,0,0,.2);border-top:1px solid rgba(255,255,255,.05);
+  display:flex;align-items:center;gap:10px;}
+.lhbar{flex:1;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;}
+.lhfill{height:100%;background:linear-gradient(90deg,var(--lime),var(--amber2));
+  border-radius:2px;width:78%;animation:breathe 4s ease-in-out infinite;}
+@keyframes breathe{0%,100%{width:78%;}50%{width:85%;}}
+
+/* ── SCROLL MARQUEE ── */
+.lmarquee{background:#fff;border-top:1px solid rgba(0,0,0,.07);
+  border-bottom:1px solid rgba(0,0,0,.07);padding:12px 0;overflow:hidden;}
+.lmq-track{display:flex;animation:marquee 24s linear infinite;white-space:nowrap;}
+.lmq-item{display:flex;align-items:center;gap:10px;padding:0 28px;
+  font-family:'Syne',sans-serif;font-size:.72rem;font-weight:700;
+  color:rgba(7,13,9,.35);text-transform:uppercase;letter-spacing:.5px;}
+.lmq-item .pip{width:5px;height:5px;border-radius:50%;background:var(--lime);flex-shrink:0;}
+@keyframes marquee{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+
+/* ── FEATURES ── */
+.lfeat{padding:96px 52px;background:var(--bg);position:relative;}
+.lfeat::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 60% 50% at 50% 50%,rgba(16,55,26,.3) 0%,transparent 70%);}
+.lsec-eye{font-family:'Syne',sans-serif;font-size:.68rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:2px;color:var(--amber2);
+  display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.lsec-eye::before{content:'';width:18px;height:2px;background:var(--amber2);}
+.lsec-h2{font-family:'Cormorant Garamond',serif;font-size:clamp(2.2rem,4.5vw,3.6rem);
+  font-weight:800;letter-spacing:-1.5px;line-height:.95;margin-bottom:52px;}
+.lsec-h2 em{color:var(--lime2);font-style:italic;}
+
+.lfeat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;
+  background:rgba(255,255,255,.04);border-radius:20px;overflow:hidden;
+  border:1px solid rgba(255,255,255,.05);}
+.lfc{background:#060E08;padding:40px 36px;position:relative;overflow:hidden;transition:background .3s;}
+.lfc:hover{background:rgba(16,52,26,.5);}
+.lfc::after{content:'';position:absolute;bottom:0;left:0;width:0;height:2px;
+  background:linear-gradient(90deg,var(--lime),var(--amber2));transition:width .4s;}
+.lfc:hover::after{width:100%;}
+.lfc-num{font-family:'Cormorant Garamond',serif;font-size:3rem;font-weight:800;
+  color:rgba(46,139,74,.07);line-height:1;margin-bottom:10px;}
+.lfc-icon{font-size:1.8rem;display:block;margin-bottom:12px;}
+.lfc h3{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:#fff;margin-bottom:8px;}
+.lfc p{font-size:.84rem;color:rgba(255,255,255,.35);line-height:1.7;margin:0;}
+.lfc-tag{display:inline-block;margin-top:14px;padding:3px 12px;
+  background:rgba(46,139,74,.12);border:1px solid rgba(46,139,74,.2);
+  color:var(--lime2);border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:.62rem;}
+
+/* ── PRICE TICKER SECTION ── */
+.lprice-sec{padding:0;background:rgba(6,14,8,.95);border-top:1px solid rgba(46,139,74,.15);
+  border-bottom:1px solid rgba(46,139,74,.15);}
+.lprice-header{padding:28px 52px 0;display:flex;align-items:center;justify-content:space-between;}
+.lprice-tabs{display:flex;gap:6px;padding:0 52px 16px;overflow-x:auto;}
+.lpt{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+  color:rgba(255,255,255,.4);padding:7px 16px;border-radius:8px;
+  font-family:'Syne',sans-serif;font-size:.72rem;font-weight:700;cursor:pointer;
+  white-space:nowrap;transition:all .2s;}
+.lpt.on{background:rgba(46,139,74,.18);border-color:rgba(46,139,74,.35);color:var(--lime2);}
+.lprice-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+  gap:8px;padding:12px 52px 28px;}
+.lpc{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);
+  border-radius:11px;padding:13px 12px;transition:all .2s;cursor:default;}
+.lpc:hover{border-color:rgba(46,139,74,.3);background:rgba(46,139,74,.05);}
+.lpc-name{font-size:.75rem;color:rgba(255,255,255,.65);font-weight:600;margin-bottom:4px;text-transform:capitalize;}
+.lpc-price{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:800;color:var(--amber2);line-height:1;}
+.lpc-unit{font-size:.63rem;color:rgba(255,255,255,.25);margin-top:1px;}
+.lpc-trend{font-size:.65rem;margin-top:4px;}
+.lpt-up{color:#4ade80;}.lpt-dn{color:#f87171;}.lpt-st{color:rgba(255,255,255,.3);}
+
+/* ── TIERS ── */
+.ltiers{padding:96px 52px;background:var(--bg);}
+.ltier-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:48px;}
+.ltc{border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:28px 22px;
+  transition:all .3s;position:relative;}
+.ltc:hover{border-color:rgba(46,139,74,.35);transform:translateY(-4px);}
+.ltc.best{background:linear-gradient(160deg,rgba(18,55,28,.9),rgba(10,30,18,.9));
+  border-color:rgba(46,139,74,.35);}
+.ltc-tag{position:absolute;top:-12px;left:50%;transform:translateX(-50%);
+  background:linear-gradient(135deg,var(--lime),var(--lime2));color:#fff;
+  padding:3px 14px;border-radius:20px;font-family:'Syne',sans-serif;
+  font-size:.62rem;font-weight:800;white-space:nowrap;}
+.ltc-e{font-size:1.8rem;margin-bottom:10px;}
+.ltc-name{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:800;
+  color:#fff;margin-bottom:4px;}
+.ltc-price{font-family:'JetBrains Mono',monospace;font-size:1.5rem;color:var(--amber2);
+  margin-bottom:3px;}
+.ltc-price small{font-size:.7rem;color:rgba(255,255,255,.3);}
+.ltc-sub{font-size:.74rem;color:rgba(255,255,255,.3);margin-bottom:18px;}
+.ltc-list{list-style:none;padding:0;}
+.ltc-list li{font-size:.79rem;color:rgba(255,255,255,.45);padding:6px 0;
+  border-bottom:1px solid rgba(255,255,255,.05);display:flex;gap:7px;}
+.ltc-list li::before{content:'✓';color:var(--lime2);font-weight:700;flex-shrink:0;}
+
+/* ── SOCIAL PROOF ── */
+.lproof{padding:80px 52px;background:rgba(6,14,8,.8);border-top:1px solid rgba(255,255,255,.05);}
+.lproof-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px;}
+.lprc{background:rgba(10,22,14,.8);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:26px;}
+.lprc-q{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-style:italic;
+  color:rgba(255,255,255,.75);line-height:1.6;margin-bottom:16px;}
+.lprc-p{display:flex;align-items:center;gap:10px;}
+.lprc-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-weight:800;font-family:'Syne',sans-serif;font-size:.9rem;color:#fff;}
+.lprc-name{font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;color:#fff;}
+.lprc-loc{font-size:.7rem;color:rgba(255,255,255,.3);}
+
+/* ── CTA ── */
+.lcta{padding:100px 52px;text-align:center;position:relative;overflow:hidden;}
+.lcta::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 65% 65% at 50% 50%,rgba(18,75,35,.4) 0%,transparent 70%);}
+.lcta-h2{font-family:'Cormorant Garamond',serif;font-size:clamp(3rem,7vw,5.8rem);
+  font-weight:800;letter-spacing:-2px;line-height:.93;color:#fff;margin-bottom:24px;}
+.lcta-h2 em{color:var(--lime2);font-style:italic;}
+.lcta-sub{font-size:.95rem;color:rgba(255,255,255,.32);max-width:380px;margin:0 auto 38px;line-height:1.75;}
+
+/* ── FOOTER ── */
+lfooter{display:block;background:var(--bg);border-top:1px solid rgba(255,255,255,.06);
+  padding:26px 52px;text-align:center;font-size:.78rem;color:rgba(255,255,255,.18);}
+lfooter span{color:var(--amber2);}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(26px);}to{opacity:1;transform:translateY(0);}}
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .7s ease,transform .7s ease;}
+.reveal.in{opacity:1;transform:none;}
+
+@media(max-width:1100px){
+  .lhero-inner{grid-template-columns:1fr;padding:100px 0 60px;}
+  .lh-card{display:none;}
+  .lfeat-grid,.ltier-grid,.lproof-grid{grid-template-columns:1fr;}
+  .lprice-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr));}
+  .lhero,.lfeat,.ltiers,.lproof,.lcta{padding-left:24px;padding-right:24px;}
+  .lnav,.lnav.stuck{padding-left:24px;padding-right:24px;}
+  .lprice-header,.lprice-tabs,.lprice-grid{padding-left:24px;padding-right:24px;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="lnav" id="lnav">
+  <a href="#" class="lbrand"><div class="lbrand-icon">🌿</div>Plantain<span>AI</span></a>
+  <div class="lnav-links">
+    <a href="#features" class="ln-link">Features</a>
+    <a href="#prices" class="ln-link">Prices</a>
+    <a href="#pricing" class="ln-link">Plans</a>{% endraw %}
+    <a href="{{ url_for('login') }}" class="ln-link">Sign in</a>
+    <a href="{{ url_for('register') }}" class="ln-cta">Get started free →</a>{% raw %}
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="lhero">
+  <div class="lhero-bg"></div>
+  <div class="lhero-grid"></div>
+  <div class="lhero-inner">
+
+    <!-- LEFT -->
+    <div>
+      <div class="lh-eyebrow"><span class="lh-dot"></span>Autonomous AI · Built for African Farmers</div>
+      <h1 class="lh-h1">
+        <span class="w1">Farm</span>
+        <span class="w2">smarter.</span>
+        <span class="w3"><span id="tw"></span><span class="caret"></span></span>
+      </h1>
+      <p class="lh-sub">Kenya's most complete farm intelligence platform — AI crop diagnosis, 80+ live market prices, livestock management, IoT automation, and a marketplace covering every Kenyan food.</p>
+      <div class="lh-btns">{% endraw %}
+        <a href="{{ url_for('register') }}" class="lhb-primary">Start for free <i class="fas fa-arrow-right"></i></a>
+        <a href="{{ url_for('login') }}" class="lhb-ghost"><i class="fas fa-sign-in-alt"></i> Sign in</a>{% raw %}
+      </div>
+      <div class="lh-stats">
+        <div><span class="ls-num">95%</span><span class="ls-lbl">Disease accuracy</span></div>
+        <div><span class="ls-num">80+</span><span class="ls-lbl">Kenyan foods tracked</span></div>
+        <div><span class="ls-num">24/7</span><span class="ls-lbl">Autonomous monitoring</span></div>
+        <div><span class="ls-num">Free</span><span class="ls-lbl">To get started</span></div>
+      </div>
+    </div>
+
+    <!-- RIGHT — live dashboard -->
+    <div class="lh-card">
+      <div class="ldc">
+        <div class="ldc-bar">
+          <div class="ldc-dot" style="background:#FF5F57;"></div>
+          <div class="ldc-dot" style="background:#FFBD2E;"></div>
+          <div class="ldc-dot" style="background:#28CA41;"></div>
+          <span class="ldc-title">PLANTAIN AI — LIVE FARM DASHBOARD</span>
+        </div>
+
+        <!-- ticker -->
+        <div class="ldc-ticker">
+          <span class="lt-label">LIVE ●</span>
+          <div class="lt-track"><div class="lt-inner">
+            <span class="lt-item lt-up">MAIZE 48↑</span>
+            <span class="lt-item">TOMATO 82</span>
+            <span class="lt-item lt-up">MILK 52↑</span>
+            <span class="lt-item lt-dn">BEANS 92↓</span>
+            <span class="lt-item lt-up">EGGS 490↑</span>
+            <span class="lt-item">OMENA 355</span>
+            <span class="lt-item lt-up">AVOCADO 125↑</span>
+            <span class="lt-item">KAMANDE 132</span>
+            <span class="lt-item lt-up">NJAHI 122↑</span>
+            <span class="lt-item">DAGAA 305</span>
+            <span class="lt-item lt-up">MAIZE 48↑</span>
+            <span class="lt-item">TOMATO 82</span>
+            <span class="lt-item lt-up">MILK 52↑</span>
+            <span class="lt-item lt-dn">BEANS 92↓</span>
+            <span class="lt-item lt-up">EGGS 490↑</span>
+            <span class="lt-item">OMENA 355</span>
+            <span class="lt-item lt-up">AVOCADO 125↑</span>
+            <span class="lt-item">KAMANDE 132</span>
+          </div></div>
+        </div>
+
+        <!-- sensors -->
+        <div class="ldc-sensors">
+          <div class="ls-card"><div class="ls-val lsv-warn">27%</div><div class="ls-lbl2">💧 Moisture</div></div>
+          <div class="ls-card"><div class="ls-val lsv-ok">24°C</div><div class="ls-lbl2">🌡️ Temp</div></div>
+          <div class="ls-card"><div class="ls-val lsv-ok">6.8</div><div class="ls-lbl2">⚗️ pH</div></div>
+          <div class="ls-card"><div class="ls-val lsv-ok">72%</div><div class="ls-lbl2">🌿 Health</div></div>
+        </div>
+
+        <!-- feed -->
+        <div class="ldc-feed">
+          <div class="ldf-row">
+            <div class="ldf-dot" style="background:#f87171;"></div>
+            <div><div class="ldf-text">Black Sigatoka — Plot A Maize</div><div class="ldf-time">2 min ago</div></div>
+            <div class="ldf-badge" style="background:rgba(248,113,113,.15);color:#f87171;">HIGH</div>
+          </div>
+          <div class="ldf-row">
+            <div class="ldf-dot" style="background:#4ade80;"></div>
+            <div><div class="ldf-text">Auto-irrigation triggered — Zone 2</div><div class="ldf-time">3 min ago</div></div>
+            <div class="ldf-badge" style="background:rgba(74,222,128,.12);color:#4ade80;">AUTO</div>
+          </div>
+          <div class="ldf-row">
+            <div class="ldf-dot" style="background:#fbbf24;"></div>
+            <div><div class="ldf-text">Tomato prices up 12% — sell now alert</div><div class="ldf-time">18 min ago</div></div>
+            <div class="ldf-badge" style="background:rgba(251,191,36,.1);color:#fbbf24;">💰</div>
+          </div>
+        </div>
+
+        <!-- AI -->
+        <div class="ldc-ai">
+          <div class="lai-ico">🤖</div>
+          <div class="lai-text"><span id="aiTxt"></span><span class="caret"></span></div>
+        </div>
+
+        <!-- health bar -->
+        <div class="ldc-footer">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:.58rem;color:rgba(255,255,255,.22);">FARM HEALTH</span>
+          <div class="lhbar"><div class="lhfill"></div></div>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:.62rem;color:#4ade80;font-weight:500;">78%</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="lmarquee">
+  <div class="lmq-track">
+    <div class="lmq-item"><span class="pip"></span>Crop Diagnosis</div>
+    <div class="lmq-item"><span class="pip"></span>Livestock Management</div>
+    <div class="lmq-item"><span class="pip"></span>Live Market Prices</div>
+    <div class="lmq-item"><span class="pip"></span>Omena · Kamande · Njahi</div>
+    <div class="lmq-item"><span class="pip"></span>IoT Smart Farm</div>
+    <div class="lmq-item"><span class="pip"></span>Auto Irrigation</div>
+    <div class="lmq-item"><span class="pip"></span>Price Alerts</div>
+    <div class="lmq-item"><span class="pip"></span>AI Agronomist</div>
+    <div class="lmq-item"><span class="pip"></span>Drone Scheduler</div>
+    <div class="lmq-item"><span class="pip"></span>Daily Farm Reports</div>
+    <div class="lmq-item"><span class="pip"></span>Kenya Marketplace</div>
+    <div class="lmq-item"><span class="pip"></span>Specialist Booking</div>
+    <!-- duplicate -->
+    <div class="lmq-item"><span class="pip"></span>Crop Diagnosis</div>
+    <div class="lmq-item"><span class="pip"></span>Livestock Management</div>
+    <div class="lmq-item"><span class="pip"></span>Live Market Prices</div>
+    <div class="lmq-item"><span class="pip"></span>Omena · Kamande · Njahi</div>
+    <div class="lmq-item"><span class="pip"></span>IoT Smart Farm</div>
+    <div class="lmq-item"><span class="pip"></span>Auto Irrigation</div>
+    <div class="lmq-item"><span class="pip"></span>Price Alerts</div>
+    <div class="lmq-item"><span class="pip"></span>AI Agronomist</div>
+    <div class="lmq-item"><span class="pip"></span>Drone Scheduler</div>
+    <div class="lmq-item"><span class="pip"></span>Daily Farm Reports</div>
+    <div class="lmq-item"><span class="pip"></span>Kenya Marketplace</div>
+    <div class="lmq-item"><span class="pip"></span>Specialist Booking</div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="lfeat" id="features">
+  <div style="max-width:1180px;margin:0 auto;position:relative;z-index:2;">
+    <div class="reveal">
+      <div class="lsec-eye">What we do</div>
+      <h2 class="lsec-h2">Six ways AI <em>works for you</em><br>every single day</h2>
+    </div>
+    <div class="lfeat-grid reveal">
+      <div class="lfc"><div class="lfc-num">01</div><span class="lfc-icon">🔬</span><h3>Instant Crop Diagnosis</h3><p>Point your phone at any crop. AI identifies disease, severity, and prescribes treatment in 20 seconds. 40+ Kenyan crops supported.</p><span class="lfc-tag">95% accuracy</span></div>
+      <div class="lfc"><div class="lfc-num">02</div><span class="lfc-icon">📈</span><h3>Live Market Prices</h3><p>Real-time KSh prices for 80+ items — every Kenyan crop, omena, kamande, njahi, dagaa, tilapia, livestock, dairy, honey and more.</p><span class="lfc-tag">80+ items</span></div>
+      <div class="lfc"><div class="lfc-num">03</div><span class="lfc-icon">🐄</span><h3>Livestock Management</h3><p>Track dairy, beef, poultry, bees, pigs and fish. Daily production records, health scores, vaccination reminders, direct buyer connections.</p><span class="lfc-tag">7 animal types</span></div>
+      <div class="lfc"><div class="lfc-num">04</div><span class="lfc-icon">📡</span><h3>IoT Smart Farm</h3><p>Connect soil sensors, irrigation and drones. AI auto-triggers irrigation when moisture drops. Monitor your farm from anywhere, 24/7.</p><span class="lfc-tag">Real-time control</span></div>
+      <div class="lfc"><div class="lfc-num">05</div><span class="lfc-icon">🛒</span><h3>Kenya Marketplace</h3><p>Buy and sell seeds, fertiliser, produce, livestock, tools. Every Kenyan food covered. Direct farmer-to-buyer — zero commission, no middlemen.</p><span class="lfc-tag">Zero commission</span></div>
+      <div class="lfc"><div class="lfc-num">06</div><span class="lfc-icon">🤖</span><h3>AI Farm Manager</h3><p>Your personal agronomist, available 24/7. Asks about your specific crops, animals, soil and market conditions. Always knows your exact farm.</p><span class="lfc-tag">Always on</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- LIVE PRICES PREVIEW -->
+<section class="lprice-sec" id="prices">
+  <div class="lprice-header reveal">
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-size:.65rem;color:var(--lime2);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px;display:flex;align-items:center;gap:8px;">
+        <span style="width:7px;height:7px;border-radius:50%;background:var(--lime2);display:inline-block;animation:blink 2s step-end infinite;"></span>
+        Live Market Prices
+      </div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:800;color:#fff;">Today's KSh prices — updated every morning</div>
+    </div>
+    <a href="/market-prices" style="background:rgba(46,139,74,.15);border:1px solid rgba(46,139,74,.25);color:var(--lime2);padding:9px 20px;border-radius:9px;font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;text-decoration:none;">View all prices →</a>
+  </div>
+  <div class="lprice-tabs reveal" id="priceTabs">
+    <button class="lpt on" onclick="showPrices('grains',this)">🌽 Grains</button>
+    <button class="lpt" onclick="showPrices('veg',this)">🥦 Vegetables</button>
+    <button class="lpt" onclick="showPrices('fruits',this)">🥭 Fruits</button>
+    <button class="lpt" onclick="showPrices('legumes',this)">🫘 Legumes</button>
+    <button class="lpt" onclick="showPrices('fish',this)">🐟 Fish</button>
+    <button class="lpt" onclick="showPrices('spices',this)">🧄 Herbs & Spices</button>
+  </div>
+  <div class="lprice-grid" id="priceGrid"></div>
+</section>
+
+<!-- TIERS -->
+<section class="ltiers" id="pricing">
+  <div style="max-width:1180px;margin:0 auto;">
+    <div class="reveal">
+      <div class="lsec-eye">Pricing</div>
+      <h2 class="lsec-h2">Start free.<br><em>Grow into power.</em></h2>
+    </div>
+    <div class="ltier-grid reveal">
+      <div class="ltc">
+        <div class="ltc-e">🌱</div>
+        <div class="ltc-name">Shamba</div>
+        <div class="ltc-price">Free <small>/forever</small></div>
+        <div class="ltc-sub">For farmers getting started</div>
+        <ul class="ltc-list"><li>5 crop diagnoses/month</li><li>Live market prices</li><li>Basic AI chat</li><li>Marketplace access</li></ul>
+      </div>
+      <div class="ltc">
+        <div class="ltc-e">🌾</div>
+        <div class="ltc-name">Kilimo</div>
+        <div class="ltc-price">500 <small>KSh/mo</small></div>
+        <div class="ltc-sub">For serious crop farmers</div>
+        <ul class="ltc-list"><li>Unlimited diagnoses</li><li>Bulk photo diagnosis</li><li>Livestock management</li><li>Farm reports & PDF</li></ul>
+      </div>
+      <div class="ltc best">
+        <div class="ltc-tag">MOST POPULAR</div>
+        <div class="ltc-e">🏢</div>
+        <div class="ltc-name">Biashara</div>
+        <div class="ltc-price">2,000 <small>KSh/mo</small></div>
+        <div class="ltc-sub">For agri-businesses</div>
+        <ul class="ltc-list"><li>Everything in Kilimo</li><li>Seller marketplace storefront</li><li>Business AI persona</li><li>Agrovet & specialist booking</li></ul>
+      </div>
+      <div class="ltc">
+        <div class="ltc-e">🤖</div>
+        <div class="ltc-name">Shamba Smart</div>
+        <div class="ltc-price">5,000 <small>KSh/mo</small></div>
+        <div class="ltc-sub">For tech-forward farms</div>
+        <ul class="ltc-list"><li>IoT device control panel</li><li>Auto-irrigation triggers</li><li>Drone spray scheduler</li><li>Daily AI farm report</li></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMING SOON STRIP -->
+<section style="padding:60px 52px;background:rgba(6,14,8,.8);border-top:1px solid rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.05);">
+  <div style="max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:24px;">
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-size:.65rem;color:var(--lime2);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+        <span style="width:7px;height:7px;border-radius:50%;background:var(--lime2);display:inline-block;animation:blink 2s step-end infinite;"></span>
+        Early Access · Be the First
+      </div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:clamp(1.5rem,3vw,2.2rem);font-weight:800;color:white;line-height:1.1;">
+        We're launching with real Kenyan farmers.<br>
+        <span style="color:var(--lime2);">Want to be part of the pilot?</span>
+      </div>
+      <div style="font-size:.85rem;color:rgba(255,255,255,.35);margin-top:8px;max-width:480px;line-height:1.6;">
+        Plantain AI is currently being tested with farmers across Kenya. Sign up free and help us build a platform that truly works for your farm.
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;text-align:center;">{% endraw %}
+      <a href="{{ url_for('register') }}" class="lhb-primary" style="font-size:.88rem;padding:14px 34px;">Join the pilot — it's free</a>{% raw %}
+      <div style="font-size:.7rem;color:rgba(255,255,255,.2);">No credit card · No commitment · Cancel anytime</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="lcta">
+  <div style="position:relative;z-index:2;" class="reveal">
+    <div class="lsec-eye" style="justify-content:center;margin-bottom:16px;">Ready to start?</div>
+    <h2 class="lcta-h2">Your farm.<br><em>Supercharged.</em></h2>
+    <p class="lcta-sub">Join Kenyan farmers using autonomous AI to protect their crops, manage livestock, and earn more — starting completely free.</p>{% endraw %}
+    <a href="{{ url_for('register') }}" class="lhb-primary" style="font-size:.95rem;padding:16px 44px;display:inline-flex;align-items:center;gap:10px;">Create free account <i class="fas fa-arrow-right"></i></a>{% raw %}
+  </div>
+</section>
+
+<!-- FOOTER -->
+<lfooter>
+  <p>🌿 <span>Plantain AI</span> — Autonomous AgriTech for African Farmers &copy; 2026</p>
+</lfooter>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Nav
+window.addEventListener('scroll',()=>document.getElementById('lnav').classList.toggle('stuck',scrollY>40));
+
+// Title typewriter
+const TW=['Earn more.','Grow more.','Sell faster.','Worry less.','AI takes over.'];
+let ti=0,tci=0,tdel=false;
+const tel=document.getElementById('tw');
+function typeT(){
+  const c=TW[ti];
+  if(!tdel){tel.textContent=c.substring(0,tci+1);tci++;if(tci===c.length){tdel=true;setTimeout(typeT,2200);return;}setTimeout(typeT,70);}
+  else{tel.textContent=c.substring(0,tci-1);tci--;if(tci===0){tdel=false;ti=(ti+1)%TW.length;setTimeout(typeT,400);return;}setTimeout(typeT,25);}
+}
+setTimeout(typeT,800);
+
+// AI typewriter
+const AI=['Detecting Fall Armyworm on maize — Plot A...','Severity: HIGH — generating treatment plan.','Auto-scheduling drone pesticide spray tomorrow.','Soil moisture at 27% — irrigation triggered zone 2.','Tomato prices up 12% — sell-now alert sent to farmer.','Cow #3 milk output down 18% — flagging for mastitis check.','Rain forecast Thursday — cancelling drone mission.','Harvest ready in 14 days — sending buyer notifications.','Omena prices rising — auto-listing 50kg on marketplace.'];
+let ai=0,aci=0,adel=false;
+const ael=document.getElementById('aiTxt');
+function typeAI(){
+  if(!ael)return;const c=AI[ai];
+  if(!adel){ael.textContent=c.substring(0,aci+1);aci++;if(aci===c.length){adel=true;setTimeout(typeAI,2000);return;}setTimeout(typeAI,42);}
+  else{ael.textContent=c.substring(0,aci-1);aci--;if(aci===0){adel=false;ai=(ai+1)%AI.length;setTimeout(typeAI,300);return;}setTimeout(typeAI,16);}
+}
+setTimeout(typeAI,1400);
+
+// Prices preview
+const PRICES={
+  grains:[['Maize',45,'↑'],[' Rice',90,'→'],['Sorghum',40,'↑'],['Millet',38,'→'],['Wheat',60,'↓'],['Barley',55,'→'],['Teff',120,'↑'],['Oats',80,'→']],
+  veg:[['Sukuma Wiki',25,'↑'],['Tomato',80,'↓'],['Onion',70,'→'],['Kale',30,'↑'],['Spinach',35,'→'],['Cabbage',30,'↓'],['Carrot',60,'→'],['Garlic',400,'↑'],['Managu',25,'→'],['Terere',30,'↑'],['Mrenda',25,'→'],['Pumpkin',25,'→']],
+  fruits:[['Avocado',120,'↑'],['Mango',50,'→'],['Banana',35,'↑'],['Passion Fruit',150,'↑'],['Papaya',35,'→'],['Pineapple',40,'→'],['Watermelon',25,'↓'],['Guava',60,'→']],
+  legumes:[['Beans',100,'↓'],['Ndengu',110,'→'],['Njahi',120,'↑'],['Kamande',130,'→'],['Mbaazi',95,'↑'],['Chickpeas',140,'→'],['Cowpeas',85,'↑'],['Soybean',90,'→']],
+  fish:[['Omena',350,'→'],['Dagaa',300,'↑'],['Tilapia',280,'↑'],['Nile Perch',220,'→'],['Catfish',260,'→'],['Smoked Fish',600,'↑'],['Crayfish',800,'→'],['Prawns',1200,'↑']],
+  spices:[['Ginger',300,'↑'],['Garlic',400,'↑'],['Coriander',80,'→'],['Lemongrass',60,'→'],['Turmeric',350,'↑'],['Moringa',200,'→'],['Mint',100,'→'],['Basil',150,'→']],
+};
+function showPrices(cat,btn){
+  document.querySelectorAll('.lpt').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  const grid=document.getElementById('priceGrid');
+  const items=PRICES[cat]||[];
+  const month=new Date().getMonth()+1;
+  const mult=([3,4,5].includes(month)?0.88:[6,7].includes(month)?1.10:[10,11].includes(month)?0.92:1.0);
+  grid.innerHTML=items.map(([n,p,t])=>{
+    const adj=Math.round(p*mult*(0.93+Math.random()*.14));
+    const tc=t==='↑'?'lpt-up':t==='↓'?'lpt-dn':'lpt-st';
+    return `<div class="lpc"><div class="lpc-name">${n}</div><div class="lpc-price">KSh ${adj.toLocaleString()}</div><div class="lpc-unit">per kg</div><div class="lpc-trend ${tc}">${t} ${t==='↑'?'Rising':t==='↓'?'Falling':'Stable'}</div></div>`;
+  }).join('');
+}
+showPrices('grains',document.querySelector('.lpt.on'));
+
+// Scroll reveal
+const obs=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in');}),{threshold:.08});
+document.querySelectorAll('.reveal').forEach(e=>obs.observe(e));
+</script>
+</body>
+</html>{% endraw %}

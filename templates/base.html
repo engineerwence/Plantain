@@ -1,0 +1,204 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plantain AI — {% block title %}{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700;800&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #080E0A;
+            --forest: #0D2B1A;
+            --deep: #142E1E;
+            --moss: #1E5C35;
+            --leaf: #2E8B4A;
+            --lime: #4DB86A;
+            --gold: #D4A017;
+            --amber: #E8B84B;
+            --white: #FFFFFF;
+            --muted: rgba(255,255,255,0.42);
+            --border: rgba(255,255,255,0.07);
+            --card: rgba(13,43,26,0.55);
+            --r: 16px;
+            --r-sm: 10px;
+        }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'DM Sans',sans-serif;background:var(--ink);color:var(--white);min-height:100vh;background-image:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(30,92,53,0.25) 0%,transparent 60%);}
+        body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.4;}
+
+        /* NAV */
+        .navbar{background:rgba(8,14,10,0.9)!important;backdrop-filter:blur(24px);border-bottom:1px solid var(--border)!important;padding:13px 0!important;position:sticky;top:0;z-index:500;}
+        .navbar-brand{font-family:'Cormorant Garamond',serif!important;font-size:1.55rem!important;font-weight:700!important;color:var(--white)!important;letter-spacing:-.5px;}
+        .navbar-brand span{color:var(--amber);}
+        .nav-link{font-family:'Syne',sans-serif!important;font-size:.8rem!important;font-weight:600!important;color:var(--muted)!important;padding:7px 13px!important;border-radius:30px!important;transition:all .2s!important;letter-spacing:.3px;}
+        .nav-link:hover{color:white!important;background:rgba(255,255,255,.07)!important;}
+        .nav-link.active{color:white!important;background:rgba(46,139,74,.18)!important;border:1px solid rgba(46,139,74,.3)!important;}
+        .nav-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--amber));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.78rem;color:var(--ink);font-family:'Syne',sans-serif;flex-shrink:0;}
+
+        /* LAYOUT */
+        .pw{max-width:1160px;margin:0 auto;padding:36px 24px 80px;}
+
+        /* PAGE HEADER */
+        .ptag{font-family:'Syne',sans-serif;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--amber);margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+        .ptag::before{content:'';width:18px;height:2px;background:var(--amber);}
+        .ptitle{font-family:'Cormorant Garamond',serif;font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;line-height:1;letter-spacing:-1px;}
+        .psub{color:var(--muted);font-size:.88rem;margin-top:6px;}
+
+        /* CARDS */
+        .pc{background:var(--card);border:1px solid var(--border);border-radius:var(--r);backdrop-filter:blur(20px);transition:all .3s;}
+        .pc:hover{border-color:rgba(46,139,74,.25);box-shadow:0 20px 50px rgba(0,0,0,.3);}
+
+        /* STAT CARDS */
+        .sc{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:26px;position:relative;overflow:hidden;transition:all .3s;}
+        .sc:hover{transform:translateY(-3px);border-color:rgba(46,139,74,.3);}
+        .sc .glow{position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;filter:blur(24px);opacity:.35;}
+        .snum{font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:800;line-height:1;display:block;margin-bottom:4px;}
+        .slbl{font-family:'Syne',sans-serif;font-size:.7rem;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);}
+
+        /* BUTTONS */
+        .bg{background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);border:none;padding:11px 26px;border-radius:50px;font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;letter-spacing:.3px;cursor:pointer;transition:all .25s;display:inline-flex;align-items:center;gap:8px;text-decoration:none;}
+        .bg:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(212,160,23,.4);color:var(--ink);}
+        .bgg{background:rgba(46,139,74,.12);color:var(--lime);border:1px solid rgba(46,139,74,.28);padding:11px 26px;border-radius:50px;font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;cursor:pointer;transition:all .25s;display:inline-flex;align-items:center;gap:8px;text-decoration:none;}
+        .bgg:hover{background:rgba(46,139,74,.22);color:var(--lime);transform:translateY(-2px);}
+        .bgh{background:transparent;color:var(--muted);border:1px solid var(--border);padding:10px 22px;border-radius:50px;font-family:'Syne',sans-serif;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .25s;display:inline-flex;align-items:center;gap:8px;text-decoration:none;}
+        .bgh:hover{border-color:rgba(255,255,255,.2);color:white;}
+
+        /* FORMS */
+        .plbl{font-family:'Syne',sans-serif;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.45);margin-bottom:7px;display:block;}
+        .pi{width:100%;background:rgba(255,255,255,.04)!important;border:1px solid rgba(255,255,255,.1)!important;border-radius:var(--r-sm)!important;padding:12px 16px 12px 42px!important;font-family:'DM Sans',sans-serif!important;font-size:.92rem!important;color:white!important;transition:all .2s!important;}
+        .pi:focus{background:rgba(46,139,74,.08)!important;border-color:rgba(46,139,74,.4)!important;box-shadow:0 0 0 3px rgba(46,139,74,.1)!important;outline:none!important;color:white!important;}
+        .pi::placeholder{color:rgba(255,255,255,.18)!important;}
+        .pip{width:100%;background:rgba(255,255,255,.04)!important;border:1px solid rgba(255,255,255,.1)!important;border-radius:var(--r-sm)!important;padding:12px 16px!important;font-family:'DM Sans',sans-serif!important;font-size:.92rem!important;color:white!important;transition:all .2s!important;}
+        .pip:focus{background:rgba(46,139,74,.08)!important;border-color:rgba(46,139,74,.4)!important;box-shadow:0 0 0 3px rgba(46,139,74,.1)!important;outline:none!important;color:white!important;}
+        .pip::placeholder{color:rgba(255,255,255,.18)!important;}
+        .pip option{background:#1E5C35;color:white;}
+        .iw{position:relative;}
+        .iw .ico{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.22);font-size:.85rem;pointer-events:none;}
+
+        /* BADGES */
+        .bh{background:rgba(77,184,106,.1);color:var(--lime);border:1px solid rgba(77,184,106,.22);padding:3px 11px;border-radius:20px;font-family:'Syne',sans-serif;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+        .bar{background:rgba(232,184,75,.1);color:var(--amber);border:1px solid rgba(232,184,75,.22);padding:3px 11px;border-radius:20px;font-family:'Syne',sans-serif;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+        .bd{background:rgba(248,113,113,.1);color:#F87171;border:1px solid rgba(248,113,113,.22);padding:3px 11px;border-radius:20px;font-family:'Syne',sans-serif;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+        .bl{background:rgba(77,184,106,.1);color:var(--lime);border:1px solid rgba(77,184,106,.2);padding:3px 11px;border-radius:20px;font-family:'Syne',sans-serif;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+        .bm{background:rgba(232,184,75,.1);color:var(--amber);border:1px solid rgba(232,184,75,.2);padding:3px 11px;border-radius:20px;font-family:'Syne',sans-serif;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+        .bhi{background:rgba(248,113,113,.1);color:#F87171;border:1px solid rgba(248,113,113,.2);padding:3px 11px;border-radius:20px;font-family:'Syne',sans-serif;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+
+        /* SECTION LABEL */
+        .slabel{font-family:'Syne',sans-serif;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+        .slabel::after{content:'';flex:1;height:1px;background:var(--border);}
+
+        /* MODALS */
+        .modal-content{background:#0B2016!important;border:1px solid rgba(46,139,74,.2)!important;border-radius:var(--r)!important;box-shadow:0 40px 80px rgba(0,0,0,.6)!important;}
+        .mtop{padding:22px 26px 18px;border-bottom:1px solid var(--border);}
+        .mtop h5{font-family:'Cormorant Garamond',serif;font-size:1.45rem;font-weight:700;color:white;margin:0;}
+        .mbody{padding:22px 26px 26px;}
+
+        /* DROPDOWN */
+        .dropdown-menu{background:#0D2B1A!important;border:1px solid rgba(46,139,74,.2)!important;border-radius:var(--r-sm)!important;padding:6px!important;box-shadow:0 20px 50px rgba(0,0,0,.5)!important;}
+        .dropdown-item{color:var(--muted)!important;border-radius:8px!important;padding:9px 13px!important;font-size:.85rem;transition:all .2s;}
+        .dropdown-item:hover{background:rgba(255,255,255,.05)!important;color:white!important;}
+        .dropdown-item.dr{color:#F87171!important;}
+        .dropdown-item.dr:hover{background:rgba(248,113,113,.08)!important;}
+
+        /* PROGRESS */
+        .pp{height:5px;background:rgba(255,255,255,.06);border-radius:10px;overflow:hidden;}
+        .ppb{height:100%;background:linear-gradient(90deg,var(--leaf),var(--amber));border-radius:10px;}
+
+        /* DIVIDER */
+        .pdiv{height:1px;background:var(--border);margin:18px 0;}
+
+        /* FOOTER */
+        footer{border-top:1px solid var(--border);padding:22px 0;text-align:center;color:rgba(255,255,255,.18);font-size:.8rem;}
+        footer span{color:var(--amber);}
+
+        /* ANIMATIONS */
+        @keyframes fu{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+        .fu{animation:fu .5s ease both;}
+        .fu1{animation-delay:.08s;}.fu2{animation-delay:.16s;}.fu3{animation-delay:.24s;}.fu4{animation-delay:.32s;}.fu5{animation-delay:.4s;}
+
+        @media(max-width:768px){.pw{padding:20px 14px 60px;}}
+    </style>
+    {% block head %}{% endblock %}
+<link rel="manifest" href="/manifest.json"><meta name="theme-color" content="#2E8B4A"></head>
+<body>
+
+<nav class="navbar navbar-expand-lg">
+    <div style="max-width:1160px;margin:0 auto;padding:0 24px;width:100%;display:flex;align-items:center;gap:16px;">
+        <a class="navbar-brand" href="{{ url_for('dashboard') }}">🌿 Plantain<span>AI</span></a>
+        <button class="navbar-toggler border-0 ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+            <i class="fas fa-bars" style="color:white;font-size:.9rem;"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="nav">
+            <ul class="navbar-nav mx-auto gap-1">
+                <li class="nav-item"><a class="nav-link {% if request.endpoint=='dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}"><i class="fas fa-th-large me-1"></i>Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link {% if request.endpoint=='diagnose' %}active{% endif %}" href="{{ url_for('diagnose') }}"><i class="fas fa-leaf me-1"></i>Diagnose</a></li>
+                <li class="nav-item"><a class="nav-link {% if request.endpoint=='marketplace' %}active{% endif %}" href="{{ url_for('marketplace') }}"><i class="fas fa-store me-1"></i>Market</a></li>
+                <li class="nav-item"><a class="nav-link {% if request.endpoint=='alerts' %}active{% endif %}" href="{{ url_for('alerts') }}"><i class="fas fa-bell me-1"></i>Alerts</a></li>
+                <li class="nav-item"><a class="nav-link {% if request.endpoint=='chat' %}active{% endif %}" href="{{ url_for('chat') }}"><i class="fas fa-robot me-1"></i>AI Chat</a></li>
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle {% if request.endpoint in ['bulk_diagnose','farm_profile','farm_report'] %}active{% endif %}" href="#" data-bs-toggle="dropdown">
+                    <i class="fas fa-tractor me-1"></i>Farm Tools
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-dark">
+                    <li><a class="dropdown-item" href="{{ url_for('bulk_diagnose') }}"><i class="fas fa-images me-2"></i>Bulk Diagnose</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('farm_profile') }}"><i class="fas fa-cog me-2"></i>Farm Profile</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('farm_report') }}"><i class="fas fa-file-alt me-2"></i>Farm Report</a></li>
+                    <li><hr class="dropdown-divider" style="border-color:var(--border);"></li>
+                    <li><a class="dropdown-item" href="{{ url_for('agrovets') }}"><i class="fas fa-store me-2"></i>Agrovets</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('specialists') }}"><i class="fas fa-user-tie me-2"></i>Specialists</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('market_prices') }}"><i class="fas fa-chart-line me-2"></i>Market Prices</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('auto_monitor') }}"><i class="fas fa-satellite-dish me-2"></i>Auto Monitor 🤖</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('daily_report') }}"><i class="fas fa-file-alt me-2"></i>Daily Farm Report 📋</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('price_alerts') }}"><i class="fas fa-bell me-2"></i>Price Alerts 💰</a></li>
+                    <li><hr class="dropdown-divider" style="border-color:rgba(255,255,255,.07);"></li>
+                   {# <li><a class="dropdown-item dr" href="{{ url_for('planting_advisor') }}">🌱 Planting Advisor</a></li>
+                    <li><a class="dropdown-item dr" href="{{ url_for('satellite') }}">🛰️ Satellite Field Health</a></li>
+                    <li><a class="dropdown-item dr" href="{{ url_for('breeding') }}">🐄 Breeding Calendar</a></li>
+                    <li><a class="dropdown-item dr" href="{{ url_for('verify_input') }}">🔍 Verify Inputs</a></li>
+                    <li><hr class="dropdown-divider" style="border-color:rgba(255,255,255,.07);"></li>
+                    <li><a class="dropdown-item dr" href="{{ url_for('cooperatives') }}">🤝 Cooperatives</a></li>
+                    <li><a class="dropdown-item dr" href="{{ url_for('negotiate') }}">💡 AI Negotiator</a></li>
+                    <li><a class="dropdown-item dr" href="{{ url_for('buyer_demands') }}">🛒 Buyer Demands</a></li>
+                    <li><hr class="dropdown-divider" style="border-color:rgba(255,255,255,.07);"></li>
+                    <li><a class="dropdown-item dr" href="{{ url_for('credit_score') }}">📊 Credit Score</a></li>
+                    <li><a class="dropdown-item dr" href="{{ url_for('insurance') }}">🛡️ Farm Insurance</a></li>
+                    <li><a class="dropdown-item dr" href="{{ url_for('carbon') }}">🌍 Carbon Credits</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('livestock') }}"><i class="fas fa-horse me-2"></i>Livestock</a></li> #}
+                    <li><a class="dropdown-item" href="{{ url_for('sellers') }}"><i class="fas fa-shopping-bag me-2"></i>Buy Inputs</a></li>
+                    <li><hr class="dropdown-divider" style="border-color:rgba(34,211,238,.2);"></li>
+                    <li><a class="dropdown-item" href="{{ url_for('smart_farm') }}" style="color:#22d3ee;"><i class="fas fa-robot me-2"></i>Smart Farm Control</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('text_to_report') }}"><i class="fas fa-file-pdf me-2"></i>Text to PDF</a></li>
+                  </ul>
+                </li>
+            </ul>
+            <div class="d-flex align-items-center gap-2">
+                <div class="nav-avatar">{{ session['user_name'][0]|upper }}</div>
+                <div class="dropdown">
+                    <button class="bgh" style="padding:7px 14px;" data-bs-toggle="dropdown">{{ session['user_name'].split()[0] }} <i class="fas fa-chevron-down ms-1" style="font-size:.65rem;"></i></button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item dr" href="{{ url_for('mpesa_pay') }}"><i class="fas fa-mobile-alt me-2" style="color:#4caf50;"></i>Upgrade Plan</a></li>
+                        <li><a class="dropdown-item dr" href="{{ url_for('my_payments') }}"><i class="fas fa-receipt me-2" style="color:var(--amber);"></i>Payment History</a></li>
+                        {% if session.get('is_admin') %}
+                        <li><hr class="dropdown-divider" style="border-color:rgba(255,255,255,.07);"></li>
+                        <li><a class="dropdown-item dr" href="{{ url_for('admin_dashboard') }}" style="color:#f87171;"><i class="fas fa-shield-alt me-2"></i>Admin Panel</a></li>
+                        {% endif %}
+                        <li><hr class="dropdown-divider" style="border-color:rgba(255,255,255,.07);"></li>
+                        <li><a class="dropdown-item dr" href="{{ url_for('logout') }}" onclick="return confirm('Sign out?')"><i class="fas fa-sign-out-alt me-2"></i>Sign out</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="pw">{% block content %}{% endblock %}</div>
+
+<footer><p>🌿 <span>Plantain AI</span> — Autonomous AgriTech for African Farmers &copy; 2026</p></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% block scripts %}{% endblock %}
+<script>if("serviceWorker"in navigator){navigator.serviceWorker.register("/sw.js").catch(()=>{});}</script>
+</body>
+</html>

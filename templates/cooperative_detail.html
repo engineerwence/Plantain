@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}{{ coop.name }}{% endblock %}
+{% block head %}<style>
+.pg-eyebrow{font-family:"Syne",sans-serif;font-size:.62rem;color:var(--lime);text-transform:uppercase;letter-spacing:2px;margin-bottom:5px;}
+.pg-title{font-family:"Cormorant Garamond",serif;font-size:clamp(1.6rem,3vw,2.2rem);font-weight:800;color:white;margin:0;}
+.panel{background:rgba(8,20,12,.9);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:22px;margin-bottom:16px;}
+.panel-title{font-family:"Syne",sans-serif;font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.3);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
+.card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:16px;transition:all .2s;}
+.card:hover{border-color:rgba(255,255,255,.14);transform:translateY(-2px);}
+.sf-input{background:rgba(20,40,25,.95);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:10px 13px;color:white;font-family:"DM Sans",sans-serif;font-size:.84rem;outline:none;width:100%;box-sizing:border-box;transition:border-color .2s;}
+.sf-input:focus{border-color:rgba(46,139,74,.4);}
+.sf-label{font-family:"Syne",sans-serif;font-size:.7rem;color:rgba(255,255,255,.35);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
+.btn-green{background:linear-gradient(135deg,var(--lime),#4DB86A);color:white;border:none;padding:10px 22px;border-radius:10px;font-family:"Syne",sans-serif;font-weight:700;cursor:pointer;font-size:.84rem;}
+.btn-cyan{background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.2);color:#22d3ee;padding:9px 18px;border-radius:9px;font-family:"Syne",sans-serif;font-weight:700;cursor:pointer;font-size:.8rem;text-decoration:none;display:inline-block;}
+.btn-amber{background:rgba(212,160,23,.1);border:1px solid rgba(212,160,23,.2);color:var(--amber);padding:9px 18px;border-radius:9px;font-family:"Syne",sans-serif;font-weight:700;cursor:pointer;font-size:.8rem;text-decoration:none;display:inline-block;}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-family:"Syne",sans-serif;font-size:.62rem;font-weight:700;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:768px){.grid2{grid-template-columns:1fr;}}
+.flash-ok{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.18);color:#4ade80;padding:11px 16px;border-radius:9px;margin-bottom:14px;font-size:.84rem;}
+.flash-err{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.18);color:#f87171;padding:11px 16px;border-radius:9px;margin-bottom:14px;font-size:.84rem;}
+
+
+.chat-bubble{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:12px 12px 12px 4px;padding:10px 14px;margin-bottom:8px;max-width:80%;}
+.chat-bubble.mine{margin-left:auto;border-radius:12px 12px 4px 12px;background:rgba(46,139,74,.12);border-color:rgba(46,139,74,.2);}
+</style>{% endblock %}
+{% block content %}
+{% with msgs=get_flashed_messages(with_categories=true) %}{% for c,m in msgs %}<div class="flash-{{ 'ok' if c=='success' else 'err' }}">{{ m }}</div>{% endfor %}{% endwith %}
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+  <a href="{{ url_for('cooperatives') }}" style="color:rgba(255,255,255,.4);text-decoration:none;font-size:.8rem;">← Cooperatives</a>
+  <h1 style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:800;color:white;margin:0;">🤝 {{ coop.name }}</h1>
+  <span class="badge" style="background:rgba(46,139,74,.1);color:var(--lime);">{{ coop.county }}</span>
+  <span class="badge" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.4);">{{ members|length }} members</span>
+</div>
+{% if not is_member %}
+<div style="margin-bottom:16px;">
+  <form method="POST" action="{{ url_for('join_cooperative', coop_id=coop.id) }}" style="display:inline;">
+    <button type="submit" class="btn-green">Join This Cooperative</button>
+  </form>
+</div>
+{% endif %}
+
+<div class="grid2">
+  <!-- Members -->
+  <div class="panel">
+    <div class="panel-title">👥 Members ({{ members|length }})</div>
+    {% for m in members %}
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+      <div style="width:32px;height:32px;border-radius:50%;background:rgba(46,139,74,.2);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:.8rem;color:var(--lime);flex-shrink:0;">{{ m.name[0]|upper if m.name else '?' }}</div>
+      <div>
+        <div style="font-size:.84rem;color:white;">{{ m.name }}</div>
+        <div style="font-size:.7rem;color:rgba(255,255,255,.3);">{{ m.county or '' }} {{ '· '+m.farm_type if m.farm_type else '' }}</div>
+      </div>
+      {% if m.role == 'admin' %}<span class="badge" style="background:rgba(212,160,23,.1);color:var(--amber);margin-left:auto;">Admin</span>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Treasury -->
+  <div class="panel">
+    <div class="panel-title">💰 Group Treasury <span style="color:var(--amber);font-family:'Cormorant Garamond',serif;font-size:1.2rem;">KSh {{ '{:,}'.format(balance|int) }}</span></div>
+    {% for t in treasury[:8] %}
+    <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.8rem;">
+      <span style="color:rgba(255,255,255,.6);">{{ t.description or t.txn_type }}</span>
+      <span style="color:{% if t.txn_type=='credit' %}#4ade80{% else %}#f87171{% endif %};font-weight:700;">{{ '+' if t.txn_type=='credit' else '-' }}KSh {{ '{:,}'.format((t.amount or 0)|int) }}</span>
+    </div>
+    {% else %}<div style="color:rgba(255,255,255,.2);font-size:.8rem;padding:12px 0;">No treasury records yet</div>{% endfor %}
+  </div>
+</div>
+
+<!-- Group Chat -->
+<div class="panel">
+  <div class="panel-title">💬 Group Chat</div>
+  <div style="max-height:280px;overflow-y:auto;margin-bottom:14px;padding-right:4px;" id="chatArea">
+    {% for msg in messages %}
+    <div class="chat-bubble {{ 'mine' if msg.user_id == session.user_id else '' }}">
+      <div style="font-family:'Syne',sans-serif;font-size:.62rem;color:{% if msg.user_id==session.user_id %}var(--lime){% else %}rgba(255,255,255,.4){% endif %};margin-bottom:3px;">{{ msg.sender_name }}</div>
+      <div style="font-size:.82rem;color:rgba(255,255,255,.8);">{{ msg.message }}</div>
+      <div style="font-size:.62rem;color:rgba(255,255,255,.2);margin-top:3px;text-align:right;">{{ msg.created_at.strftime('%d %b %H:%M') if msg.created_at else '' }}</div>
+    </div>
+    {% else %}<div style="color:rgba(255,255,255,.2);font-size:.82rem;">No messages yet. Start the conversation!</div>{% endfor %}
+  </div>
+  {% if is_member %}
+  <form method="POST" action="{{ url_for('coop_message', coop_id=coop.id) }}" style="display:flex;gap:8px;">
+    <input class="sf-input" name="message" placeholder="Message the group..." style="flex:1;" required>
+    <button type="submit" class="btn-green" style="padding:10px 18px;">Send</button>
+  </form>
+  {% endif %}
+</div>
+
+<!-- Listings -->
+<div class="panel">
+  <div class="panel-title">📦 Group Listings</div>
+  {% if listings %}
+  <div class="card-grid">
+    {% for l in listings %}
+    <div class="card">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;margin-bottom:4px;">{{ l.crop_type }}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--lime);">KSh {{ '{:,}'.format((l.price_per_kg or 0)|int) }}/kg</div>
+      <div style="font-size:.75rem;color:rgba(255,255,255,.35);">{{ l.quantity }}kg · {{ l.location }}</div>
+      <div style="font-size:.72rem;color:rgba(255,255,255,.3);margin-top:4px;">By {{ l.seller_name }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div style="color:rgba(255,255,255,.2);font-size:.82rem;">No group listings yet. Members can list produce through the Marketplace.</div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}<script>const ca=document.getElementById('chatArea');if(ca)ca.scrollTop=ca.scrollHeight;</script>{% endblock %}

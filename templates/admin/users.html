@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Admin — Users{% endblock %}
+{% block head %}
+<style>
+.adm-eyebrow{font-family:'Syne',sans-serif;font-size:.62rem;color:#f87171;text-transform:uppercase;letter-spacing:2px;margin-bottom:5px;display:flex;align-items:center;gap:7px;}
+.adm-panel{background:rgba(8,20,12,.9);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:20px;margin-bottom:16px;}
+.adm-table{width:100%;border-collapse:collapse;}
+.adm-table th{font-family:'Syne',sans-serif;font-size:.62rem;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.25);padding:9px 12px;text-align:left;border-bottom:1px solid rgba(255,255,255,.05);}
+.adm-table td{padding:11px 12px;font-size:.82rem;color:rgba(255,255,255,.7);border-bottom:1px solid rgba(255,255,255,.04);}
+.adm-table tr:hover td{background:rgba(255,255,255,.02);}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-family:'Syne',sans-serif;font-size:.62rem;font-weight:700;}
+.badge-free{background:rgba(255,255,255,.07);color:rgba(255,255,255,.4);}
+.badge-pro{background:rgba(46,139,74,.12);color:var(--lime);}
+.badge-enterprise{background:rgba(34,211,238,.1);color:#22d3ee;}
+.badge-smart{background:rgba(168,85,247,.12);color:#c084fc;}
+.sf-input{background:rgba(20,40,25,.95);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:9px 13px;color:white;font-family:'DM Sans',sans-serif;font-size:.84rem;outline:none;}
+</style>
+{% endblock %}
+{% block content %}
+<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+  <div>
+    <div class="adm-eyebrow">Admin · Users</div>
+    <h1 style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:800;color:white;margin:0;">👥 User Management</h1>
+    <div style="font-size:.75rem;color:rgba(255,255,255,.3);margin-top:3px;">{{ total }} total users</div>
+  </div>
+  <a href="{{ url_for('admin_dashboard') }}" style="color:rgba(255,255,255,.4);font-size:.8rem;text-decoration:none;">← Back to dashboard</a>
+</div>
+
+<!-- SEARCH & FILTER -->
+<form method="GET" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;">
+  <input class="sf-input" name="q" placeholder="Search name, email, phone..." value="{{ search }}" style="min-width:220px;">
+  <select name="plan" class="sf-input">
+    <option value="">All plans</option>
+    <option value="free" {% if plan=='free' %}selected{% endif %}>Free</option>
+    <option value="pro" {% if plan=='pro' %}selected{% endif %}>Pro</option>
+    <option value="enterprise" {% if plan=='enterprise' %}selected{% endif %}>Enterprise</option>
+    <option value="smart" {% if plan=='smart' %}selected{% endif %}>Smart</option>
+  </select>
+  <button type="submit" style="background:linear-gradient(135deg,var(--lime),#4DB86A);color:white;padding:9px 20px;border:none;border-radius:9px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;">Search</button>
+  {% if search or plan %}<a href="{{ url_for('admin_users') }}" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);padding:9px 16px;border-radius:9px;text-decoration:none;font-family:'Syne',sans-serif;font-size:.82rem;">Clear</a>{% endif %}
+</form>
+
+<div class="adm-panel">
+  <table class="adm-table">
+    <tr><th>#</th><th>Name</th><th>Phone</th><th>County</th><th>Farm Type</th><th>Plan</th><th>Admin</th><th>Joined</th><th>Action</th></tr>
+    {% for u in users %}
+    <tr>
+      <td style="color:rgba(255,255,255,.25);font-size:.72rem;">{{ u.id }}</td>
+      <td>
+        <a href="{{ url_for('admin_user_detail', uid=u.id) }}" style="color:#22d3ee;text-decoration:none;font-weight:600;">{{ u.name }}</a>
+        <div style="font-size:.68rem;color:rgba(255,255,255,.28);">{{ u.email }}</div>
+      </td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:rgba(255,255,255,.5);">{{ u.phone or '—' }}</td>
+      <td style="font-size:.78rem;">{{ u.county or '—' }}</td>
+      <td style="font-size:.75rem;color:rgba(255,255,255,.45);">{{ u.farm_type or '—' }}</td>
+      <td><span class="badge badge-{{ u.subscription_plan }}">{{ (u.subscription_plan or 'free')|upper }}</span></td>
+      <td>{% if u.is_admin %}<span style="color:#f87171;font-size:.78rem;font-weight:700;">ADMIN</span>{% else %}<span style="color:rgba(255,255,255,.2);font-size:.72rem;">—</span>{% endif %}</td>
+      <td style="font-size:.74rem;color:rgba(255,255,255,.3);">{{ u.created_at.strftime('%d %b %Y') if u.created_at else '—' }}</td>
+      <td><a href="{{ url_for('admin_user_detail', uid=u.id) }}" style="background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.15);color:#22d3ee;padding:4px 12px;border-radius:7px;text-decoration:none;font-family:'Syne',sans-serif;font-size:.68rem;font-weight:700;">View</a></td>
+    </tr>
+    {% else %}
+    <tr><td colspan="9" style="text-align:center;padding:28px;color:rgba(255,255,255,.2);">No users found</td></tr>
+    {% endfor %}
+  </table>
+  <!-- Pagination -->
+  {% if total > per %}
+  <div style="display:flex;gap:8px;margin-top:16px;align-items:center;flex-wrap:wrap;">
+    {% for p in range(1, (total // per) + 2) %}
+    <a href="?page={{ p }}&q={{ search }}&plan={{ plan }}" style="padding:6px 13px;border-radius:7px;font-family:'Syne',sans-serif;font-size:.75rem;font-weight:700;text-decoration:none;{% if p == page %}background:rgba(46,139,74,.2);border:1px solid rgba(46,139,74,.3);color:var(--lime);{% else %}background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);color:rgba(255,255,255,.4);{% endif %}">{{ p }}</a>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

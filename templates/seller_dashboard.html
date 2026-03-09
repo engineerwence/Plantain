@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Seller Dashboard{% endblock %}
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+  <div>
+    <div class="ptag">Seller Platform</div>
+    <h1 class="ptitle">{{ profile.business_name }}</h1>
+    <p class="psub">📍 {{ profile.town }}, {{ profile.county }} · <span style="color:{% if profile.status=='approved' %}var(--lime){% else %}var(--amber){% endif %};">{{ profile.status|title }}</span></p>
+  </div>
+  <button onclick="document.getElementById('addProductModal').style.display='flex'"
+    style="background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:10px 20px;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;font-size:.82rem;">
+    + Add Product
+  </button>
+</div>
+
+<!-- Stats -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px;">
+  {% for icon,label,val,col in [('📦','Products',products|length,'var(--lime)'),('🛒','Total Orders',orders|length,'var(--amber)'),('⏳','Pending',pending|length,'#F87171'),('⭐','Rating',('%.1f'|format(profile.rating)) if profile.rating>0 else 'New','#a78bfa')] %}
+  <div class="pc fu" style="text-align:center;padding:16px;">
+    <div style="font-size:1.5rem;">{{ icon }}</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;color:{{ col }};">{{ val }}</div>
+    <div style="font-size:.7rem;color:var(--muted);">{{ label }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+
+<!-- Products -->
+<div class="pc fu fu1" style="padding:22px;">
+  <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;margin-bottom:14px;">My Products</div>
+  {% if products %}
+  {% for p in products %}
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05);">
+    <div>
+      <div style="font-size:.85rem;font-weight:600;color:white;">{{ p.name }}</div>
+      <div style="font-size:.7rem;color:var(--muted);">{{ p.category }} · Stock: {{ p.stock_qty }} {{ p.unit }}</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--lime);font-size:.88rem;">KSh {{ '{:,.0f}'.format(p.price_ksh) }}</div>
+      <div style="font-size:.65rem;color:var(--muted);">per {{ p.unit }}</div>
+    </div>
+  </div>
+  {% endfor %}
+  {% else %}
+  <div style="text-align:center;padding:24px;color:var(--muted);font-size:.82rem;">No products yet — add your first product</div>
+  {% endif %}
+</div>
+
+<!-- Orders -->
+<div class="pc fu fu2" style="padding:22px;">
+  <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;margin-bottom:14px;">Recent Orders</div>
+  {% if orders %}
+  {% for o in orders %}
+  <div style="padding:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;margin-bottom:8px;">
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+      <span style="font-size:.82rem;font-weight:600;color:white;">Order #{{ o.id }} — {{ o.product_name }}</span>
+      <span style="font-family:'Syne',sans-serif;font-weight:700;font-size:.78rem;color:var(--amber);">KSh {{ '{:,.0f}'.format(o.total_ksh) }}</span>
+    </div>
+    <div style="font-size:.72rem;color:var(--muted);margin-bottom:8px;">{{ o.buyer_name }} · {{ o.qty }} units · {{ o.created_at }}</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      {% if o.status == 'pending' %}
+      <form method="POST" action="{{ url_for('update_order') }}" style="display:inline;">
+        <input type="hidden" name="order_id" value="{{ o.id }}">
+        <input type="hidden" name="status" value="confirmed">
+        <button type="submit" style="background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);color:#4ade80;padding:4px 12px;border-radius:6px;font-size:.7rem;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;">Confirm</button>
+      </form>
+      {% elif o.status == 'confirmed' %}
+      <form method="POST" action="{{ url_for('update_order') }}" style="display:inline;">
+        <input type="hidden" name="order_id" value="{{ o.id }}">
+        <input type="hidden" name="status" value="dispatched">
+        <button type="submit" style="background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.2);color:#22d3ee;padding:4px 12px;border-radius:6px;font-size:.7rem;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;">Mark Dispatched</button>
+      </form>
+      {% else %}
+      <span style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4);padding:4px 12px;border-radius:6px;font-size:.7rem;font-family:'Syne',sans-serif;">{{ o.status|title }}</span>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+  {% else %}
+  <div style="text-align:center;padding:24px;color:var(--muted);font-size:.82rem;">No orders yet</div>
+  {% endif %}
+</div>
+
+</div>
+
+<!-- Add Product Modal -->
+<div id="addProductModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#0D2B1A;border:1px solid var(--border);border-radius:18px;padding:28px;max-width:460px;width:90%;">
+    <h3 style="font-family:'Syne',sans-serif;color:white;margin-bottom:16px;">📦 Add Product</h3>
+    <form method="POST" action="{{ url_for('seller_add_product') }}">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div style="grid-column:span 2;"><label style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:5px;">Product Name *</label>
+        <input name="name" required placeholder="e.g. Dairy Meal 50kg" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:white;font-size:.82rem;outline:none;box-sizing:border-box;"></div>
+        <div><label style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:5px;">Category</label>
+        <select name="category" style="width:100%;background:rgba(20,40,25,.95);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:white;font-size:.82rem;outline:none;box-sizing:border-box;">
+          <option>Animal Feeds</option><option>Veterinary Drugs</option><option>Seeds</option>
+          <option>Fertilizers</option><option>Pesticides</option><option>Equipment</option><option>Other</option>
+        </select></div>
+        <div><label style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:5px;">Unit</label>
+        <input name="unit" placeholder="e.g. bag, kg, litre" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:white;font-size:.82rem;outline:none;box-sizing:border-box;"></div>
+        <div><label style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:5px;">Price (KSh)</label>
+        <input name="price_ksh" type="number" required placeholder="0" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:white;font-size:.82rem;outline:none;box-sizing:border-box;"></div>
+        <div><label style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:5px;">Stock Qty</label>
+        <input name="stock_qty" type="number" placeholder="0" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:white;font-size:.82rem;outline:none;box-sizing:border-box;"></div>
+      </div>
+      <div style="margin-bottom:16px;"><label style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:5px;">Description</label>
+      <textarea name="description" rows="2" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:white;font-size:.82rem;outline:none;resize:none;box-sizing:border-box;"></textarea></div>
+      <div style="display:flex;gap:10px;">
+        <button type="submit" style="flex:1;background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:11px;border:none;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;">Add Product</button>
+        <button type="button" onclick="document.getElementById('addProductModal').style.display='none'" style="background:rgba(255,255,255,.05);border:1px solid var(--border);color:rgba(255,255,255,.5);padding:11px 16px;border-radius:8px;cursor:pointer;font-family:'Syne',sans-serif;">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

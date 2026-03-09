@@ -1,0 +1,121 @@
+﻿{% extends "base.html" %}
+{% block title %}Farm Report{% endblock %}
+{% block content %}
+<div style="max-width:900px;margin:0 auto;">
+
+  <div class="fu" style="margin-bottom:28px;">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+      <div>
+        <div class="ptag">Generated {{ report_date }}</div>
+        <h1 class="ptitle">Farm Health Report</h1>
+        <p class="psub">{{ user.name }} &nbsp;·&nbsp; {{ user.location or 'Kenya' }} &nbsp;·&nbsp; {{ user.farm_scale or 'small' | capitalize }} Scale</p>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <a href="{{ url_for('farm_report_pdf') }}" class="bg"><i class="fas fa-file-pdf"></i> Download PDF</a>
+        <button onclick="window.print()" class="bgg"><i class="fas fa-print"></i> Print</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3 fu fu1">
+      <div class="sc">
+        <div class="glow" style="background:var(--leaf);"></div>
+        <span class="snum" style="color:var(--lime);">{{ health_pct }}%</span>
+        <span class="slbl">Farm Health</span>
+      </div>
+    </div>
+    <div class="col-md-3 fu fu2">
+      <div class="sc">
+        <div class="glow" style="background:var(--gold);"></div>
+        <span class="snum" style="color:var(--amber);">{{ total_crops }}</span>
+        <span class="slbl">Total Crops</span>
+      </div>
+    </div>
+    <div class="col-md-3 fu fu3">
+      <div class="sc">
+        <div class="glow" style="background:#3B82F6;"></div>
+        <span class="snum" style="color:#60A5FA;">{{ diagnoses_this_month }}</span>
+        <span class="slbl">Diagnoses (30d)</span>
+      </div>
+    </div>
+    <div class="col-md-3 fu fu4">
+      <div class="sc">
+        <div class="glow" style="background:#E74C3C;"></div>
+        <span class="snum" style="color:#F87171;">{{ high_severity_count }}</span>
+        <span class="slbl">High Alerts (30d)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Crop health table -->
+  <div class="pc fu fu2" style="padding:28px;margin-bottom:24px;">
+    <div class="slabel">Crop Status Overview</div>
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:.85rem;">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border);">
+            <th style="text-align:left;padding:10px 8px;color:var(--muted);font-family:'Syne',sans-serif;font-size:.72rem;text-transform:uppercase;">Crop</th>
+            <th style="text-align:left;padding:10px 8px;color:var(--muted);font-family:'Syne',sans-serif;font-size:.72rem;text-transform:uppercase;">Field</th>
+            <th style="text-align:left;padding:10px 8px;color:var(--muted);font-family:'Syne',sans-serif;font-size:.72rem;text-transform:uppercase;">Status</th>
+            <th style="text-align:left;padding:10px 8px;color:var(--muted);font-family:'Syne',sans-serif;font-size:.72rem;text-transform:uppercase;">Last Diagnosis</th>
+            <th style="text-align:right;padding:10px 8px;color:var(--muted);font-family:'Syne',sans-serif;font-size:.72rem;text-transform:uppercase;">Diagnoses</th>
+            <th style="text-align:right;padding:10px 8px;color:var(--muted);font-family:'Syne',sans-serif;font-size:.72rem;text-transform:uppercase;">Est. Yield</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for crop in crops %}
+          <tr style="border-bottom:1px solid rgba(255,255,255,.05);">
+            <td style="padding:12px 8px;color:white;font-weight:600;">{{ crop.crop_type }}</td>
+            <td style="padding:12px 8px;color:var(--muted);">{{ crop.field_name or '—' }}{% if crop.area_acres %} ({{ crop.area_acres }}ac){% endif %}</td>
+            <td style="padding:12px 8px;">
+              <span class="{% if crop.status=='healthy' %}bh{% elif crop.status=='at_risk' %}bar{% else %}bd{% endif %}">{{ crop.status|replace('_',' ') }}</span>
+            </td>
+            <td style="padding:12px 8px;color:var(--muted);font-size:.8rem;">
+              {% if crop.latest_diagnosis %}
+                {{ crop.latest_diagnosis.disease_name }}
+                <span class="{% if crop.latest_diagnosis.severity=='low' %}bl{% elif crop.latest_diagnosis.severity=='medium' %}bm{% else %}bhi{% endif %}" style="margin-left:4px;">{{ crop.latest_diagnosis.severity }}</span>
+              {% else %}—{% endif %}
+            </td>
+            <td style="padding:12px 8px;color:var(--muted);text-align:right;">{{ crop.diagnosis_count }}</td>
+            <td style="padding:12px 8px;color:var(--lime);text-align:right;font-weight:600;">
+              {% if crop.expected_yield_kg %}{{ '{:,}'.format(crop.expected_yield_kg|int) }}kg{% else %}—{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Recent alerts -->
+  <div class="pc fu fu3" style="padding:28px;margin-bottom:24px;">
+    <div class="slabel">Recent AI Alerts (Last 20)</div>
+    {% for alert in recent_alerts %}
+    <div style="padding:12px 0;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start;">
+      <div style="font-size:1.1rem;">
+        {% if alert.alert_type=='disease' %}🦠{% elif alert.alert_type=='harvest' %}🚜{% elif alert.alert_type=='price_intel' %}💰{% elif alert.alert_type=='bulk_diagnosis' %}🔬{% elif alert.alert_type=='yield_prediction' %}📊{% else %}⚠️{% endif %}
+      </div>
+      <div style="flex:1;">
+        <div style="font-size:.83rem;color:rgba(255,255,255,.8);">{{ alert.message }}</div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:3px;">{{ alert.created_at }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="d-flex gap-3 flex-wrap">
+    <a href="{{ url_for('bulk_diagnose') }}" class="bg"><i class="fas fa-camera"></i> Bulk Diagnose</a>
+    <a href="{{ url_for('farm_profile') }}" class="bgg"><i class="fas fa-cog"></i> Farm Settings</a>
+    <a href="{{ url_for('dashboard') }}" class="bgg"><i class="fas fa-home"></i> Dashboard</a>
+  </div>
+</div>
+
+<style>
+@media print {
+  nav, .bg, .bgg { display: none !important; }
+  body { background: white !important; color: black !important; }
+}
+</style>
+{% endblock %}

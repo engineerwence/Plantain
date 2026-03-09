@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Admin — Audit Logs{% endblock %}
+{% block head %}
+<style>
+.adm-panel{background:rgba(8,20,12,.9);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:20px;}
+.adm-table{width:100%;border-collapse:collapse;}
+.adm-table th{font-family:'Syne',sans-serif;font-size:.62rem;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.25);padding:8px 12px;text-align:left;border-bottom:1px solid rgba(255,255,255,.05);}
+.adm-table td{padding:9px 12px;font-size:.8rem;color:rgba(255,255,255,.65);border-bottom:1px solid rgba(255,255,255,.04);}
+</style>
+{% endblock %}
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+  <div>
+    <div style="font-family:'Syne',sans-serif;font-size:.62rem;color:#f87171;text-transform:uppercase;letter-spacing:2px;margin-bottom:5px;">Admin · Audit</div>
+    <h1 style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:800;color:white;margin:0;">📋 Audit Logs</h1>
+  </div>
+  <a href="{{ url_for('admin_dashboard') }}" style="color:rgba(255,255,255,.4);font-size:.8rem;text-decoration:none;">← Dashboard</a>
+</div>
+<div class="adm-panel">
+  <table class="adm-table">
+    <tr><th>Admin</th><th>Action</th><th>Details</th><th>Affected User</th><th>Time</th></tr>
+    {% for log in logs %}
+    <tr>
+      <td style="color:#22d3ee;">{{ log.user_name or 'System' }}</td>
+      <td style="font-family:'Syne',sans-serif;font-size:.75rem;font-weight:700;">{{ log.action }}</td>
+      <td style="color:rgba(255,255,255,.4);font-size:.76rem;">{{ log.details or '—' }}</td>
+      <td style="font-size:.74rem;">{{ log.user_id or '—' }}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:rgba(255,255,255,.3);">{{ log.created_at.strftime('%d %b %Y %H:%M') if log.created_at else '—' }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5" style="text-align:center;padding:24px;color:rgba(255,255,255,.2);">No logs yet</td></tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

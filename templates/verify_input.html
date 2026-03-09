@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Verify Farm Inputs{% endblock %}
+{% block head %}<style>
+.pg-eyebrow{font-family:"Syne",sans-serif;font-size:.62rem;color:var(--lime);text-transform:uppercase;letter-spacing:2px;margin-bottom:5px;}
+.pg-title{font-family:"Cormorant Garamond",serif;font-size:clamp(1.6rem,3vw,2.2rem);font-weight:800;color:white;margin:0;}
+.panel{background:rgba(8,20,12,.9);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:22px;margin-bottom:16px;}
+.panel-title{font-family:"Syne",sans-serif;font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.3);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
+.card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:16px;transition:all .2s;}
+.card:hover{border-color:rgba(255,255,255,.14);transform:translateY(-2px);}
+.sf-input{background:rgba(20,40,25,.95);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:10px 13px;color:white;font-family:"DM Sans",sans-serif;font-size:.84rem;outline:none;width:100%;box-sizing:border-box;transition:border-color .2s;}
+.sf-input:focus{border-color:rgba(46,139,74,.4);}
+.sf-label{font-family:"Syne",sans-serif;font-size:.7rem;color:rgba(255,255,255,.35);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
+.btn-green{background:linear-gradient(135deg,var(--lime),#4DB86A);color:white;border:none;padding:10px 22px;border-radius:10px;font-family:"Syne",sans-serif;font-weight:700;cursor:pointer;font-size:.84rem;}
+.btn-cyan{background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.2);color:#22d3ee;padding:9px 18px;border-radius:9px;font-family:"Syne",sans-serif;font-weight:700;cursor:pointer;font-size:.8rem;text-decoration:none;display:inline-block;}
+.btn-amber{background:rgba(212,160,23,.1);border:1px solid rgba(212,160,23,.2);color:var(--amber);padding:9px 18px;border-radius:9px;font-family:"Syne",sans-serif;font-weight:700;cursor:pointer;font-size:.8rem;text-decoration:none;display:inline-block;}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-family:"Syne",sans-serif;font-size:.62rem;font-weight:700;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:768px){.grid2{grid-template-columns:1fr;}}
+.flash-ok{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.18);color:#4ade80;padding:11px 16px;border-radius:9px;margin-bottom:14px;font-size:.84rem;}
+.flash-err{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.18);color:#f87171;padding:11px 16px;border-radius:9px;margin-bottom:14px;font-size:.84rem;}
+
+</style>{% endblock %}
+{% block content %}
+{% with msgs=get_flashed_messages(with_categories=true) %}{% for c,m in msgs %}<div class="flash-{{ 'ok' if c=='success' else 'err' }}">{{ m }}</div>{% endfor %}{% endwith %}
+<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+  <div><div class="pg-eyebrow">Consumer Protection</div><h1 class="pg-title">🔍 Verify Farm Inputs</h1><div style="font-size:.78rem;color:rgba(255,255,255,.3);margin-top:4px;">Check seeds, fertiliser & pesticides before buying · AI-powered KEPHIS verification</div></div>
+</div>
+<!-- Verify Form -->
+<div class="panel">
+  <div class="panel-title">Check a Product</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:10px;align-items:end;">
+    <div><label class="sf-label">Product Name *</label><input class="sf-input" id="vProduct" placeholder="e.g. CAN Fertiliser 26N"></div>
+    <div><label class="sf-label">Batch/Reg No.</label><input class="sf-input" id="vBatch" placeholder="e.g. KEPHIS/2024/001"></div>
+    <div><label class="sf-label">Seller/Shop</label><input class="sf-input" id="vSeller" placeholder="Agrovet name"></div>
+    <div><label class="sf-label">County</label><input class="sf-input" id="vCounty" placeholder="e.g. Nakuru"></div>
+    <button onclick="checkProduct()" class="btn-green" id="checkBtn">Verify</button>
+  </div>
+  <div id="verifyResult" style="display:none;margin-top:16px;"></div>
+</div>
+<!-- Report Form -->
+<div class="panel">
+  <div class="panel-title">⚠️ Report a Fake/Substandard Product</div>
+  <form method="POST" action="{{ url_for('report_fake_input') }}" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end;margin-bottom:14px;">
+    <div><label class="sf-label">Product</label><input class="sf-input" name="product" required></div>
+    <div><label class="sf-label">Seller</label><input class="sf-input" name="seller"></div>
+    <div><label class="sf-label">County</label><input class="sf-input" name="county"></div>
+    <button type="submit" style="background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);color:#f87171;padding:10px 16px;border-radius:9px;font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;cursor:pointer;">Report</button>
+  </form>
+  <div><label class="sf-label">Details</label><textarea class="sf-input" name="details" rows="2" placeholder="What was wrong with the product?"></textarea></div>
+</div>
+<!-- Community Reports -->
+{% if reports %}
+<div class="panel">
+  <div class="panel-title">Recent Community Reports</div>
+  {% for r in reports %}
+  {% set res = r.result_json | fromjson if r.result_json else {} %}
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04);flex-wrap:wrap;gap:8px;">
+    <div>
+      <div style="font-size:.88rem;font-weight:600;color:white;">{{ r.product_name }}</div>
+      <div style="font-size:.74rem;color:rgba(255,255,255,.35);">{{ r.seller or '—' }} · {{ r.county or '—' }} · {{ r.created_at.strftime("%d %b %Y") if r.created_at else "—" }}</div>
+    </div>
+    <span class="badge" style="background:rgba({% if res.get('risk_level')=='low' %}74,222,128{% elif res.get('risk_level')=='high' %}248,113,113{% else %}251,191,36{% endif %},.1);color:{% if res.get('risk_level')=='low' %}#4ade80{% elif res.get('risk_level')=='high' %}#f87171{% else %}#fbbf24{% endif %};">{{ (res.get('risk_level','?'))|upper }} RISK</span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script>
+async function checkProduct(){
+  const product=document.getElementById('vProduct').value;
+  if(!product){alert('Enter a product name');return;}
+  const btn=document.getElementById('checkBtn'); btn.disabled=true; btn.textContent='Checking...';
+  const fd=new FormData();
+  fd.append('product_name',product); fd.append('batch_no',document.getElementById('vBatch').value);
+  fd.append('seller',document.getElementById('vSeller').value); fd.append('county',document.getElementById('vCounty').value);
+  const r=await fetch('/verify-input/check',{method:'POST',body:fd});
+  const d=await r.json();
+  btn.disabled=false; btn.textContent='Verify';
+  const el=document.getElementById('verifyResult'); el.style.display='';
+  const col=d.verified===true?'#4ade80':d.risk_level==='high'?'#f87171':'#fbbf24';
+  const icon=d.verified===true?'✅':d.risk_level==='high'?'❌':'⚠️';
+  let html=`<div style="background:rgba(${d.risk_level==='high'?'248,113,113':d.verified?'74,222,128':'251,191,36'},.06);border:1px solid rgba(${d.risk_level==='high'?'248,113,113':d.verified?'74,222,128':'251,191,36'},.15);border-radius:12px;padding:18px;">`;
+  html+=`<div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem;color:${col};margin-bottom:10px;">${icon} ${d.verified===true?'Likely Genuine':'Unknown/Suspicious'} — ${(d.risk_level||'?').toUpperCase()} RISK</div>`;
+  html+=`<div style="font-size:.84rem;color:rgba(255,255,255,.7);margin-bottom:10px;">${d.advice||''}</div>`;
+  if(d.flags&&d.flags.length){html+=`<div style="font-size:.78rem;color:#f87171;margin-bottom:8px;">⚠️ Flags: ${d.flags.join(' · ')}</div>`;}
+  if(d.common_fakes&&d.common_fakes.length){html+=`<div style="font-size:.78rem;color:rgba(255,255,255,.4);">Known fakes: ${d.common_fakes.join(', ')}</div>`;}
+  html+='</div>';
+  el.innerHTML=html;
+}
+</script>
+{% endblock %}

@@ -1,0 +1,81 @@
+﻿{% extends "base.html" %}
+{% block title %}Alerts{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-4 fu">
+    <div>
+        <div class="ptag">Autonomous Monitoring</div>
+        <h1 class="ptitle">Farm Alerts</h1>
+        <p class="psub">AI-generated alerts from your farm activity</p>
+    </div>
+    <div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:30px;padding:8px 18px;">
+        <span style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:800;color:white;">{{ alerts|length }}</span>
+        <span style="color:var(--muted);font-size:.82rem;margin-left:6px;">total alerts</span>
+    </div>
+</div>
+
+{% if alerts %}
+    {% for alert in alerts %}
+    <div class="fu" style="animation-delay:{{ loop.index * 0.07 }}s;margin-bottom:12px;">
+        <div style="display:flex;align-items:flex-start;gap:16px;padding:20px 22px;background:rgba(13,43,26,.55);border:1px solid var(--border);border-radius:14px;
+             border-left:3px solid
+             {% if alert.alert_type=='disease' %}#F87171
+             {% elif alert.alert_type=='spread_alert' %}#FB923C
+             {% elif alert.alert_type=='harvest' %}var(--lime)
+             {% elif alert.alert_type=='auto_listing' %}#60A5FA
+             {% elif alert.alert_type=='price_intel' %}var(--amber)
+             {% elif alert.alert_type=='marketplace' %}#A78BFA
+             {% else %}var(--border){% endif %};transition:all .25s;"
+             onmouseover="this.style.background='rgba(13,43,26,.8)'" onmouseout="this.style.background='rgba(13,43,26,.55)'">
+            <div style="font-size:1.6rem;line-height:1;flex-shrink:0;">
+                {% if   alert.alert_type=='disease' %}🦠
+                {% elif alert.alert_type=='spread_alert' %}🌍
+                {% elif alert.alert_type=='harvest' %}🌾
+                {% elif alert.alert_type=='auto_listing' %}🤖
+                {% elif alert.alert_type=='price_intel' %}💰
+                {% elif alert.alert_type=='marketplace' %}📦
+                {% else %}⚠️{% endif %}
+            </div>
+            <div style="flex:1;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:6px;">
+                    <p style="color:rgba(255,255,255,.85);font-weight:500;font-size:.9rem;margin:0;line-height:1.55;">{{ alert.message }}</p>
+                    <div style="display:flex;gap:6px;flex-shrink:0;flex-direction:column;align-items:flex-end;">
+                        <span style="padding:2px 10px;border-radius:20px;font-family:'Syne',sans-serif;font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+                            {% if alert.alert_type=='disease' %}background:rgba(248,113,113,.15);color:#F87171;
+                            {% elif alert.alert_type=='spread_alert' %}background:rgba(251,146,60,.15);color:#FB923C;
+                            {% elif alert.alert_type=='harvest' %}background:rgba(46,139,74,.15);color:var(--lime);
+                            {% elif alert.alert_type=='auto_listing' %}background:rgba(96,165,250,.15);color:#60A5FA;
+                            {% elif alert.alert_type=='price_intel' %}background:rgba(212,160,23,.15);color:var(--amber);
+                            {% elif alert.alert_type=='marketplace' %}background:rgba(167,139,250,.15);color:#A78BFA;
+                            {% else %}background:rgba(255,255,255,.08);color:rgba(255,255,255,.4);{% endif %}">
+                            {% if   alert.alert_type=='disease' %}🦠 Disease
+                            {% elif alert.alert_type=='spread_alert' %}🌍 Spread Alert
+                            {% elif alert.alert_type=='harvest' %}🌾 Harvest
+                            {% elif alert.alert_type=='auto_listing' %}🤖 Auto-Listed
+                            {% elif alert.alert_type=='price_intel' %}💰 Market Intel
+                            {% elif alert.alert_type=='marketplace' %}📦 Inquiry
+                            {% else %}{{ alert.alert_type }}{% endif %}
+                        </span>
+                        {% if not alert.is_read %}
+                        <span style="background:var(--gold);color:var(--ink);padding:2px 10px;border-radius:20px;font-family:'Syne',sans-serif;font-size:.63rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;">NEW</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div style="font-size:.72rem;color:rgba(255,255,255,.22);display:flex;align-items:center;gap:6px;">
+                    <i class="fas fa-robot" style="color:rgba(212,160,23,.45);"></i>
+                    Autonomous action by Plantain AI &nbsp;·&nbsp; {{ alert.created_at }}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+<div style="text-align:center;padding:80px 20px;" class="fu">
+    <div style="width:72px;height:72px;border-radius:50%;background:rgba(77,184,106,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:1.8rem;">✅</div>
+    <h4 style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;margin-bottom:8px;">All clear</h4>
+    <p style="color:var(--muted);font-size:.88rem;margin-bottom:24px;">No alerts yet. AI will notify you when action is needed.</p>
+    <a href="{{ url_for('diagnose') }}" class="bgg"><i class="fas fa-leaf"></i> Diagnose a Crop</a>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,134 @@
+﻿{% extends "base.html" %}
+{% block title %}Farm Profile{% endblock %}
+{% block content %}
+<div style="max-width:720px;margin:0 auto;">
+  <div class="fu" style="margin-bottom:28px;">
+    <div class="ptag">Farm Settings</div>
+    <h1 class="ptitle">Your Farm Profile</h1>
+    <p class="psub">Tell us about your farm so AI can give you the right tools and advice.</p>
+  </div>
+
+  <div class="pc fu fu1" style="padding:32px;margin-bottom:24px;">
+    <form method="POST" action="{{ url_for('farm_profile') }}">
+      <div class="mb-4">
+        <label class="plbl">Farm Scale</label>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+          {% for val, label, desc, icon in [
+            ('small','Small Scale','Up to 5 acres','🌱'),
+            ('mid','Mid Scale','5–50 acres','🚜'),
+            ('large','Large Scale','50+ acres','🏭')
+          ] %}
+          <label style="cursor:pointer;">
+            <input type="radio" name="farm_scale" value="{{ val }}" class="d-none"
+                   {% if user and user.get('farm_scale','small')==val %}checked{% endif %}>
+            <div class="scaleCard" data-val="{{ val }}"
+                 style="border:2px solid {% if user and user.get('farm_scale','small')==val %}rgba(46,139,74,.8){% else %}rgba(46,139,74,.2){% endif %};
+                        background:{% if user and user.get('farm_scale','small')==val %}rgba(46,139,74,.1){% else %}transparent{% endif %};
+                        border-radius:12px;padding:16px 10px;text-align:center;transition:all .2s;">
+              <div style="font-size:2rem;margin-bottom:6px;">{{ icon }}</div>
+              <div style="font-family:'Syne',sans-serif;font-size:.82rem;font-weight:700;color:var(--lime);">{{ label }}</div>
+              <div style="font-size:.72rem;color:var(--muted);margin-top:3px;">{{ desc }}</div>
+            </div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <label class="plbl">Total Farm Size (acres) <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+          <input type="number" name="farm_size_acres" class="pip" step="0.1" min="0"
+                 value="{{ user.farm_size_acres if user and user.farm_size_acres else '' }}"
+                 placeholder="e.g. 12.5">
+        </div>
+        <div class="col-md-6">
+          <label class="plbl">County / Location</label>
+          <input type="text" name="location" class="pip"
+                 value="{{ user.location if user and user.location else '' }}"
+                 placeholder="e.g. Nakuru, Kisumu...">
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label class="plbl">Phone Number</label>
+        <input type="text" name="phone" class="pip"
+               value="{{ user.phone if user and user.phone else '' }}"
+               placeholder="e.g. 0712 345 678">
+      </div>
+
+      <button type="submit" class="bg w-100 justify-content-center" style="padding:13px;">
+        <i class="fas fa-save"></i> Save Farm Profile
+      </button>
+    </form>
+  </div>
+
+  <!-- Field manager -->
+  <div class="pc fu fu2" style="padding:28px;">
+    <div class="slabel">Field Manager</div>
+    <p style="color:var(--muted);font-size:.83rem;margin-bottom:18px;">Set field names and acreage for each crop to get yield predictions.</p>
+    {% if crops %}
+    {% for crop in crops %}
+    <form method="POST" action="{{ url_for('update_crop_field') }}" style="margin-bottom:14px;">
+      <input type="hidden" name="crop_id" value="{{ crop.id }}">
+      <div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;padding:16px;">
+        <div style="font-weight:700;color:white;margin-bottom:10px;">{{ crop.crop_type }}
+          <span class="{% if crop.status=='healthy' %}bh{% elif crop.status=='at_risk' %}bar{% else %}bd{% endif %}" style="margin-left:8px;">{{ crop.status }}</span>
+        </div>
+        <div class="row g-2">
+          <div class="col-md-6">
+            <input type="text" name="field_name" class="pip" placeholder="Field name (e.g. North Block)"
+                   value="{{ crop.field_name or '' }}" style="font-size:.83rem;padding:8px 12px;">
+          </div>
+          <div class="col-md-4">
+            <input type="number" name="area_acres" class="pip" placeholder="Acres" step="0.1" min="0"
+                   value="{{ crop.area_acres or '' }}" style="font-size:.83rem;padding:8px 12px;">
+          </div>
+          <div class="col-md-2">
+            <button type="submit" class="bgg w-100" style="padding:8px;font-size:.78rem;">Save</button>
+          </div>
+        </div>
+        {% if crop.area_acres %}
+        <div style="margin-top:8px;">
+          <a href="{{ url_for('yield_predict', crop_id=crop.id) }}" onclick="fetchYield(event, this, {{ crop.id }})"
+             style="font-size:.75rem;color:var(--amber);text-decoration:none;">
+            📊 Get yield prediction →
+          </a>
+          <span id="yield-{{ crop.id }}" style="font-size:.75rem;color:var(--lime);margin-left:10px;"></span>
+        </div>
+        {% endif %}
+      </div>
+    </form>
+    {% endfor %}
+    {% else %}
+    <p style="color:var(--muted);font-size:.85rem;">No crops yet. Add crops from your dashboard first.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.querySelectorAll('input[name="farm_scale"]').forEach(r => {
+  r.addEventListener('change', function(){
+    document.querySelectorAll('.scaleCard').forEach(c => {
+      c.style.borderColor = 'rgba(46,139,74,.2)';
+      c.style.background  = 'transparent';
+    });
+    const card = this.parentElement.querySelector('.scaleCard');
+    card.style.borderColor = 'rgba(46,139,74,.8)';
+    card.style.background  = 'rgba(46,139,74,.1)';
+  });
+});
+
+function fetchYield(e, el, cropId) {
+  e.preventDefault();
+  const span = document.getElementById('yield-' + cropId);
+  span.textContent = 'Calculating...';
+  fetch('/yield-predict/' + cropId)
+    .then(r => r.json())
+    .then(d => {
+      span.textContent = `~${d.estimated_kg.toLocaleString()}kg · KSh ${d.estimated_revenue.toLocaleString()}`;
+    })
+    .catch(() => { span.textContent = 'Error — try again'; });
+}
+</script>
+{% endblock %}

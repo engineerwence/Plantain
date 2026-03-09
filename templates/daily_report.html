@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% block title %}Daily Farm Report{% endblock %}
+{% block content %}
+<style>
+.report-section{background:rgba(8,20,12,.85);border:1px solid rgba(46,139,74,.15);border-radius:14px;padding:22px;margin-bottom:16px;}
+.report-item{background:rgba(255,255,255,.04);border-left:3px solid var(--lime);border-radius:6px;padding:8px 14px;margin:6px 0;font-size:.85rem;color:rgba(255,255,255,.8);}
+.report-bullet{padding:5px 0 5px 16px;font-size:.85rem;color:rgba(255,255,255,.7);border-left:2px solid rgba(46,139,74,.3);margin:4px 0;}
+.stat-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:20px;}
+.stat-box{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px;text-align:center;}
+.stat-box .val{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:700;color:var(--lime);}
+.stat-box .lbl{font-size:.7rem;color:rgba(255,255,255,.4);margin-top:3px;}
+.urgent-item{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;background:rgba(198,40,40,.08);border:1px solid rgba(198,40,40,.2);border-radius:10px;margin-bottom:8px;}
+.opp-item{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;background:rgba(46,139,74,.08);border:1px solid rgba(46,139,74,.2);border-radius:10px;margin-bottom:8px;}
+.report-prose p{margin-bottom:8px;font-size:.88rem;color:rgba(255,255,255,.75);line-height:1.65;}
+.report-prose strong{color:white;}
+.report-prose h2{font-family:'Syne',sans-serif;font-size:.95rem;color:var(--lime);margin:16px 0 8px;text-transform:uppercase;letter-spacing:.5px;}
+</style>
+
+<!-- Header -->
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+  <div>
+    <div class="ptag">🤖 Shamba Intelligence Pro</div>
+    <h1 class="ptitle">Daily Farm Report</h1>
+    <p class="psub">{{ today }} &nbsp;·&nbsp; Generated at {{ time }}</p>
+  </div>
+  <div style="display:flex;gap:10px;">
+    <button onclick="window.print()" class="bgg" style="padding:10px 18px;">🖨️ Print</button>
+    <a href="{{ url_for('daily_report') }}" class="bg" style="text-decoration:none;padding:10px 18px;">🔄 Refresh</a>
+  </div>
+</div>
+
+<!-- Farm snapshot stats -->
+<div class="stat-row">
+  <div class="stat-box"><div class="val">{{ crops|length }}</div><div class="lbl">Crops</div></div>
+  <div class="stat-box"><div class="val">{{ animals|length }}</div><div class="lbl">Animal Types</div></div>
+  <div class="stat-box"><div class="val">{{ sensors|length }}</div><div class="lbl">Sensor Readings</div></div>
+  <div class="stat-box"><div class="val">{{ recent_alerts|length }}</div><div class="lbl">Alerts Today</div></div>
+  <div class="stat-box"><div class="val">{{ devices|length }}</div><div class="lbl">Smart Devices</div></div>
+  {% if rising_crops %}<div class="stat-box"><div class="val" style="color:var(--amber);">{{ rising_crops|length }}</div><div class="lbl">Rising Prices</div></div>{% endif %}
+</div>
+
+<!-- Market opportunities strip -->
+{% if rising_crops or rising_animals %}
+<div style="background:rgba(46,139,74,.08);border:1px solid rgba(46,139,74,.2);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+  <div style="font-size:1.4rem;">💰</div>
+  <div>
+    <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--lime);font-size:.8rem;margin-bottom:4px;">MARKET OPPORTUNITY TODAY</div>
+    {% if rising_crops %}<div style="font-size:.8rem;color:rgba(255,255,255,.7);">🌽 Rising crop prices: <strong style="color:white;">{{ rising_crops|join(', ')|title }}</strong></div>{% endif %}
+    {% if rising_animals %}<div style="font-size:.8rem;color:rgba(255,255,255,.7);">🐄 Rising animal prices: <strong style="color:white;">{{ rising_animals|join(', ')|title }}</strong></div>{% endif %}
+  </div>
+  <a href="{{ url_for('price_alerts') }}" class="bgg" style="text-decoration:none;padding:8px 16px;font-size:.78rem;margin-left:auto;">View Price Alerts →</a>
+</div>
+{% endif %}
+
+<!-- AI Report -->
+<div class="report-section">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+    <div style="font-size:1.5rem;">🤖</div>
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.95rem;">AI Farm Analysis</div>
+      <div style="font-size:.72rem;color:rgba(255,255,255,.35);">Powered by Shamba Intelligence Pro · Llama 3.3 70B</div>
+    </div>
+  </div>
+  {% if report_html %}
+  <div class="report-prose">{{ report_html|safe }}</div>
+  {% else %}
+  <div style="color:rgba(255,255,255,.4);font-size:.85rem;padding:20px;text-align:center;">
+    <div style="font-size:2rem;margin-bottom:8px;">⚠️</div>
+    AI report unavailable. Check your Groq API key in .env file.<br>
+    Raw farm data is displayed below.
+  </div>
+  {% endif %}
+</div>
+
+<!-- Raw farm data -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;" class="responsive-grid">
+
+  <!-- Crops -->
+  <div class="report-section">
+    <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--lime);font-size:.8rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">🌿 Crops</div>
+    {% if crops %}
+    {% for c in crops %}
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);">
+      <span style="font-size:.85rem;color:white;">{{ c.crop_type|title }}</span>
+      <span class="{% if c.status=='healthy' %}bh{% elif c.status=='at_risk' %}bar{% else %}bd{% endif %}" style="font-size:.7rem;">{{ c.status }}</span>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div style="font-size:.8rem;color:rgba(255,255,255,.3);">No crops added yet.</div>
+    {% endif %}
+  </div>
+
+  <!-- Livestock -->
+  <div class="report-section">
+    <div style="font-family:'Syne',sans-serif;font-weight:700;color:#22d3ee;font-size:.8rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">🐄 Livestock</div>
+    {% if animals %}
+    {% for a in animals %}
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);">
+      <span style="font-size:.85rem;color:white;">{{ a.count }}x {{ a.animal_type|title }}{% if a.name %} ({{ a.name }}){% endif %}</span>
+      <span style="font-size:.75rem;color:{% if (a.health_status or 5) >= 7 %}#4ade80{% elif (a.health_status or 5) >= 4 %}var(--amber){% else %}#f87171{% endif %};">
+        ❤️ {{ a.health_status or '—' }}/10
+      </span>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div style="font-size:.8rem;color:rgba(255,255,255,.3);">No livestock added yet.</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Sensors -->
+{% if sensors %}
+<div class="report-section">
+  <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--amber);font-size:.8rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;">📡 Latest Sensor Readings</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;">
+    {% for s in sensors %}
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px;">
+      <div style="font-size:.75rem;color:rgba(255,255,255,.4);margin-bottom:4px;">{{ s.sensor_type|replace('_',' ')|title }} · Zone {{ s.zone or 1 }}</div>
+      <div style="font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:700;
+        color:{% if s.sensor_type=='soil_moisture' and s.value < 30 %}#f87171{% elif s.sensor_type=='temperature' and s.value > 35 %}#f87171{% else %}var(--lime){% endif %};">
+        {{ s.value }}{{ s.unit or '' }}
+      </div>
+      <div style="font-size:.68rem;color:rgba(255,255,255,.3);margin-top:4px;">{{ s.recorded_at.strftime('%d %b %H:%M') if s.recorded_at else '' }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Today's alerts -->
+{% if recent_alerts %}
+<div class="report-section">
+  <div style="font-family:'Syne',sans-serif;font-weight:700;color:#f87171;font-size:.8rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">🚨 Today's Alerts</div>
+  {% for a in recent_alerts %}
+  <div class="urgent-item">
+    <div style="font-size:1.2rem;">{{ '🦠' if a.alert_type=='disease' else '🌾' if a.alert_type=='harvest' else '💰' if a.alert_type=='price' else '⚠️' }}</div>
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.82rem;">{{ a.alert_type|title if a.alert_type else 'Alert' }}</div>
+      <div style="font-size:.78rem;color:rgba(255,255,255,.6);">{{ a.message or '' }}</div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Bottom actions -->
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:8px;">
+  <a href="{{ url_for('diagnose') }}" class="report-section" style="text-decoration:none;text-align:center;transition:all .2s;cursor:pointer;">
+    <div style="font-size:1.8rem;margin-bottom:8px;">📷</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.85rem;">Diagnose a Crop</div>
+    <div style="font-size:.75rem;color:rgba(255,255,255,.4);margin-top:4px;">Take a photo now</div>
+  </a>
+  <a href="{{ url_for('livestock') }}" class="report-section" style="text-decoration:none;text-align:center;transition:all .2s;">
+    <div style="font-size:1.8rem;margin-bottom:8px;">🐄</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.85rem;">Log Livestock</div>
+    <div style="font-size:.75rem;color:rgba(255,255,255,.4);margin-top:4px;">Record today's production</div>
+  </a>
+  <a href="{{ url_for('smart_farm') }}" class="report-section" style="text-decoration:none;text-align:center;transition:all .2s;">
+    <div style="font-size:1.8rem;margin-bottom:8px;">📡</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.85rem;">Smart Farm</div>
+    <div style="font-size:.75rem;color:rgba(255,255,255,.4);margin-top:4px;">Control devices</div>
+  </a>
+  <a href="{{ url_for('price_alerts') }}" class="report-section" style="text-decoration:none;text-align:center;transition:all .2s;">
+    <div style="font-size:1.8rem;margin-bottom:8px;">💰</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.85rem;">Price Alerts</div>
+    <div style="font-size:.75rem;color:rgba(255,255,255,.4);margin-top:4px;">Check sell opportunities</div>
+  </a>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<style>
+@media(max-width:600px){.responsive-grid{grid-template-columns:1fr!important;}}
+@media print{nav,footer,.bg,.bgg{display:none!important;}.report-section{break-inside:avoid;}}
+</style>
+{% endblock %}

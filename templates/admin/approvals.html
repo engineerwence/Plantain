@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Admin — Approvals{% endblock %}
+{% block head %}
+<style>
+.adm-panel{background:rgba(8,20,12,.9);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:20px;margin-bottom:16px;}
+.app-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:16px;margin-bottom:10px;display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+.app-card:hover{border-color:rgba(255,255,255,.12);}
+.app-name{font-size:.88rem;font-weight:600;color:white;margin-bottom:3px;}
+.app-meta{font-size:.74rem;color:rgba(255,255,255,.35);line-height:1.6;}
+.app-btns{display:flex;gap:7px;flex-shrink:0;}
+.btn-approve{background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.2);color:#4ade80;padding:7px 16px;border-radius:8px;font-family:'Syne',sans-serif;font-size:.74rem;font-weight:700;cursor:pointer;}
+.btn-approve:hover{background:rgba(74,222,128,.22);}
+.btn-reject{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.15);color:#f87171;padding:7px 14px;border-radius:8px;font-family:'Syne',sans-serif;font-size:.74rem;font-weight:700;cursor:pointer;}
+.btn-reject:hover{background:rgba(248,113,113,.18);}
+.sec-head{font-family:'Syne',sans-serif;font-weight:700;font-size:.7rem;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.sec-head::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.06);}
+.count-pill{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.2);color:#fbbf24;padding:2px 9px;border-radius:20px;font-size:.65rem;font-weight:700;}
+</style>
+{% endblock %}
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+  <div>
+    <div style="font-family:'Syne',sans-serif;font-size:.62rem;color:#f87171;text-transform:uppercase;letter-spacing:2px;margin-bottom:5px;">Admin · Approvals</div>
+    <h1 style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:800;color:white;margin:0;">⏳ Pending Approvals</h1>
+  </div>
+  <a href="{{ url_for('admin_dashboard') }}" style="color:rgba(255,255,255,.4);font-size:.8rem;text-decoration:none;">← Dashboard</a>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}{% for cat, msg in messages %}<div style="background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.18);color:#4ade80;padding:10px 16px;border-radius:9px;margin-bottom:12px;font-size:.84rem;">{{ msg }}</div>{% endfor %}{% endif %}{% endwith %}
+
+<!-- AGROVETS -->
+<div class="adm-panel">
+  <div class="sec-head">🌿 Agrovets <span class="count-pill">{{ pending_agrovets|length }}</span></div>
+  {% for a in pending_agrovets %}
+  <div class="app-card">
+    <div>
+      <div class="app-name">{{ a.shop_name }}</div>
+      <div class="app-meta">
+        Owner: {{ a.owner_name or '—' }} · Phone: {{ a.phone or '—' }}<br>
+        County: {{ a.county }} · Location: {{ a.location or '—' }}<br>
+        Services: {{ a.services or '—' }}
+      </div>
+    </div>
+    <div class="app-btns">
+      <form method="POST" action="{{ url_for('admin_approve') }}" style="display:inline;">
+        <input type="hidden" name="entity" value="agrovet">
+        <input type="hidden" name="id" value="{{ a.id }}">
+        <input type="hidden" name="action" value="approve">
+        <button type="submit" class="btn-approve">✓ Approve</button>
+      </form>
+      <form method="POST" action="{{ url_for('admin_approve') }}" style="display:inline;">
+        <input type="hidden" name="entity" value="agrovet">
+        <input type="hidden" name="id" value="{{ a.id }}">
+        <input type="hidden" name="action" value="reject">
+        <button type="submit" class="btn-reject" onclick="return confirm('Reject this agrovet?')">✗ Reject</button>
+      </form>
+    </div>
+  </div>
+  {% else %}<div style="color:rgba(255,255,255,.2);text-align:center;padding:20px;font-size:.82rem;">No pending agrovets</div>{% endfor %}
+</div>
+
+<!-- SPECIALISTS -->
+<div class="adm-panel">
+  <div class="sec-head">👨‍⚕️ Specialists <span class="count-pill">{{ pending_specialists|length }}</span></div>
+  {% for s in pending_specialists %}
+  <div class="app-card">
+    <div>
+      <div class="app-name">{{ s.name }} — {{ s.specialty }}</div>
+      <div class="app-meta">
+        Owner: {{ s.owner_name or '—' }} · Phone: {{ s.phone or '—' }}<br>
+        County: {{ s.county }} · Experience: {{ s.experience_years or '—' }} years<br>
+        Fee: KSh {{ '{:,}'.format((s.consultation_fee or 0)|int) }}
+      </div>
+    </div>
+    <div class="app-btns">
+      <form method="POST" action="{{ url_for('admin_approve') }}" style="display:inline;">
+        <input type="hidden" name="entity" value="specialist"><input type="hidden" name="id" value="{{ s.id }}"><input type="hidden" name="action" value="approve">
+        <button type="submit" class="btn-approve">✓ Approve</button>
+      </form>
+      <form method="POST" action="{{ url_for('admin_approve') }}" style="display:inline;">
+        <input type="hidden" name="entity" value="specialist"><input type="hidden" name="id" value="{{ s.id }}"><input type="hidden" name="action" value="reject">
+        <button type="submit" class="btn-reject" onclick="return confirm('Reject?')">✗ Reject</button>
+      </form>
+    </div>
+  </div>
+  {% else %}<div style="color:rgba(255,255,255,.2);text-align:center;padding:20px;font-size:.82rem;">No pending specialists</div>{% endfor %}
+</div>
+
+<!-- SELLERS -->
+<div class="adm-panel">
+  <div class="sec-head">🛒 Sellers <span class="count-pill">{{ pending_sellers|length }}</span></div>
+  {% for s in pending_sellers %}
+  <div class="app-card">
+    <div>
+      <div class="app-name">{{ s.business_name }}</div>
+      <div class="app-meta">Owner: {{ s.owner_name or '—' }} · County: {{ s.county or '—' }}<br>Type: {{ s.seller_type or '—' }} · Phone: {{ s.phone or '—' }}</div>
+    </div>
+    <div class="app-btns">
+      <form method="POST" action="{{ url_for('admin_approve') }}" style="display:inline;">
+        <input type="hidden" name="entity" value="seller"><input type="hidden" name="id" value="{{ s.id }}"><input type="hidden" name="action" value="approve">
+        <button type="submit" class="btn-approve">✓ Approve</button>
+      </form>
+      <form method="POST" action="{{ url_for('admin_approve') }}" style="display:inline;">
+        <input type="hidden" name="entity" value="seller"><input type="hidden" name="id" value="{{ s.id }}"><input type="hidden" name="action" value="reject">
+        <button type="submit" class="btn-reject" onclick="return confirm('Reject?')">✗ Reject</button>
+      </form>
+    </div>
+  </div>
+  {% else %}<div style="color:rgba(255,255,255,.2);text-align:center;padding:20px;font-size:.82rem;">No pending sellers</div>{% endfor %}
+</div>
+
+<!-- MARKETPLACE LISTINGS -->
+<div class="adm-panel">
+  <div class="sec-head">📦 Marketplace Listings <span class="count-pill">{{ pending_listings|length }}</span></div>
+  {% for l in pending_listings %}
+  <div class="app-card">
+    <div>
+      <div class="app-name">{{ l.crop_type }} — {{ l.quantity }}kg @ KSh {{ '{:,}'.format((l.price_per_kg or 0)|int) }}/kg</div>
+      <div class="app-meta">Seller: {{ l.owner_name or '—' }} · Location: {{ l.location or '—' }}<br>{{ l.description or '' }}</div>
+    </div>
+    <div class="app-btns">
+      <form method="POST" action="{{ url_for('admin_approve') }}" style="display:inline;">
+        <input type="hidden" name="entity" value="listing"><input type="hidden" name="id" value="{{ l.id }}"><input type="hidden" name="action" value="approve">
+        <button type="submit" class="btn-approve">✓ Approve</button>
+      </form>
+      <form method="POST" action="{{ url_for('admin_approve') }}" style="display:inline;">
+        <input type="hidden" name="entity" value="listing"><input type="hidden" name="id" value="{{ l.id }}"><input type="hidden" name="action" value="reject">
+        <button type="submit" class="btn-reject" onclick="return confirm('Reject listing?')">✗ Reject</button>
+      </form>
+    </div>
+  </div>
+  {% else %}<div style="color:rgba(255,255,255,.2);text-align:center;padding:20px;font-size:.82rem;">No pending listings</div>{% endfor %}
+</div>
+{% endblock %}

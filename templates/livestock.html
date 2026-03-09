@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% block title %}Livestock Management{% endblock %}
+{% block head %}
+<style>
+.animal-card{background:rgba(8,20,12,.85);border:1px solid rgba(46,139,74,.15);border-radius:14px;padding:18px;transition:all .2s;}
+.animal-card:hover{border-color:rgba(46,139,74,.35);}
+.rec-badge{padding:3px 10px;border-radius:20px;font-size:.65rem;font-family:'Syne',sans-serif;font-weight:700;}
+.health-healthy{color:#4ade80;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);}
+.health-sick{color:#F87171;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);}
+.health-recovering{color:#FBB024;background:rgba(251,176,36,.1);border:1px solid rgba(251,176,36,.2);}
+</style>
+{% endblock %}
+{% block content %}
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+  <div>
+    <div class="ptag">Farm Animals</div>
+    <h1 class="ptitle">Livestock Management</h1>
+  </div>
+  <div style="display:flex;gap:10px;">
+    <a href="{{ url_for('sellers') }}" style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:rgba(255,255,255,.6);padding:10px 18px;border-radius:10px;text-decoration:none;font-family:'Syne',sans-serif;font-size:.8rem;font-weight:600;">🛒 Buy Feeds</a>
+    <button onclick="document.getElementById('addAnimalModal').style.display='flex'"
+      style="background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:10px 20px;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;font-size:.82rem;">
+      + Add Animal
+    </button>
+  </div>
+</div>
+
+{% set type_info = {
+  'dairy':('🐄','Dairy Cattle','litres/day'),
+  'beef':('🐂','Beef / Goats','kg weight'),
+  'sheep':('🐑','Sheep','kg fleece'),
+  'poultry':('🐔','Poultry','eggs/day'),
+  'bees':('🐝','Bees','kg honey'),
+  'pigs':('🐷','Pigs','kg weight'),
+  'fish':('🐟','Fish','kg harvest'),
+} %}
+
+{% if grouped %}
+  {% for atype, animals in grouped.items() %}
+  {% set info = type_info.get(atype, ('🐾', atype|title, 'units')) %}
+  <div style="margin-bottom:24px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:1rem;">
+        {{ info[0] }} {{ info[1] }} <span style="color:var(--muted);font-size:.8rem;">({{ animals|length }})</span>
+      </div>
+      <a href="{{ url_for('livestock_buyers', animal_type=atype) }}"
+        style="background:rgba(212,160,23,.1);border:1px solid rgba(212,160,23,.2);color:var(--amber);padding:6px 14px;border-radius:8px;text-decoration:none;font-family:'Syne',sans-serif;font-size:.72rem;font-weight:700;">
+        💰 Find Buyers
+      </a>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;">
+    {% for a in animals %}
+    <div class="animal-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.92rem;">{{ a.name or 'Animal #'+a.id|string }}</div>
+          <div style="font-size:.72rem;color:var(--muted);">{{ a.breed or 'Breed not set' }} · Zone {{ a.zone or '1' }}</div>
+        </div>
+        <span class="rec-badge health-{{ a.health_status }}">{{ a.health_status }}</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:12px;">
+        <div style="flex:1;background:rgba(255,255,255,.04);border-radius:8px;padding:8px;text-align:center;">
+          <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--lime);font-size:1.1rem;">{{ a.count }}</div>
+          <div style="font-size:.65rem;color:var(--muted);">Count</div>
+        </div>
+        <div style="flex:1;background:rgba(255,255,255,.04);border-radius:8px;padding:8px;text-align:center;">
+          <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--amber);font-size:1.1rem;">{{ a.weight_kg or '—' }}</div>
+          <div style="font-size:.65rem;color:var(--muted);">kg</div>
+        </div>
+        {% if a.tag_number %}
+        <div style="flex:1;background:rgba(255,255,255,.04);border-radius:8px;padding:8px;text-align:center;">
+          <div style="font-family:'Syne',sans-serif;font-weight:700;color:rgba(255,255,255,.5);font-size:.8rem;">{{ a.tag_number }}</div>
+          <div style="font-size:.65rem;color:var(--muted);">Tag</div>
+        </div>
+        {% endif %}
+      </div>
+      <button onclick="openRecord({{ a.id }},'{{ atype }}','{{ info[2] }}')"
+        style="width:100%;background:rgba(46,139,74,.12);border:1px solid rgba(46,139,74,.25);color:var(--lime);padding:8px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:.75rem;cursor:pointer;">
+        + Add Record
+      </button>
+    </div>
+    {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+{% else %}
+<div style="text-align:center;padding:60px 20px;" class="pc fu fu1">
+  <div style="font-size:3rem;margin-bottom:16px;">🐄</div>
+  <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:1.1rem;margin-bottom:8px;">No animals yet</div>
+  <p style="color:var(--muted);font-size:.85rem;margin-bottom:20px;">Add your first animal to start tracking health, production and connect to buyers.</p>
+  <button onclick="document.getElementById('addAnimalModal').style.display='flex'"
+    style="background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:12px 28px;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;">
+    + Add First Animal
+  </button>
+</div>
+{% endif %}
+
+<!-- Add Animal Modal -->
+<div id="addAnimalModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);z-index:9999;align-items:center;justify-content:center;overflow-y:auto;">
+  <div style="background:#0D2B1A;border:1px solid var(--border);border-radius:18px;padding:28px;max-width:500px;width:90%;margin:auto;">
+    <h3 style="font-family:'Syne',sans-serif;color:white;margin-bottom:16px;">🐄 Add Animal</h3>
+    <form method="POST" action="{{ url_for('livestock_add') }}">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div><label style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:5px;">Animal Type *</label>
+        <select name="animal_type" required style="width:100%;background:rgba(20,40,25,.95);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:white;font-size:.82rem;outline:none;box-sizing:border-box;">
+          <option value="dairy">🐄 Dairy Cattle</option><option value="beef">🐂 Beef/Goats</option>
+          <option value="sheep">🐑 Sheep</option><option value="poultry">🐔 Poultry</option>
+          <option value="bees">🐝 Bees</option><option value="pigs">🐷 Pigs</option><option value="fish">🐟 Fish</option>
+        </select></div>
+        <div><label style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:5px;">Count *</label>
+        <input name="count" type="number" min="1" value="1" required style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:white;font-size:.82rem;outline:none;box-sizing:border-box;"></div>
+        <div><label style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:5px;">Name / Group</label>
+        <input name="name" placeholder="e.g. Daisy or Flock A" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:white;font-size:.82rem;outline:none;box-sizing:border-box;"></div>
+        <div><label style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:5px;">Breed</label>
+        <input name="breed" placeholder="e.g. Friesian, Kienyeji" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:white;font-size:.82rem;outline:none;box-sizing:border-box;"></div>
+        <div><label style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:5px;">Weight (kg)</label>
+        <input name="weight_kg" type="number" step="0.1" placeholder="0" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:white;font-size:.82rem;outline:none;box-sizing:border-box;"></div>
+        <div><label style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:5px;">Zone / Pen</label>
+        <input name="zone" placeholder="e.g. Pen 1" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:white;font-size:.82rem;outline:none;box-sizing:border-box;"></div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button type="submit" style="flex:1;background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:11px;border:none;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;">Add Animal</button>
+        <button type="button" onclick="document.getElementById('addAnimalModal').style.display='none'" style="background:rgba(255,255,255,.05);border:1px solid var(--border);color:rgba(255,255,255,.5);padding:11px 16px;border-radius:8px;cursor:pointer;font-family:'Syne',sans-serif;">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Record Modal -->
+<div id="recordModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#0D2B1A;border:1px solid var(--border);border-radius:18px;padding:28px;max-width:420px;width:90%;">
+    <h3 style="font-family:'Syne',sans-serif;color:white;margin-bottom:16px;" id="recordTitle">Add Record</h3>
+    <form method="POST" action="{{ url_for('livestock_record') }}">
+      <input type="hidden" name="livestock_id" id="recordLid">
+      <div style="margin-bottom:12px;"><label style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:5px;">Record Type</label>
+      <select name="record_type" id="recordType" style="width:100%;background:rgba(20,40,25,.95);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:white;font-size:.82rem;outline:none;box-sizing:border-box;">
+        <option value="health">🏥 Health Score (1-5)</option>
+        <option value="weight">⚖️ Weight (kg)</option>
+        <option value="milk_production">🥛 Milk Production (litres)</option>
+        <option value="egg_production">🥚 Eggs Collected</option>
+        <option value="honey_harvest">🍯 Honey Harvest (kg)</option>
+        <option value="wool_harvest">🧶 Wool Harvest (kg)</option>
+        <option value="vaccination">💉 Vaccination</option>
+        <option value="deworming">💊 Deworming</option>
+        <option value="breeding">❤️ Breeding Record</option>
+      </select></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div><label style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:5px;">Value</label>
+        <input name="value" type="number" step="0.01" placeholder="0" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:white;font-size:.82rem;outline:none;box-sizing:border-box;"></div>
+        <div><label style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:5px;">Unit</label>
+        <input name="unit" id="recordUnit" placeholder="litres" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:white;font-size:.82rem;outline:none;box-sizing:border-box;"></div>
+      </div>
+      <div style="margin-bottom:16px;"><label style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:5px;">Notes</label>
+      <textarea name="notes" rows="2" placeholder="Any observations..." style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:white;font-size:.82rem;outline:none;resize:vertical;box-sizing:border-box;"></textarea></div>
+      <div style="display:flex;gap:10px;">
+        <button type="submit" style="flex:1;background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:11px;border:none;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;">Save Record</button>
+        <button type="button" onclick="document.getElementById('recordModal').style.display='none'" style="background:rgba(255,255,255,.05);border:1px solid var(--border);color:rgba(255,255,255,.5);padding:11px 16px;border-radius:8px;cursor:pointer;font-family:'Syne',sans-serif;">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const unitMap={health:'score 1-5',weight:'kg',milk_production:'litres',egg_production:'eggs',honey_harvest:'kg',wool_harvest:'kg',vaccination:'drug name',deworming:'drug name',breeding:'details'};
+function openRecord(id, atype, unit){
+  document.getElementById('recordLid').value=id;
+  document.getElementById('recordTitle').textContent='Add Record';
+  document.getElementById('recordUnit').placeholder=unit;
+  document.getElementById('recordModal').style.display='flex';
+}
+document.getElementById('recordType').addEventListener('change',function(){
+  document.getElementById('recordUnit').placeholder=unitMap[this.value]||'value';
+});
+</script>
+{% endblock %}

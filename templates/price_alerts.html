@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Price Alerts{% endblock %}
+{% block content %}
+<style>
+.pa-card{background:rgba(8,20,12,.85);border:1px solid rgba(46,139,74,.15);border-radius:14px;padding:18px 20px;margin-bottom:10px;display:flex;align-items:flex-start;gap:16px;transition:all .2s;}
+.pa-card:hover{border-color:rgba(46,139,74,.3);transform:translateX(4px);}
+.pa-card.peak{border-left:4px solid #4ade80;background:rgba(46,139,74,.08);}
+.pa-card.rising{border-left:4px solid var(--amber);background:rgba(212,160,23,.05);}
+.pa-card.low{border-left:4px solid #f87171;background:rgba(198,40,40,.06);}
+.pa-card.mine{box-shadow:0 0 0 1px rgba(34,211,238,.3);}
+.pa-emoji{font-size:2rem;flex-shrink:0;line-height:1;}
+.pa-name{font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.9rem;}
+.pa-price{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;line-height:1;}
+.pa-price.peak{color:#4ade80;}
+.pa-price.rising{color:var(--amber);}
+.pa-price.low{color:#f87171;}
+.pa-msg{font-size:.78rem;color:rgba(255,255,255,.5);margin-top:4px;line-height:1.4;}
+.mine-tag{display:inline-block;padding:2px 8px;background:rgba(34,211,238,.15);border:1px solid rgba(34,211,238,.3);border-radius:20px;font-size:.62rem;font-family:'Syne',sans-serif;font-weight:700;color:#22d3ee;margin-left:8px;}
+.filter-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.5);padding:7px 16px;border-radius:10px;font-family:'Syne',sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;transition:all .2s;}
+.filter-btn.active{background:rgba(46,139,74,.2);border-color:rgba(46,139,74,.4);color:var(--lime);}
+.stat-pill{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 18px;text-align:center;flex:1;min-width:100px;}
+.stat-pill .val{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:700;}
+.stat-pill .lbl{font-size:.7rem;color:rgba(255,255,255,.4);margin-top:2px;}
+</style>
+
+<!-- Header -->
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+  <div>
+    <div class="ptag">💰 Live Intelligence</div>
+    <h1 class="ptitle">Price Alerts</h1>
+    <p class="psub">Real-time price movements for your crops and livestock products.</p>
+  </div>
+  <a href="{{ url_for('market_prices') }}" class="bgg" style="text-decoration:none;padding:10px 20px;">📈 Full Market Prices →</a>
+</div>
+
+<!-- Summary stats -->
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px;">
+  {% set peak_count = alerts|selectattr('status','eq','peak')|list|length %}
+  {% set rising_count = alerts|selectattr('status','eq','rising')|list|length %}
+  {% set low_count = alerts|selectattr('status','eq','low')|list|length %}
+  {% set mine_count = alerts|selectattr('is_mine','eq',true)|list|length %}
+  <div class="stat-pill"><div class="val" style="color:#4ade80;">{{ peak_count }}</div><div class="lbl">Peak Price</div></div>
+  <div class="stat-pill"><div class="val" style="color:var(--amber);">{{ rising_count }}</div><div class="lbl">Rising</div></div>
+  <div class="stat-pill"><div class="val" style="color:#f87171;">{{ low_count }}</div><div class="lbl">Low Price</div></div>
+  <div class="stat-pill"><div class="val" style="color:#22d3ee;">{{ mine_count }}</div><div class="lbl">Your Farm</div></div>
+</div>
+
+<!-- Filter buttons -->
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
+  <button class="filter-btn active" onclick="filter('all',this)">All Alerts</button>
+  <button class="filter-btn" onclick="filter('mine',this)">⭐ My Farm Only</button>
+  <button class="filter-btn" onclick="filter('peak',this)">🟢 Peak Prices</button>
+  <button class="filter-btn" onclick="filter('rising',this)">📈 Rising</button>
+  <button class="filter-btn" onclick="filter('low',this)">📉 Low Prices</button>
+  <button class="filter-btn" onclick="filter('crop',this)">🌽 Crops</button>
+  <button class="filter-btn" onclick="filter('animal',this)">🐄 Animal Products</button>
+</div>
+
+<!-- Alert cards -->
+{% if alerts %}
+<div id="alertList">
+{% for a in alerts %}
+<div class="pa-card {{ a.status }} {% if a.is_mine %}mine{% endif %}"
+     data-status="{{ a.status }}" data-type="{{ a.type }}" data-mine="{{ 'yes' if a.is_mine else 'no' }}">
+  <div class="pa-emoji">{{ a.emoji }}</div>
+  <div style="flex:1;">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+      <span class="pa-name">{{ a.name|title }}</span>
+      {% if a.is_mine %}<span class="mine-tag">⭐ YOUR FARM</span>{% endif %}
+      <span style="font-size:.65rem;font-family:'Syne',sans-serif;font-weight:700;padding:2px 8px;border-radius:20px;
+        background:{% if a.status=='peak' %}rgba(74,222,128,.15){% elif a.status=='rising' %}rgba(212,160,23,.15){% else %}rgba(248,113,113,.15){% endif %};
+        color:{% if a.status=='peak' %}#4ade80{% elif a.status=='rising' %}var(--amber){% else %}#f87171{% endif %};">
+        {{ '🟢 PEAK' if a.status=='peak' else '📈 RISING' if a.status=='rising' else '📉 LOW' }}
+      </span>
+    </div>
+    <div class="pa-price {{ a.status }}">{{ a.price }}</div>
+    <div class="pa-msg">{{ a.msg }}</div>
+  </div>
+  {% if a.is_mine %}
+  <div style="flex-shrink:0;">
+    <a href="{{ url_for('market_prices') }}" class="bgg" style="font-size:.72rem;padding:6px 12px;text-decoration:none;">View →</a>
+  </div>
+  {% endif %}
+</div>
+{% endfor %}
+</div>
+{% else %}
+<div style="text-align:center;padding:60px 20px;color:rgba(255,255,255,.3);">
+  <div style="font-size:3rem;margin-bottom:12px;">📊</div>
+  <div style="font-family:'Syne',sans-serif;font-weight:700;color:rgba(255,255,255,.5);margin-bottom:8px;">No price alerts right now</div>
+  <div style="font-size:.82rem;">Prices are stable. Check back during festive seasons for peak opportunities.</div>
+</div>
+{% endif %}
+
+<!-- My crops/animals not on alert -->
+{% if user_crops or user_animals %}
+<div style="margin-top:32px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px;">
+  <div style="font-family:'Syne',sans-serif;font-weight:700;color:rgba(255,255,255,.5);font-size:.78rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Your Farm Watchlist</div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;">
+    {% for c in user_crops %}
+    <span style="background:rgba(46,139,74,.1);border:1px solid rgba(46,139,74,.2);border-radius:20px;padding:4px 12px;font-size:.78rem;color:var(--lime);">🌿 {{ c|title }}</span>
+    {% endfor %}
+    {% for a in user_animals %}
+    <span style="background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.2);border-radius:20px;padding:4px 12px;font-size:.78rem;color:#22d3ee;">🐄 {{ a|title }}</span>
+    {% endfor %}
+  </div>
+  <div style="font-size:.75rem;color:rgba(255,255,255,.3);margin-top:10px;">Alerts fire automatically when prices for these move significantly.</div>
+</div>
+{% endif %}
+
+{% endblock %}
+{% block scripts %}
+<script>
+function filter(type, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.pa-card').forEach(card => {
+    if (type === 'all') { card.style.display = ''; return; }
+    if (type === 'mine') { card.style.display = card.dataset.mine === 'yes' ? '' : 'none'; return; }
+    if (['peak','rising','low'].includes(type)) { card.style.display = card.dataset.status === type ? '' : 'none'; return; }
+    if (['crop','animal'].includes(type)) { card.style.display = card.dataset.type === type ? '' : 'none'; return; }
+  });
+}
+// Auto-refresh every 5 minutes
+setTimeout(() => location.reload(), 300000);
+</script>
+{% endblock %}

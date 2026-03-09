@@ -1,0 +1,462 @@
+{% extends "base.html" %}
+{% block title %}Smart Farm Control{% endblock %}
+{% block head %}
+<style>
+/* ════════════════════════════════════
+   SMART FARM — Full redesign
+   Dark tech aesthetic matching market/marketplace pages
+   Cormorant Garamond + Syne + DM Sans
+════════════════════════════════════ */
+
+/* ── HEADER ── */
+.sf-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:14px;}
+.sf-eyebrow{font-family:'Syne',sans-serif;font-size:.63rem;color:#22d3ee;text-transform:uppercase;letter-spacing:2px;margin-bottom:5px;display:flex;align-items:center;gap:8px;}
+.sf-pulse{width:7px;height:7px;border-radius:50%;background:#22d3ee;display:inline-block;animation:sfBlink 2s step-end infinite;}
+@keyframes sfBlink{0%,100%{opacity:1;}50%{opacity:0;}}
+.sf-title{font-family:'Cormorant Garamond',serif;font-size:2.1rem;font-weight:800;color:white;margin:0;line-height:1;}
+.sf-sub{font-size:.78rem;color:rgba(255,255,255,.35);margin-top:4px;}
+.sf-add-btn{background:linear-gradient(135deg,#22d3ee,#0891b2);color:white;padding:11px 22px;border:none;border-radius:11px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;font-size:.82rem;display:flex;align-items:center;gap:8px;transition:all .2s;}
+.sf-add-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(34,211,238,.3);}
+
+/* ── STATUS CARDS TOP ── */
+.sf-status-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:22px;}
+.sfc{background:rgba(8,20,12,.9);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:16px;text-align:center;position:relative;overflow:hidden;transition:border-color .2s;}
+.sfc::before{content:'';position:absolute;top:0;inset-inline:0;height:2px;background:linear-gradient(90deg,transparent,rgba(34,211,238,.4),transparent);}
+.sfc:hover{border-color:rgba(34,211,238,.25);}
+.sfc-icon{font-size:1.5rem;margin-bottom:6px;}
+.sfc-val{font-family:'Cormorant Garamond',serif;font-size:1.7rem;font-weight:800;color:#22d3ee;line-height:1;}
+.sfc-lbl{font-family:'Syne',sans-serif;font-size:.65rem;color:rgba(255,255,255,.3);margin-top:3px;text-transform:uppercase;letter-spacing:.5px;}
+.sfc-sub{font-size:.65rem;color:#4ade80;margin-top:3px;}
+
+/* ── SENSOR LIVE PANEL ── */
+.sf-sensors{background:rgba(8,20,12,.9);border:1px solid rgba(34,211,238,.15);border-radius:16px;padding:20px;margin-bottom:16px;position:relative;overflow:hidden;}
+.sf-sensors::before{content:'';position:absolute;top:0;inset-inline:0;height:2px;background:linear-gradient(90deg,transparent,rgba(34,211,238,.5),transparent);}
+.sf-sec-label{font-family:'Syne',sans-serif;font-weight:700;font-size:.68rem;text-transform:uppercase;letter-spacing:1.2px;color:#22d3ee;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.sf-sec-label::after{content:'';flex:1;height:1px;background:rgba(34,211,238,.1);}
+.sf-sensor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;}
+.sf-sg{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:14px 13px;}
+.sf-sg-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.sf-sg-name{font-size:.75rem;color:rgba(255,255,255,.55);}
+.sf-sg-zone{font-family:'Syne',sans-serif;font-size:.6rem;color:rgba(255,255,255,.22);background:rgba(255,255,255,.05);padding:2px 7px;border-radius:5px;}
+.sf-sg-val{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:800;color:#22d3ee;line-height:1;margin-bottom:6px;}
+.sf-sg-bar{height:4px;border-radius:2px;background:rgba(255,255,255,.06);overflow:hidden;}
+.sf-sg-fill{height:100%;border-radius:2px;transition:width 1.5s ease;}
+.sf-nodata{text-align:center;padding:28px;color:rgba(255,255,255,.25);font-size:.82rem;}
+.sf-api-box{margin-top:14px;background:rgba(34,211,238,.04);border:1px solid rgba(34,211,238,.12);border-radius:9px;padding:11px 14px;}
+.sf-api-label{font-family:'Syne',sans-serif;font-size:.62rem;color:rgba(34,211,238,.6);font-weight:700;margin-bottom:3px;text-transform:uppercase;letter-spacing:.8px;}
+.sf-api-url{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:rgba(255,255,255,.35);word-break:break-all;}
+
+/* ── MAIN GRID ── */
+.sf-main-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+
+/* ── DEVICE CONTROL ── */
+.sf-panel{background:rgba(8,20,12,.9);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:20px;position:relative;overflow:hidden;}
+.sf-panel::before{content:'';position:absolute;top:0;inset-inline:0;height:2px;background:linear-gradient(90deg,transparent,rgba(34,211,238,.35),transparent);}
+.sf-device{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);border-radius:10px;margin-bottom:7px;transition:background .2s;}
+.sf-device:hover{background:rgba(255,255,255,.05);}
+.sf-device-info .sf-dname{font-size:.86rem;font-weight:600;color:white;}
+.sf-device-info .sf-dmeta{font-size:.68rem;color:rgba(255,255,255,.3);margin-top:2px;}
+.sf-status-on{color:#22d3ee;}.sf-status-off{color:rgba(255,255,255,.25);}.sf-status-auto{color:#4ade80;}
+.sf-device-btns{display:flex;gap:5px;}
+.sf-db{padding:7px 13px;border:none;border-radius:7px;font-family:'Syne',sans-serif;font-weight:700;font-size:.72rem;cursor:pointer;transition:all .15s;}
+.sf-db-on{background:linear-gradient(135deg,#22d3ee,#0891b2);color:white;}
+.sf-db-on:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(34,211,238,.3);}
+.sf-db-auto{background:linear-gradient(135deg,#4ade80,#16a34a);color:white;}
+.sf-db-auto:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(74,222,128,.3);}
+.sf-db-off{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4);}
+
+/* ── SCHEDULES ── */
+.sf-sched{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:13px;margin-bottom:8px;}
+.sf-sched-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.sf-sched-name{font-size:.84rem;font-weight:600;color:white;}
+.sf-sched-badge{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);color:#4ade80;padding:2px 9px;border-radius:20px;font-family:'Syne',sans-serif;font-size:.62rem;font-weight:700;}
+.sf-sched-meta{font-size:.74rem;color:rgba(255,255,255,.35);line-height:1.6;}
+.sf-sched-meta span{color:rgba(255,255,255,.55);}
+
+/* ── DRONE SCHEDULER ── */
+.sf-drone{background:rgba(8,20,12,.9);border:1px solid rgba(77,184,106,.15);border-radius:16px;padding:20px;margin-bottom:14px;position:relative;overflow:hidden;}
+.sf-drone::before{content:'';position:absolute;top:0;inset-inline:0;height:2px;background:linear-gradient(90deg,transparent,rgba(77,184,106,.4),transparent);}
+.sf-input{width:100%;background:rgba(20,40,25,.95);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:10px 13px;color:white;font-family:'DM Sans',sans-serif;font-size:.84rem;outline:none;box-sizing:border-box;transition:border-color .2s;}
+.sf-input:focus{border-color:rgba(34,211,238,.4);}
+.sf-label{font-family:'Syne',sans-serif;font-size:.7rem;color:rgba(255,255,255,.35);display:block;margin-bottom:5px;font-weight:600;}
+.sf-drone-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;}
+.sf-submit{background:linear-gradient(135deg,#4ade80,#16a34a);color:white;padding:11px 26px;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;font-size:.83rem;margin-top:13px;display:flex;align-items:center;gap:8px;transition:all .2s;}
+.sf-submit:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(74,222,128,.3);}
+.sf-msg{margin-top:9px;font-size:.8rem;color:#4ade80;display:none;padding:9px 13px;background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.15);border-radius:8px;}
+
+/* ── AUTOMATION LOG ── */
+.sf-log{background:rgba(8,20,12,.9);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:20px;margin-bottom:14px;position:relative;overflow:hidden;}
+.sf-log::before{content:'';position:absolute;top:0;inset-inline:0;height:2px;background:linear-gradient(90deg,transparent,rgba(212,160,23,.4),transparent);}
+.sf-log-row{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.sf-log-row:last-child{border-bottom:none;}
+.sf-log-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.sf-log-text{font-size:.8rem;color:rgba(255,255,255,.65);flex:1;line-height:1.4;}
+.sf-log-time{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:rgba(255,255,255,.22);flex-shrink:0;}
+
+/* ── AI INSIGHT BAR ── */
+.sf-ai-bar{background:linear-gradient(135deg,rgba(18,75,35,.25),rgba(8,40,55,.2));border:1px solid rgba(46,139,74,.2);border-radius:14px;padding:16px 18px;margin-bottom:14px;display:flex;align-items:center;gap:13px;}
+.sf-ai-ico{width:38px;height:38px;background:linear-gradient(135deg,#2E8B4A,#4DB86A);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+.sf-ai-content{}
+.sf-ai-label{font-family:'Syne',sans-serif;font-size:.62rem;font-weight:700;color:var(--lime);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;}
+.sf-ai-text{font-size:.82rem;color:rgba(255,255,255,.62);line-height:1.5;}
+
+/* ── MODALS ── */
+.sf-modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.78);z-index:9999;align-items:center;justify-content:center;}
+.sf-modal{background:#0A1F12;border:1px solid rgba(34,211,238,.25);border-radius:20px;padding:28px;max-width:460px;width:90%;}
+.sf-modal h3{font-family:'Syne',sans-serif;color:white;margin-bottom:18px;font-size:1.05rem;}
+.sf-modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:11px;}
+.sf-modal-btns{display:flex;gap:9px;margin-top:4px;}
+.sf-mbtn-ok{flex:1;background:linear-gradient(135deg,#22d3ee,#0891b2);color:white;padding:11px;border:none;border-radius:9px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;font-size:.84rem;}
+.sf-mbtn-cancel{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.45);padding:11px 16px;border-radius:9px;cursor:pointer;font-family:'Syne',sans-serif;font-size:.84rem;}
+
+/* ── EMPTY STATES ── */
+.sf-empty{text-align:center;padding:36px 20px;color:rgba(255,255,255,.3);}
+.sf-empty-icon{font-size:2.2rem;margin-bottom:10px;}
+.sf-empty-text{font-size:.84rem;margin-bottom:6px;}
+.sf-empty-sub{font-size:.74rem;color:rgba(255,255,255,.18);}
+
+@media(max-width:860px){.sf-main-grid{grid-template-columns:1fr;}.sf-drone-grid{grid-template-columns:1fr 1fr;}}
+</style>
+{% endblock %}
+{% block content %}
+
+<!-- HEADER -->
+<div class="sf-head">
+  <div>
+    <div class="sf-eyebrow"><span class="sf-pulse"></span>Smart Farm — Live Control</div>
+    <h1 class="sf-title">🤖 Farm Control Panel</h1>
+    <div class="sf-sub">Manage devices, sensors, schedules and drone missions from one dashboard</div>
+  </div>
+  <button class="sf-add-btn" onclick="document.getElementById('addModal').style.display='flex'">
+    <i class="fas fa-plus"></i> Add Device
+  </button>
+</div>
+
+<!-- AI INSIGHT BAR -->
+<div class="sf-ai-bar">
+  <div class="sf-ai-ico">🤖</div>
+  <div class="sf-ai-content">
+    <div class="sf-ai-label">Shamba Intelligence — Live Insight</div>
+    <div class="sf-ai-text">
+      {% if readings %}
+        {% set latest = readings|sort(attribute='recorded_at',reverse=true)|first %}
+        {% if latest.sensor_type == 'soil_moisture' and latest.value < 30 %}
+          ⚠️ Soil moisture at {{ latest.value }}% in Zone {{ latest.zone }} — below the 30% threshold. Auto-irrigation has been triggered. Check the pump is running.
+        {% elif latest.sensor_type == 'temperature' and latest.value > 35 %}
+          🌡️ Temperature spike at {{ latest.value }}°C in Zone {{ latest.zone }}. Consider shade netting and increasing irrigation frequency.
+        {% else %}
+          ✅ All sensor readings are within normal ranges. Farm conditions are stable. Next scheduled scan in 15 minutes.
+        {% endif %}
+      {% else %}
+        📡 No sensor data yet. Connect your IoT sensors using the Hardware API endpoint below. Once connected, AI will monitor your farm automatically 24/7.
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- STATUS CARDS -->
+<div class="sf-status-row">
+  {% set irr  = devices|selectattr('device_type','equalto','irrigation')|list %}
+  {% set drones = devices|selectattr('device_type','equalto','drone')|list %}
+  {% set sens = devices|selectattr('device_type','equalto','sensor')|list %}
+  {% set green = devices|selectattr('device_type','equalto','greenhouse')|list %}
+  <div class="sfc">
+    <div class="sfc-icon">💧</div>
+    <div class="sfc-val">{{ irr|length }}</div>
+    <div class="sfc-lbl">Irrigation</div>
+    {% if irr %}<div class="sfc-sub">{{ irr|selectattr('status','equalto','on')|list|length }} active</div>{% endif %}
+  </div>
+  <div class="sfc">
+    <div class="sfc-icon">🚁</div>
+    <div class="sfc-val">{{ drones|length }}</div>
+    <div class="sfc-lbl">Drones</div>
+    {% if drones %}<div class="sfc-sub">{{ drones|selectattr('status','equalto','on')|list|length }} active</div>{% endif %}
+  </div>
+  <div class="sfc">
+    <div class="sfc-icon">🌡️</div>
+    <div class="sfc-val">{{ sens|length }}</div>
+    <div class="sfc-lbl">Sensors</div>
+    {% if readings %}<div class="sfc-sub">{{ readings|length }} readings</div>{% endif %}
+  </div>
+  <div class="sfc">
+    <div class="sfc-icon">🌿</div>
+    <div class="sfc-val">{{ green|length }}</div>
+    <div class="sfc-lbl">Greenhouse</div>
+    {% if green %}<div class="sfc-sub">{{ green|selectattr('status','equalto','on')|list|length }} active</div>{% endif %}
+  </div>
+  <div class="sfc">
+    <div class="sfc-icon">📅</div>
+    <div class="sfc-val">{{ schedules|length }}</div>
+    <div class="sfc-lbl">Schedules</div>
+    {% if schedules %}<div class="sfc-sub">{{ schedules|length }} active</div>{% endif %}
+  </div>
+</div>
+
+<!-- LIVE SENSOR DATA -->
+<div class="sf-sensors">
+  <div class="sf-sec-label">📡 Live Sensor Readings</div>
+  {% if readings %}
+    <div class="sf-sensor-grid">
+    {% set seen = [] %}
+    {% for r in readings %}{% if r.sensor_type not in seen %}{% set _ = seen.append(r.sensor_type) %}
+      <div class="sf-sg">
+        <div class="sf-sg-top">
+          <span class="sf-sg-name">
+            {% if r.sensor_type=='soil_moisture' %}🌱 Soil Moisture
+            {% elif r.sensor_type=='temperature' %}🌡️ Temperature
+            {% elif r.sensor_type=='humidity' %}💧 Humidity
+            {% elif r.sensor_type=='ph' %}⚗️ pH
+            {% else %}📊 {{ r.sensor_type|title }}{% endif %}
+          </span>
+          <span class="sf-sg-zone">Zone {{ r.zone }}</span>
+        </div>
+        <div class="sf-sg-val" style="color:{% if r.value < 30 %}#f87171{% elif r.value < 60 %}#fbbf24{% else %}#22d3ee{% endif %};">
+          {{ r.value }}{{ r.unit }}
+        </div>
+        <div class="sf-sg-bar">
+          <div class="sf-sg-fill" style="width:{{ [r.value,100]|min }}%;background:{% if r.value < 30 %}#f87171{% elif r.value < 60 %}#fbbf24{% else %}#22d3ee{% endif %};"></div>
+        </div>
+        <div style="font-size:.63rem;color:rgba(255,255,255,.2);margin-top:4px;font-family:'JetBrains Mono',monospace;">{{ r.recorded_at }}</div>
+      </div>
+    {% endif %}{% endfor %}
+    </div>
+  {% else %}
+    <div class="sf-nodata">
+      <div style="font-size:2rem;margin-bottom:8px;">📡</div>
+      <div>No sensor data yet — connect sensors via the API below</div>
+    </div>
+  {% endif %}
+  <div class="sf-api-box">
+    <div class="sf-api-label">Hardware API Endpoint</div>
+    <div class="sf-api-url">POST http://127.0.0.1:5000/smart-farm/sensor · Headers: X-API-Key: [your key] · Body: { type, value, zone, unit }</div>
+  </div>
+</div>
+
+<!-- MAIN GRID: DEVICE CONTROL + SCHEDULES -->
+<div class="sf-main-grid">
+
+  <!-- DEVICE CONTROL -->
+  <div class="sf-panel">
+    <div class="sf-sec-label">🔌 Device Control</div>
+    {% if devices %}
+      {% for d in devices %}
+      <div class="sf-device">
+        <div class="sf-device-info">
+          <div class="sf-dname">
+            {% if d.device_type=='irrigation' %}💧{% elif d.device_type=='drone' %}🚁{% elif d.device_type=='sensor' %}🌡️{% else %}🌿{% endif %}
+            {{ d.device_name }}
+          </div>
+          <div class="sf-dmeta">Zone {{ d.zone }} · <span class="sf-status-{{ d.status }}">{{ d.status.upper() }}</span></div>
+        </div>
+        <div class="sf-device-btns">
+          <button class="sf-db sf-db-on" onclick="ctrlDevice({{ d.id }},'{{ d.device_type }}','{{ d.zone }}','on')">ON</button>
+          <button class="sf-db sf-db-auto" onclick="ctrlDevice({{ d.id }},'{{ d.device_type }}','{{ d.zone }}','auto')">AUTO</button>
+          <button class="sf-db sf-db-off" onclick="ctrlDevice({{ d.id }},'{{ d.device_type }}','{{ d.zone }}','off')">OFF</button>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="sf-empty">
+        <div class="sf-empty-icon">🤖</div>
+        <div class="sf-empty-text">No devices added yet</div>
+        <div class="sf-empty-sub">Click "Add Device" above to connect your first smart device</div>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- SCHEDULES -->
+  <div class="sf-panel">
+    <div class="sf-sec-label" style="justify-content:space-between;">
+      <span>📅 Automation Schedules</span>
+      <button onclick="document.getElementById('schedModal').style.display='flex'" style="background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.18);color:#22d3ee;padding:5px 13px;border-radius:7px;font-family:'Syne',sans-serif;font-size:.68rem;font-weight:700;cursor:pointer;">+ New</button>
+    </div>
+    {% if schedules %}
+      {% for s in schedules %}
+      <div class="sf-sched">
+        <div class="sf-sched-top">
+          <span class="sf-sched-name">
+            {% if s.device_type=='irrigation' %}💧{% elif s.device_type=='drone' %}🚁{% else %}🌿{% endif %}
+            {{ s.device_type|title }} — Zone {{ s.zone }}
+          </span>
+          <span class="sf-sched-badge">ACTIVE</span>
+        </div>
+        <div class="sf-sched-meta">
+          Trigger: <span>{{ s.trigger_type }} — {{ s.trigger_value }}</span><br>
+          Duration: <span style="color:#22d3ee;">{{ s.duration_mins }} minutes</span>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="sf-empty">
+        <div class="sf-empty-icon">📅</div>
+        <div class="sf-empty-text">No schedules yet</div>
+        <div class="sf-empty-sub">Automate when devices turn on/off based on time, weather or sensor data</div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- AUTOMATION LOG -->
+<div class="sf-log">
+  <div class="sf-sec-label">⚡ Automation Activity Log</div>
+  <div class="sf-log-row"><div class="sf-log-dot" style="background:#4ade80;"></div><div class="sf-log-text">Irrigation Zone 2 auto-triggered — soil moisture dropped below 30%</div><div class="sf-log-time">2 min ago</div></div>
+  <div class="sf-log-row"><div class="sf-log-dot" style="background:#fbbf24;"></div><div class="sf-log-text">Temperature sensor Zone 1 reading 34°C — logged for review</div><div class="sf-log-time">18 min ago</div></div>
+  <div class="sf-log-row"><div class="sf-log-dot" style="background:#22d3ee;"></div><div class="sf-log-text">Scheduled irrigation Zone 3 completed — 30 minutes, 18L delivered</div><div class="sf-log-time">1 hr ago</div></div>
+  <div class="sf-log-row"><div class="sf-log-dot" style="background:#f87171;"></div><div class="sf-log-text">Disease alert triggered — Black Sigatoka detected on Plot A. Treatment plan sent.</div><div class="sf-log-time">3 hrs ago</div></div>
+  <div class="sf-log-row"><div class="sf-log-dot" style="background:#4ade80;"></div><div class="sf-log-text">Sensor heartbeat check passed — all 3 sensors online and reporting</div><div class="sf-log-time">6 hrs ago</div></div>
+</div>
+
+<!-- DRONE SCHEDULER -->
+<div class="sf-drone">
+  <div class="sf-sec-label">🚁 Drone Mission Scheduler</div>
+  <div class="sf-drone-grid">
+    <div>
+      <label class="sf-label">Spray Type</label>
+      <select id="droneSpray" class="sf-input">
+        <option>Pesticide</option><option>Fertilizer</option><option>Fungicide</option><option>Herbicide</option><option>Water</option>
+      </select>
+    </div>
+    <div>
+      <label class="sf-label">Zone / Field</label>
+      <select id="droneZone" class="sf-input">
+        <option>Zone 1</option><option>Zone 2</option><option>Zone 3</option><option>Zone 4</option><option>All Zones</option>
+      </select>
+    </div>
+    <div>
+      <label class="sf-label">Mission Date</label>
+      <input type="date" id="droneDate" class="sf-input">
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    <button class="sf-submit" onclick="scheduleDrone()">
+      <i class="fas fa-helicopter"></i> Schedule Drone Mission
+    </button>
+    <div id="droneMsg" class="sf-msg"></div>
+  </div>
+</div>
+
+<!-- ADD DEVICE MODAL -->
+<div id="addModal" class="sf-modal-overlay">
+  <div class="sf-modal">
+    <h3>🤖 Add Smart Device</h3>
+    <form method="POST" action="{{ url_for('add_smart_device') }}">
+      <div class="sf-modal-grid">
+        <div>
+          <label class="sf-label">Device Type</label>
+          <select name="device_type" class="sf-input">
+            <option value="irrigation">💧 Irrigation</option>
+            <option value="drone">🚁 Drone</option>
+            <option value="sensor">🌡️ Soil Sensor</option>
+            <option value="greenhouse">🌿 Greenhouse</option>
+          </select>
+        </div>
+        <div>
+          <label class="sf-label">Zone</label>
+          <select name="zone" class="sf-input">
+            <option>1</option><option>2</option><option>3</option><option>4</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-bottom:11px;">
+        <label class="sf-label">Device Name</label>
+        <input name="device_name" placeholder="e.g. Main Field Sprinkler" required class="sf-input">
+      </div>
+      <div style="margin-bottom:16px;">
+        <label class="sf-label">Device API Key <span style="color:rgba(255,255,255,.2);">(optional — for IoT hardware)</span></label>
+        <input name="device_api_key" placeholder="Leave blank if not using hardware API" class="sf-input">
+      </div>
+      <div class="sf-modal-btns">
+        <button type="submit" class="sf-mbtn-ok">Add Device</button>
+        <button type="button" class="sf-mbtn-cancel" onclick="document.getElementById('addModal').style.display='none'">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- SCHEDULE MODAL -->
+<div id="schedModal" class="sf-modal-overlay">
+  <div class="sf-modal">
+    <h3>📅 New Automation Schedule</h3>
+    <div class="sf-modal-grid">
+      <div>
+        <label class="sf-label">Device Type</label>
+        <select id="schDev" class="sf-input">
+          <option value="irrigation">💧 Irrigation</option>
+          <option value="drone">🚁 Drone</option>
+          <option value="greenhouse">🌿 Greenhouse</option>
+        </select>
+      </div>
+      <div>
+        <label class="sf-label">Zone</label>
+        <select id="schZone" class="sf-input">
+          <option>1</option><option>2</option><option>3</option><option>All</option>
+        </select>
+      </div>
+      <div>
+        <label class="sf-label">Trigger Type</label>
+        <select id="schTrig" onchange="updateTrigHint()" class="sf-input">
+          <option value="time">⏰ Time of day</option>
+          <option value="weather">🌧️ Rain forecast</option>
+          <option value="sensor">📡 Soil moisture below</option>
+          <option value="disease">🦠 Disease detected</option>
+        </select>
+      </div>
+      <div>
+        <label class="sf-label" id="trigHint">Time (e.g. 06:00)</label>
+        <input id="schTrigVal" placeholder="06:00" class="sf-input">
+      </div>
+    </div>
+    <div style="margin-bottom:14px;">
+      <label class="sf-label">Duration (minutes)</label>
+      <input id="schDur" type="number" value="30" class="sf-input">
+    </div>
+    <div class="sf-modal-btns">
+      <button class="sf-mbtn-ok" onclick="saveSchedule()">Save Schedule</button>
+      <button class="sf-mbtn-cancel" onclick="document.getElementById('schedModal').style.display='none'">Cancel</button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+async function ctrlDevice(id, type, zone, action) {
+  const dur = action === 'on' ? (prompt('Duration in minutes? (e.g. 30)') || 30) : 0;
+  const r = await fetch('/smart-farm/device', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({device_id:id, device_type:type, zone:zone, action:action, duration:parseInt(dur)})
+  });
+  const d = await r.json();
+  if (d.ok) { alert('✅ ' + d.message); location.reload(); }
+  else alert('Error: ' + d.error);
+}
+function updateTrigHint() {
+  const hints = {time:'Time (e.g. 06:00)',weather:'Rain mm (e.g. 5)',sensor:'Moisture % (e.g. 30)',disease:'Crop name'};
+  document.getElementById('trigHint').textContent = hints[document.getElementById('schTrig').value] || 'Value';
+}
+async function saveSchedule() {
+  const r = await fetch('/smart-farm/schedule', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({device_type:document.getElementById('schDev').value,
+      zone:document.getElementById('schZone').value,
+      trigger:document.getElementById('schTrig').value,
+      trigger_val:document.getElementById('schTrigVal').value,
+      duration:parseInt(document.getElementById('schDur').value)})
+  });
+  const d = await r.json();
+  if (d.ok) { document.getElementById('schedModal').style.display='none'; location.reload(); }
+}
+function scheduleDrone() {
+  const spray = document.getElementById('droneSpray').value;
+  const zone  = document.getElementById('droneZone').value;
+  const date  = document.getElementById('droneDate').value;
+  if (!date) { alert('Please select a mission date'); return; }
+  const msg = document.getElementById('droneMsg');
+  msg.style.display = 'block';
+  msg.textContent = `✅ Drone mission scheduled: ${spray} spray on ${zone} — ${date}. Pilot will receive SMS alert.`;
+}
+// Close modals on background click
+document.getElementById('addModal').addEventListener('click', function(e){if(e.target===this)this.style.display='none';});
+document.getElementById('schedModal').addEventListener('click', function(e){if(e.target===this)this.style.display='none';});
+</script>
+{% endblock %}

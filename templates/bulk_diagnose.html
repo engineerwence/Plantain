@@ -1,0 +1,93 @@
+﻿{% extends "base.html" %}
+{% block title %}Bulk Diagnosis{% endblock %}
+{% block content %}
+<div style="max-width:720px;margin:0 auto;">
+  <div class="fu" style="margin-bottom:28px;">
+    <div class="ptag">Mid & Large Scale</div>
+    <h1 class="ptitle">Bulk Field Diagnosis</h1>
+    <p class="psub">Upload up to {{ 10 if plan=='enterprise' else 5 }} photos from different sections of your farm. AI analyses each one separately.</p>
+  </div>
+
+  {% if error %}
+  <div style="background:rgba(220,53,69,.1);border:1px solid rgba(220,53,69,.3);border-radius:10px;padding:14px 18px;margin-bottom:20px;color:#dc3545;font-size:.88rem;">⚠️ {{ error }}</div>
+  {% endif %}
+
+  <div class="pc fu fu1" style="padding:32px;">
+    <form method="POST" action="{{ url_for('bulk_diagnose') }}" enctype="multipart/form-data" id="bulkForm">
+
+      <div class="mb-4">
+        <label class="plbl">Crop / Livestock Name</label>
+        <input type="text" name="subject_name" class="pip"
+               placeholder="e.g. Maize, Tomato, Kale..." required list="bulk-crops">
+        <datalist id="bulk-crops">
+          <option value="Maize"><option value="Tomato"><option value="Kale"><option value="Beans">
+          <option value="Potato"><option value="Banana"><option value="Avocado"><option value="Rice">
+          <option value="Onion"><option value="Carrot"><option value="Cassava"><option value="Coffee">
+        </datalist>
+      </div>
+
+      <div class="mb-4">
+        <label class="plbl">
+          Upload Photos from Different Field Sections
+          <span style="color:var(--muted);font-weight:400;">(max {{ 10 if plan=='enterprise' else 5 }} photos)</span>
+        </label>
+        <div id="dropZone" onclick="document.getElementById('bulkInput').click()"
+             style="border:2px dashed rgba(46,139,74,.3);border-radius:14px;padding:40px 20px;text-align:center;cursor:pointer;background:rgba(46,139,74,.04);">
+          <div style="font-size:2.5rem;margin-bottom:10px;">📸</div>
+          <p style="font-family:'Syne',sans-serif;font-weight:700;color:var(--lime);font-size:.88rem;margin-bottom:4px;">Click or drag multiple photos here</p>
+          <p style="font-size:.78rem;color:var(--muted);margin:0;">One photo per field section — JPG or PNG</p>
+        </div>
+        <input type="file" name="images" id="bulkInput" accept="image/*" multiple class="d-none">
+        <div id="preview-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-top:12px;"></div>
+      </div>
+
+      <div style="background:rgba(46,139,74,.06);border:1px solid rgba(46,139,74,.12);border-radius:12px;padding:14px 18px;margin-bottom:24px;">
+        <p style="font-family:'Syne',sans-serif;font-size:.75rem;font-weight:700;color:var(--lime);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">
+          <i class="fas fa-lightbulb me-2" style="color:var(--amber);"></i>How to use bulk diagnosis
+        </p>
+        <ul style="margin:0;padding-left:18px;color:var(--muted);font-size:.83rem;line-height:1.9;">
+          <li>Take one photo from each section / field of your farm</li>
+          <li>Label sections mentally (North field, South field, etc.)</li>
+          <li>AI will analyse each photo and give you a full farm summary</li>
+          <li>You'll see which sections need urgent treatment</li>
+        </ul>
+      </div>
+
+      <button type="submit" id="bulkBtn" class="bg w-100 justify-content-center" style="padding:15px;font-size:.95rem;">
+        <i class="fas fa-robot"></i> Analyse All Photos
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('bulkInput').addEventListener('change', function(e){
+  const grid = document.getElementById('preview-grid');
+  grid.innerHTML = '';
+  Array.from(e.target.files).forEach((f, i) => {
+    const r = new FileReader();
+    r.onload = ev => {
+      const div = document.createElement('div');
+      div.style.cssText = 'position:relative;border-radius:8px;overflow:hidden;aspect-ratio:1;';
+      div.innerHTML = `<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover;">
+        <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.6);color:white;font-size:.65rem;padding:3px 5px;font-family:'Syne',sans-serif;">Section ${i+1}</div>`;
+      grid.appendChild(div);
+    };
+    r.readAsDataURL(f);
+  });
+});
+document.getElementById('bulkForm').addEventListener('submit', function(){
+  const b = document.getElementById('bulkBtn');
+  b.disabled=true; b.innerHTML='<i class="fas fa-spinner fa-spin"></i> Analysing all photos...';
+});
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e=>{e.preventDefault(); dz.style.borderColor='rgba(77,184,106,.6)';});
+dz.addEventListener('dragleave', ()=>dz.style.borderColor='rgba(46,139,74,.3)');
+dz.addEventListener('drop', e=>{
+  e.preventDefault(); dz.style.borderColor='rgba(46,139,74,.3)';
+  document.getElementById('bulkInput').files = e.dataTransfer.files;
+  document.getElementById('bulkInput').dispatchEvent(new Event('change'));
+});
+</script>
+{% endblock %}

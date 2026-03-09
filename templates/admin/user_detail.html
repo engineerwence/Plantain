@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Admin — User {{ user.name }}{% endblock %}
+{% block head %}
+<style>
+.adm-panel{background:rgba(8,20,12,.9);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:20px;margin-bottom:14px;}
+.adm-table{width:100%;border-collapse:collapse;}
+.adm-table th{font-family:'Syne',sans-serif;font-size:.62rem;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.25);padding:8px 10px;text-align:left;border-bottom:1px solid rgba(255,255,255,.05);}
+.adm-table td{padding:10px;font-size:.82rem;color:rgba(255,255,255,.7);border-bottom:1px solid rgba(255,255,255,.04);}
+.sf-input{background:rgba(20,40,25,.95);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:9px 12px;color:white;font-family:'DM Sans',sans-serif;font-size:.82rem;outline:none;}
+.adm-grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;}
+.info-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);border-radius:10px;padding:13px;}
+.ic-lbl{font-family:'Syne',sans-serif;font-size:.6rem;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.25);margin-bottom:3px;}
+.ic-val{font-size:.88rem;color:white;}
+</style>
+{% endblock %}
+{% block content %}
+<div style="display:flex;align-items:center;gap:14px;margin-bottom:24px;flex-wrap:wrap;">
+  <a href="{{ url_for('admin_users') }}" style="color:rgba(255,255,255,.4);font-size:.8rem;text-decoration:none;">← Back</a>
+  <h1 style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:800;color:white;margin:0;">{{ user.name }}</h1>
+  {% if user.is_admin %}<span style="background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.2);color:#f87171;padding:3px 12px;border-radius:20px;font-family:'Syne',sans-serif;font-size:.65rem;font-weight:700;">ADMIN</span>{% endif %}
+</div>
+
+<!-- FLASH MESSAGES -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}{% for cat, msg in messages %}
+<div style="background:rgba({% if cat=='success' %}74,222,128{% else %}248,113,113{% endif %},.1);border:1px solid rgba({% if cat=='success' %}74,222,128{% else %}248,113,113{% endif %},.2);color:{% if cat=='success' %}#4ade80{% else %}#f87171{% endif %};padding:10px 16px;border-radius:9px;margin-bottom:12px;font-size:.84rem;">{{ msg }}</div>
+{% endfor %}{% endif %}{% endwith %}
+
+<!-- INFO CARDS -->
+<div class="adm-grid3">
+  <div class="info-card"><div class="ic-lbl">Email</div><div class="ic-val">{{ user.email }}</div></div>
+  <div class="info-card"><div class="ic-lbl">Phone</div><div class="ic-val">{{ user.phone or '—' }}</div></div>
+  <div class="info-card"><div class="ic-lbl">County</div><div class="ic-val">{{ user.county or '—' }}</div></div>
+  <div class="info-card"><div class="ic-lbl">Farm Type</div><div class="ic-val">{{ user.farm_type or '—' }}</div></div>
+  <div class="info-card"><div class="ic-lbl">Farm Size</div><div class="ic-val">{{ user.farm_size_acres or '—' }} acres</div></div>
+  <div class="info-card"><div class="ic-lbl">Joined</div><div class="ic-val">{{ user.created_at.strftime('%d %b %Y') if user.created_at else '—' }}</div></div>
+</div>
+
+<!-- ACTIONS -->
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+  <!-- Update Plan -->
+  <form method="POST" style="display:flex;gap:8px;align-items:center;">
+    <input type="hidden" name="action" value="update_plan">
+    <select name="plan" class="sf-input" style="padding:8px 12px;">
+      <option value="free" {% if user.subscription_plan=='free' %}selected{% endif %}>🌱 Free</option>
+      <option value="pro" {% if user.subscription_plan=='pro' %}selected{% endif %}>🌾 Pro</option>
+      <option value="enterprise" {% if user.subscription_plan=='enterprise' %}selected{% endif %}>🏢 Enterprise</option>
+      <option value="smart" {% if user.subscription_plan=='smart' %}selected{% endif %}>🤖 Smart</option>
+    </select>
+    <button type="submit" style="background:rgba(46,139,74,.15);border:1px solid rgba(46,139,74,.25);color:var(--lime);padding:8px 16px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:.78rem;cursor:pointer;">Update Plan</button>
+  </form>
+  <!-- Toggle Admin -->
+  <form method="POST" onsubmit="return confirm('Toggle admin status for {{ user.name }}?')">
+    <input type="hidden" name="action" value="toggle_admin">
+    <button type="submit" style="background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);color:#f87171;padding:8px 16px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:.78rem;cursor:pointer;">{{ 'Revoke Admin' if user.is_admin else 'Make Admin' }}</button>
+  </form>
+  <!-- Delete -->
+  <form method="POST" onsubmit="return confirm('DELETE {{ user.name }}? This cannot be undone.')">
+    <input type="hidden" name="action" value="delete">
+    <button type="submit" style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.15);color:rgba(248,113,113,.7);padding:8px 16px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:.78rem;cursor:pointer;">Delete User</button>
+  </form>
+</div>
+
+<!-- TABS FOR USER DATA -->
+<div style="display:flex;gap:7px;margin-bottom:16px;flex-wrap:wrap;">
+  {% for t,l in [('crops','🌱 Crops'),('diagnoses','🔬 Diagnoses'),('livestock','🐄 Livestock'),('payments','💰 Payments')] %}
+  <button onclick="showTab('{{ t }}')" id="tab-btn-{{ t }}" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.5);padding:7px 16px;border-radius:8px;font-family:'Syne',sans-serif;font-size:.74rem;font-weight:700;cursor:pointer;">{{ l }}</button>
+  {% endfor %}
+</div>
+
+<div id="tab-crops" class="adm-panel tab-content">
+  <div style="font-family:'Syne',sans-serif;font-size:.68rem;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">{{ crops|length }} crops</div>
+  <table class="adm-table"><tr><th>Crop</th><th>Status</th><th>Planted</th><th>Acres</th></tr>
+  {% for c in crops %}<tr><td>{{ c.crop_type }}</td><td>{{ c.status }}</td><td>{{ c.planting_date or '—' }}</td><td>{{ c.field_size_acres or '—' }}</td></tr>{% else %}<tr><td colspan="4" style="color:rgba(255,255,255,.2);text-align:center;padding:16px;">No crops</td></tr>{% endfor %}
+  </table>
+</div>
+<div id="tab-diagnoses" class="adm-panel tab-content" style="display:none;">
+  <table class="adm-table"><tr><th>Crop</th><th>Disease</th><th>Severity</th><th>Date</th></tr>
+  {% for d in diagnoses %}<tr><td>{{ d.crop_type }}</td><td>{{ d.disease }}</td><td style="color:{% if d.severity=='high' %}#f87171{% elif d.severity=='medium' %}#fbbf24{% else %}#4ade80{% endif %};">{{ (d.severity or '').upper() }}</td><td style="font-size:.74rem;color:rgba(255,255,255,.35);">{{ d.created_at.strftime('%d %b %Y') if d.created_at else '—' }}</td></tr>{% else %}<tr><td colspan="4" style="color:rgba(255,255,255,.2);text-align:center;padding:16px;">No diagnoses</td></tr>{% endfor %}
+  </table>
+</div>
+<div id="tab-livestock" class="adm-panel tab-content" style="display:none;">
+  <table class="adm-table"><tr><th>Animal</th><th>Name</th><th>Count</th><th>Breed</th></tr>
+  {% for a in livestock %}<tr><td>{{ a.animal_type }}</td><td>{{ a.name or '—' }}</td><td>{{ a.count }}</td><td>{{ a.breed or '—' }}</td></tr>{% else %}<tr><td colspan="4" style="color:rgba(255,255,255,.2);text-align:center;padding:16px;">No livestock</td></tr>{% endfor %}
+  </table>
+</div>
+<div id="tab-payments" class="adm-panel tab-content" style="display:none;">
+  <table class="adm-table"><tr><th>Amount</th><th>Plan</th><th>Receipt</th><th>Status</th><th>Date</th></tr>
+  {% for t in transactions %}<tr>
+    <td style="color:var(--amber);font-weight:700;">KSh {{ '{:,}'.format((t.amount or 0)|int) }}</td>
+    <td style="font-size:.75rem;">{{ t.account_ref }}</td>
+    <td style="font-family:'JetBrains Mono',monospace;font-size:.72rem;color:rgba(255,255,255,.5);">{{ t.mpesa_receipt or '—' }}</td>
+    <td><span style="background:rgba({% if t.status=='completed' %}74,222,128{% elif t.status=='failed' %}248,113,113{% else %}251,191,36{% endif %},.1);color:{% if t.status=='completed' %}#4ade80{% elif t.status=='failed' %}#f87171{% else %}#fbbf24{% endif %};padding:2px 8px;border-radius:20px;font-family:'Syne',sans-serif;font-size:.62rem;font-weight:700;">{{ t.status|upper }}</span></td>
+    <td style="font-size:.72rem;color:rgba(255,255,255,.3);">{{ t.created_at.strftime('%d %b %Y') if t.created_at else '—' }}</td>
+  </tr>{% else %}<tr><td colspan="5" style="color:rgba(255,255,255,.2);text-align:center;padding:16px;">No transactions</td></tr>{% endfor %}
+  </table>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function showTab(id){
+  document.querySelectorAll('.tab-content').forEach(t=>t.style.display='none');
+  document.getElementById('tab-'+id).style.display='';
+  document.querySelectorAll('[id^="tab-btn-"]').forEach(b=>{b.style.background='rgba(255,255,255,.05)';b.style.color='rgba(255,255,255,.5)';b.style.borderColor='rgba(255,255,255,.08)';});
+  const btn=document.getElementById('tab-btn-'+id);
+  btn.style.background='rgba(46,139,74,.18)';btn.style.color='var(--lime)';btn.style.borderColor='rgba(46,139,74,.3)';
+}
+showTab('crops');
+</script>
+{% endblock %}

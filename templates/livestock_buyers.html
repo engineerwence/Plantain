@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Find Buyers — {{ animal_type|title }}{% endblock %}
+{% block content %}
+<div class="fu" style="margin-bottom:24px;">
+  <a href="{{ url_for('livestock') }}" style="color:var(--lime);text-decoration:none;font-size:.8rem;font-family:'Syne',sans-serif;">← Back to Livestock</a>
+  <h1 class="ptitle" style="margin-top:8px;">{{ info.get('emoji','🐾') }} Find {{ info.get('name', animal_type|title) }} Buyers</h1>
+  <p class="psub">Connect directly with buyers in {{ county }}</p>
+</div>
+
+<!-- AI Tips -->
+<div style="background:rgba(46,139,74,.06);border:1px solid rgba(46,139,74,.2);border-radius:12px;padding:16px 20px;margin-bottom:24px;">
+  <div style="font-family:'Syne',sans-serif;font-size:.7rem;color:var(--lime);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">🤖 AI Market Tips</div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;">
+    {% for tip in info.get('tips', []) %}
+    <span style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.65);padding:6px 14px;border-radius:20px;font-size:.78rem;">{{ tip }}</span>
+    {% endfor %}
+  </div>
+  <div style="margin-top:12px;font-size:.8rem;color:rgba(255,255,255,.4);">
+    Typical buyers: {% for b in info.get('buyers', []) %}<strong style="color:rgba(255,255,255,.6);">{{ b }}</strong>{% if not loop.last %} · {% endif %}{% endfor %}
+  </div>
+</div>
+
+{% if buyers %}
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;">
+{% for b in buyers %}
+<div class="pc fu fu1">
+  <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;margin-bottom:4px;">{{ b.business_name }}</div>
+  <div style="font-size:.75rem;color:var(--muted);margin-bottom:12px;">📍 {{ b.county }}</div>
+  {% if b.price_per_kg > 0 %}<div style="font-size:.85rem;color:var(--lime);margin-bottom:12px;">Buying at <strong>KSh {{ b.price_per_kg }}/kg</strong></div>{% endif %}
+  <a href="tel:{{ b.phone }}" style="display:block;background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:10px;border-radius:8px;text-align:center;font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;text-decoration:none;">📞 Call {{ b.phone }}</a>
+</div>
+{% endfor %}
+</div>
+{% else %}
+<div class="pc fu fu1" style="text-align:center;padding:48px 24px;">
+  <div style="font-size:2.5rem;margin-bottom:12px;">{{ info.get('emoji','🐾') }}</div>
+  <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;margin-bottom:8px;">No registered buyers yet in {{ county }}</div>
+  <p style="color:var(--muted);font-size:.85rem;margin-bottom:20px;">Ask the AI to help you find buyers — or post in the marketplace.</p>
+  <a href="{{ url_for('chat') }}" style="background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:12px 24px;border-radius:10px;font-family:'Syne',sans-serif;font-weight:700;text-decoration:none;font-size:.85rem;">Ask AI for Buyer Contacts</a>
+</div>
+{% endif %}
+{% endblock %}

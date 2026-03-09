@@ -1,0 +1,75 @@
+﻿{% extends "base.html" %}
+{% block title %}Agrovets Near You{% endblock %}
+{% block content %}
+<div class="fu" style="margin-bottom:24px;">
+  <div class="ptag">Farm Supplies</div>
+  <h1 class="ptitle">Agrovets Directory</h1>
+  <p class="psub">Find agrovets near you selling seeds, fertilizers, pesticides and more</p>
+</div>
+
+<div style="display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;align-items:center;">
+  <input type="text" id="searchBox" placeholder="Search by name, county or product..." oninput="filterAgrovets()"
+    style="flex:1;min-width:200px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;padding:10px 16px;color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;">
+  <a href="{{ url_for('agrovet_register') }}" style="background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:10px 20px;border-radius:10px;font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;text-decoration:none;white-space:nowrap;">
+    + Register Your Agrovet
+  </a>
+</div>
+
+{% if user_county %}
+<div style="background:rgba(46,139,74,.08);border:1px solid rgba(46,139,74,.2);border-radius:10px;padding:10px 16px;margin-bottom:20px;font-size:.82rem;color:rgba(255,255,255,.6);">
+  📍 Showing agrovets nearest to <strong style="color:var(--lime);">{{ user_county }}</strong> first
+</div>
+{% endif %}
+
+<div id="agrovetGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;">
+{% if agrovets %}
+  {% for a in agrovets %}
+  <div class="agrovet-card pc fu fu1" data-name="{{ a.name|lower }}" data-county="{{ a.county|lower }}" data-products="{{ a.products|lower }}">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+      <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,rgba(46,139,74,.3),rgba(46,139,74,.1));display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;">🏪</div>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.95rem;">{{ a.name }}</div>
+        <div style="font-size:.75rem;color:var(--muted);">📍 {{ a.town }}, {{ a.county }}</div>
+      </div>
+    </div>
+    {% if a.products %}
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
+      {% for p in a.products.split(',')[:4] %}
+      <span style="background:rgba(46,139,74,.12);border:1px solid rgba(46,139,74,.2);color:var(--lime);padding:3px 10px;border-radius:20px;font-size:.7rem;font-family:'Syne',sans-serif;font-weight:600;">{{ p.strip() }}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% if a.description %}
+    <p style="font-size:.8rem;color:rgba(255,255,255,.55);line-height:1.5;margin-bottom:14px;">{{ a.description[:120] }}{% if a.description|length > 120 %}...{% endif %}</p>
+    {% endif %}
+    <div style="display:flex;gap:8px;">
+      <a href="tel:{{ a.phone }}" style="flex:1;background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:9px;border-radius:8px;text-align:center;font-family:'Syne',sans-serif;font-weight:700;font-size:.78rem;text-decoration:none;">
+        📞 Call {{ a.phone }}
+      </a>
+      {% if a.email %}
+      <a href="mailto:{{ a.email }}" style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:rgba(255,255,255,.6);padding:9px 12px;border-radius:8px;text-decoration:none;font-size:.82rem;">✉️</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+{% else %}
+  <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--muted);">
+    <div style="font-size:3rem;margin-bottom:16px;">🏪</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;color:white;margin-bottom:8px;">No agrovets listed yet</div>
+    <p style="font-size:.85rem;margin-bottom:20px;">Be the first agrovet to join Plantain AI!</p>
+    <a href="{{ url_for('agrovet_register') }}" style="background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:12px 28px;border-radius:10px;font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;text-decoration:none;">Register Your Agrovet</a>
+  </div>
+{% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function filterAgrovets(){
+  const q = document.getElementById('searchBox').value.toLowerCase();
+  document.querySelectorAll('.agrovet-card').forEach(c => {
+    const match = c.dataset.name.includes(q) || c.dataset.county.includes(q) || c.dataset.products.includes(q);
+    c.style.display = match ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

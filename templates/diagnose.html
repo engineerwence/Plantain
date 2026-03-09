@@ -1,0 +1,180 @@
+﻿{% extends "base.html" %}
+{% block title %}Diagnose / Analyse{% endblock %}
+{% block content %}
+<div style="max-width:680px;margin:0 auto;">
+
+  <div class="fu" style="margin-bottom:28px;">
+    <div class="ptag">AI Vision Analysis</div>
+    <h1 class="ptitle">Diagnose & Analyse</h1>
+    <p class="psub">Works for any farmer — crops, livestock, poultry, bees, fish, dairy and more</p>
+  </div>
+
+  {% if error %}
+  <div style="background:rgba(220,53,69,.1);border:1px solid rgba(220,53,69,.3);border-radius:10px;padding:14px 18px;margin-bottom:20px;color:#dc3545;font-size:.88rem;">
+    ⚠️ {{ error }}
+  </div>
+  {% endif %}
+
+  <div class="pc fu fu1" style="padding:32px;">
+    <form method="POST" action="{{ url_for('diagnose') }}" enctype="multipart/form-data" id="diagForm">
+
+      <!-- What type of farmer -->
+      <div class="mb-4">
+        <label class="plbl">What are you farming?</label>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;" id="typeGrid">
+          {% for val, label, icon in [
+            ('crop','Crops','🌿'),('animal','Livestock','🐄'),('poultry','Poultry','🐔'),
+            ('bee','Bees / Honey','🍯'),('fish','Fish / Aqua','🐟'),('dairy','Dairy','🥛')
+          ] %}
+          <label style="cursor:pointer;">
+            <input type="radio" name="subject_type" value="{{ val }}" class="d-none typeRadio"
+                   {% if loop.first %}checked{% endif %}>
+            <div class="typeCard {% if loop.first %}typeCardActive{% endif %}"
+                 style="border:2px solid rgba(46,139,74,.2);border-radius:12px;padding:14px 8px;text-align:center;transition:all .2s;">
+              <div style="font-size:1.6rem;margin-bottom:4px;">{{ icon }}</div>
+              <div style="font-size:.75rem;font-family:'Syne',sans-serif;font-weight:700;color:var(--lime);">{{ label }}</div>
+            </div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Subject name — free text -->
+      <div class="mb-4">
+        <label class="plbl">Name of crop / animal / product</label>
+        <input type="text" name="subject_name" class="pip"
+               placeholder="e.g. Maize, Cow, Chicken, Honey Bee, Tilapia..."
+               required autocomplete="off" list="subject-list" id="subjectInput">
+        <datalist id="subject-list">
+          <!-- Crops -->
+          <option value="Maize"><option value="Tomato"><option value="Banana">
+          <option value="Plantain"><option value="Kale"><option value="Sukuma Wiki">
+          <option value="Avocado"><option value="Beans"><option value="Potato">
+          <option value="Sweet Potato"><option value="Carrot"><option value="Onion">
+          <option value="Spinach"><option value="Cassava"><option value="Mango">
+          <option value="Coffee"><option value="Tea"><option value="Rice">
+          <option value="Arrow Roots"><option value="Passion Fruit"><option value="Watermelon">
+          <option value="Pawpaw"><option value="Sugarcane"><option value="Sorghum">
+          <!-- Animals -->
+          <option value="Dairy Cow"><option value="Beef Cattle"><option value="Goat">
+          <option value="Sheep"><option value="Pig"><option value="Rabbit">
+          <option value="Donkey"><option value="Horse">
+          <!-- Poultry -->
+          <option value="Chicken"><option value="Turkey"><option value="Duck">
+          <option value="Quail"><option value="Guinea Fowl">
+          <!-- Bees -->
+          <option value="Honey Bee"><option value="Bee Colony">
+          <!-- Fish -->
+          <option value="Tilapia"><option value="Catfish"><option value="Trout">
+          <option value="Salmon"><option value="Carp">
+          <!-- Dairy -->
+          <option value="Milk"><option value="Dairy Goat">
+        </datalist>
+        <p style="font-size:.78rem;color:var(--muted);margin-top:6px;">Type anything — the AI understands all farming types</p>
+      </div>
+
+      <!-- Ready / Harvest date — optional -->
+      <div class="mb-4">
+        <label class="plbl">
+          Expected harvest / collection date
+          <span style="color:var(--muted);font-weight:400;">(optional — enables countdown alerts)</span>
+        </label>
+        <input type="date" name="ready_date" class="pip">
+      </div>
+
+      <!-- Photo upload -->
+      <div class="mb-4">
+        <label class="plbl">Upload a Photo</label>
+        <div id="uploadArea" onclick="document.getElementById('imgInput').click()"
+             style="border:2px dashed rgba(46,139,74,.3);border-radius:14px;padding:48px 20px;text-align:center;cursor:pointer;background:rgba(46,139,74,.04);transition:all .25s;">
+          <div id="placeholder">
+            <div style="font-size:2.8rem;margin-bottom:12px;">📸</div>
+            <p style="font-family:'Syne',sans-serif;font-weight:700;color:var(--lime);font-size:.88rem;margin-bottom:4px;">Click or drag photo here</p>
+            <p style="font-size:.78rem;color:var(--muted);margin:0;">JPG, PNG, WEBP — clear, well-lit photo works best</p>
+          </div>
+          <img id="preview" src="" class="d-none" style="max-height:280px;border-radius:10px;max-width:100%;">
+        </div>
+        <input type="file" name="image" id="imgInput" accept="image/*" class="d-none" required>
+      </div>
+
+      <!-- Tips -->
+      <div style="background:rgba(46,139,74,.06);border:1px solid rgba(46,139,74,.12);border-radius:12px;padding:14px 18px;margin-bottom:24px;">
+        <p style="font-family:'Syne',sans-serif;font-size:.75rem;font-weight:700;color:var(--lime);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">
+          <i class="fas fa-lightbulb me-2" style="color:var(--amber);"></i>Tips for best results
+        </p>
+        <ul style="margin:0;padding-left:18px;color:var(--muted);font-size:.83rem;line-height:1.9;">
+          <li>Crops — close-up of the affected leaf or stem</li>
+          <li>Animals — clear photo of the sick area or whole animal</li>
+          <li>Bees — photo of hive entrance or affected comb</li>
+          <li>Fish — photo of the fish showing symptoms clearly</li>
+          <li>Good lighting always improves accuracy</li>
+        </ul>
+      </div>
+
+      <button type="submit" id="subBtn" class="bg w-100 justify-content-center" style="padding:15px;font-size:.95rem;">
+        <i class="fas fa-robot"></i> Analyse with AI
+      </button>
+    </form>
+  </div>
+
+  <div id="loading" class="d-none fu fu2" style="margin-top:16px;">
+    <div class="pc" style="padding:28px;text-align:center;">
+      <div style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,var(--moss),var(--leaf));display:flex;align-items:center;justify-content:center;margin:0 auto 14px;animation:spin 2s linear infinite;">
+        <i class="fas fa-robot" style="color:white;font-size:1.2rem;"></i>
+      </div>
+      <h5 style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;margin-bottom:6px;">AI analysing your photo...</h5>
+      <p style="color:var(--muted);font-size:.85rem;margin:0;">This usually takes 10–20 seconds</p>
+    </div>
+  </div>
+</div>
+<style>
+@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+.typeCardActive{border-color:rgba(46,139,74,.8) !important;background:rgba(46,139,74,.1);}
+</style>
+{% endblock %}
+{% block scripts %}
+<script>
+// Type card selection
+document.querySelectorAll('.typeRadio').forEach(r=>{
+  r.addEventListener('change',function(){
+    document.querySelectorAll('.typeCard').forEach(c=>c.classList.remove('typeCardActive'));
+    this.parentElement.querySelector('.typeCard').classList.add('typeCardActive');
+    updatePlaceholder(this.value);
+  });
+});
+function updatePlaceholder(type){
+  const map={crop:'e.g. Maize, Tomato, Banana...',animal:'e.g. Cow, Goat, Sheep...',
+    poultry:'e.g. Chicken, Turkey, Duck...',bee:'e.g. Honey Bee, Bee Colony...',
+    fish:'e.g. Tilapia, Catfish, Trout...',dairy:'e.g. Dairy Cow, Dairy Goat...'};
+  document.getElementById('subjectInput').placeholder = map[type] || 'Type your farming subject...';
+}
+
+// Image preview
+document.getElementById('imgInput').addEventListener('change',function(e){
+  const f=e.target.files[0];
+  if(f){const r=new FileReader();r.onload=e=>{
+    const p=document.getElementById('preview');
+    p.src=e.target.result;p.classList.remove('d-none');
+    document.getElementById('placeholder').classList.add('d-none');
+  };r.readAsDataURL(f);}
+});
+
+// Loading on submit
+document.getElementById('diagForm').addEventListener('submit',function(){
+  const b=document.getElementById('subBtn');
+  b.disabled=true;b.innerHTML='<i class="fas fa-spinner fa-spin"></i> Analysing...';
+  document.getElementById('loading').classList.remove('d-none');
+});
+
+// Drag and drop
+const ua=document.getElementById('uploadArea');
+ua.addEventListener('dragover',e=>{e.preventDefault();ua.style.borderColor='rgba(77,184,106,.6)';});
+ua.addEventListener('dragleave',e=>{ua.style.borderColor='rgba(46,139,74,.3)';});
+ua.addEventListener('drop',e=>{
+  e.preventDefault();ua.style.borderColor='rgba(46,139,74,.3)';
+  const f=e.dataTransfer.files[0];
+  if(f){document.getElementById('imgInput').files=e.dataTransfer.files;
+        document.getElementById('imgInput').dispatchEvent(new Event('change'));}
+});
+</script>
+{% endblock %}

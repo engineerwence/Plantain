@@ -1,0 +1,76 @@
+﻿{% extends "base.html" %}
+{% block title %}Bulk Results{% endblock %}
+{% block content %}
+<div style="max-width:860px;margin:0 auto;">
+
+  <div class="fu" style="margin-bottom:28px;">
+    <div class="ptag">Bulk Analysis Complete</div>
+    <h1 class="ptitle">{{ crop_name }} — Field Report</h1>
+    <p class="psub">{{ total }} sections analysed &nbsp;·&nbsp; {{ healthy }} healthy &nbsp;·&nbsp; {{ diseased }} with issues</p>
+  </div>
+
+  <!-- Summary bar -->
+  <div class="pc fu fu1" style="padding:24px;margin-bottom:24px;">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Farm Health Score</div>
+        <div style="font-size:2.5rem;font-family:'Cormorant Garamond',serif;color:{% if pct > 50 %}#F87171{% elif pct > 20 %}var(--amber){% else %}var(--lime){% endif %};">
+          {{ 100 - pct }}%
+        </div>
+        <div style="color:var(--muted);font-size:.8rem;">{{ pct }}% of sections affected</div>
+      </div>
+      <div style="flex:1;max-width:300px;">
+        <div style="background:rgba(255,255,255,.08);border-radius:8px;height:12px;overflow:hidden;">
+          <div style="width:{{ 100 - pct }}%;height:100%;background:{% if pct > 50 %}#F87171{% elif pct > 20 %}var(--amber){% else %}var(--lime){% endif %};border-radius:8px;transition:width .5s;"></div>
+        </div>
+        <div class="d-flex justify-content-between mt-2" style="font-size:.75rem;color:var(--muted);">
+          <span>0%</span><span>Healthy sections</span><span>100%</span>
+        </div>
+      </div>
+      {% if pct > 50 %}
+      <div style="background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);border-radius:10px;padding:12px 16px;color:#F87171;font-size:.85rem;font-weight:600;">
+        ⚠️ Immediate action required
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Per-section results -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:28px;">
+    {% for r in results %}
+    <div class="pc" style="padding:20px;border-left:3px solid {% if r.severity=='high' %}#F87171{% elif r.severity=='medium' %}var(--amber){% else %}var(--lime){% endif %};">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div style="font-family:'Syne',sans-serif;font-size:.75rem;font-weight:700;color:var(--muted);">{{ r.field_zone or ('Section ' ~ r.photo_num) }}</div>
+        <span class="{% if r.severity=='low' %}bl{% elif r.severity=='medium' %}bm{% else %}bhi{% endif %}">{{ r.severity }}</span>
+      </div>
+      <div style="font-size:1rem;font-weight:700;color:white;margin-bottom:8px;">
+        {% if r.disease_name == 'Healthy' %}✅{% elif r.severity == 'high' %}🚨{% else %}⚠️{% endif %}
+        {{ r.disease_name }}
+      </div>
+      {% if r.confidence > 0 %}
+      <div style="font-size:.75rem;color:var(--muted);margin-bottom:10px;">{{ r.confidence }}% confidence</div>
+      {% endif %}
+      {% if r.symptoms %}
+      <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:8px;">
+        {% for s in r.symptoms[:2] %}<div>• {{ s }}</div>{% endfor %}
+      </div>
+      {% endif %}
+      {% if r.treatment_steps and r.disease_name != 'Healthy' %}
+      <div style="background:rgba(46,139,74,.08);border-radius:8px;padding:10px;margin-top:8px;">
+        <div style="font-family:'Syne',sans-serif;font-size:.68rem;font-weight:700;color:var(--lime);margin-bottom:5px;">TREATMENT</div>
+        {% for t in r.treatment_steps[:2] %}
+        <div style="font-size:.78rem;color:rgba(255,255,255,.7);">{{ loop.index }}. {{ t }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="d-flex gap-3 flex-wrap">
+    <a href="{{ url_for('bulk_diagnose') }}" class="bg"><i class="fas fa-camera"></i> New Bulk Diagnosis</a>
+    <a href="{{ url_for('dashboard') }}" class="bgg"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="{{ url_for('farm_report') }}" class="bgg"><i class="fas fa-file-alt"></i> Full Farm Report</a>
+  </div>
+</div>
+{% endblock %}

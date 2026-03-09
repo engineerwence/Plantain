@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Carbon Credits{% endblock %}
+{% block head %}<style>
+.pg-eyebrow{font-family:"Syne",sans-serif;font-size:.62rem;color:var(--lime);text-transform:uppercase;letter-spacing:2px;margin-bottom:5px;}
+.pg-title{font-family:"Cormorant Garamond",serif;font-size:clamp(1.6rem,3vw,2.2rem);font-weight:800;color:white;margin:0;}
+.panel{background:rgba(8,20,12,.9);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:22px;margin-bottom:16px;}
+.panel-title{font-family:"Syne",sans-serif;font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.3);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
+.card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:16px;transition:all .2s;}
+.card:hover{border-color:rgba(255,255,255,.14);transform:translateY(-2px);}
+.sf-input{background:rgba(20,40,25,.95);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:10px 13px;color:white;font-family:"DM Sans",sans-serif;font-size:.84rem;outline:none;width:100%;box-sizing:border-box;transition:border-color .2s;}
+.sf-input:focus{border-color:rgba(46,139,74,.4);}
+.sf-label{font-family:"Syne",sans-serif;font-size:.7rem;color:rgba(255,255,255,.35);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
+.btn-green{background:linear-gradient(135deg,var(--lime),#4DB86A);color:white;border:none;padding:10px 22px;border-radius:10px;font-family:"Syne",sans-serif;font-weight:700;cursor:pointer;font-size:.84rem;}
+.btn-cyan{background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.2);color:#22d3ee;padding:9px 18px;border-radius:9px;font-family:"Syne",sans-serif;font-weight:700;cursor:pointer;font-size:.8rem;text-decoration:none;display:inline-block;}
+.btn-amber{background:rgba(212,160,23,.1);border:1px solid rgba(212,160,23,.2);color:var(--amber);padding:9px 18px;border-radius:9px;font-family:"Syne",sans-serif;font-weight:700;cursor:pointer;font-size:.8rem;text-decoration:none;display:inline-block;}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-family:"Syne",sans-serif;font-size:.62rem;font-weight:700;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:768px){.grid2{grid-template-columns:1fr;}}
+.flash-ok{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.18);color:#4ade80;padding:11px 16px;border-radius:9px;margin-bottom:14px;font-size:.84rem;}
+.flash-err{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.18);color:#f87171;padding:11px 16px;border-radius:9px;margin-bottom:14px;font-size:.84rem;}
+
+</style>{% endblock %}
+{% block content %}
+{% with msgs=get_flashed_messages(with_categories=true) %}{% for c,m in msgs %}<div class="flash-{{ 'ok' if c=='success' else 'err' }}">{{ m }}</div>{% endfor %}{% endwith %}
+<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+  <div><div class="pg-eyebrow">Green Finance</div><h1 class="pg-title">🌍 Carbon Credits</h1><div style="font-size:.78rem;color:rgba(255,255,255,.3);margin-top:4px;">Earn money for regenerative farming practices</div></div>
+</div>
+<!-- Summary Cards -->
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:18px;">
+  <div style="background:rgba(8,20,12,.9);border:1px solid rgba(46,139,74,.15);border-radius:14px;padding:16px;text-align:center;">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:800;color:var(--lime);">{{ total_tonnes }}</div>
+    <div style="font-family:'Syne',sans-serif;font-size:.62rem;color:rgba(255,255,255,.3);text-transform:uppercase;margin-top:2px;">tonnes CO₂/year</div>
+  </div>
+  <div style="background:rgba(8,20,12,.9);border:1px solid rgba(212,160,23,.15);border-radius:14px;padding:16px;text-align:center;">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:800;color:var(--amber);">KSh {{ '{:,}'.format(credit_value_ksh) }}</div>
+    <div style="font-family:'Syne',sans-serif;font-size:.62rem;color:rgba(255,255,255,.3);text-transform:uppercase;margin-top:2px;">estimated value</div>
+  </div>
+  <div style="background:rgba(8,20,12,.9);border:1px solid rgba(34,211,238,.15);border-radius:14px;padding:16px;text-align:center;">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:800;color:#22d3ee;">{{ farm_acres }}</div>
+    <div style="font-family:'Syne',sans-serif;font-size:.62rem;color:rgba(255,255,255,.3);text-transform:uppercase;margin-top:2px;">registered acres</div>
+  </div>
+  <div style="background:rgba(8,20,12,.9);border:1px solid rgba(168,85,247,.15);border-radius:14px;padding:16px;text-align:center;">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:800;color:#c084fc;">{{ my_practices|length }}</div>
+    <div style="font-family:'Syne',sans-serif;font-size:.62rem;color:rgba(255,255,255,.3);text-transform:uppercase;margin-top:2px;">practices logged</div>
+  </div>
+</div>
+<!-- Log a Practice -->
+<div class="panel">
+  <div class="panel-title">Log a Regenerative Practice</div>
+  <form method="POST" action="{{ url_for('carbon_log') }}" style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;align-items:end;">
+    <div><label class="sf-label">Practice</label><select name="practice_key" class="sf-input">{% for k,p in practices.items() %}<option value="{{ k }}">{{ p.name }} (+{{ p.tonnes_co2_per_acre_year }} t CO₂/ac/yr)</option>{% endfor %}</select></div>
+    <div><label class="sf-label">Acres</label><input type="number" class="sf-input" name="acres" value="{{ farm_acres }}" min="0.5" step="0.5"></div>
+    <div><label class="sf-label">Notes</label><input class="sf-input" name="notes" placeholder="Optional"></div>
+    <button type="submit" class="btn-green">Log Practice</button>
+  </form>
+</div>
+<!-- Available Practices -->
+<div class="panel">
+  <div class="panel-title">Available Carbon Practices</div>
+  <div class="card-grid">
+    {% for key, p in practices.items() %}
+    {% set logged = my_practices|selectattr("practice_key","equalto",key)|list %}
+    <div class="card" style="{% if logged %}border-color:rgba(46,139,74,.3);background:rgba(46,139,74,.05);{% endif %}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.84rem;color:white;">{{ p.name }}</div>
+        {% if logged %}<span class="badge" style="background:rgba(46,139,74,.12);color:var(--lime);">✓ Logged</span>{% endif %}
+      </div>
+      <div style="font-size:.76rem;color:rgba(255,255,255,.4);margin-bottom:8px;">{{ p.description }}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--lime);">+{{ p.tonnes_co2_per_acre_year }} t CO₂<span style="font-size:.7rem;color:rgba(255,255,255,.3);font-family:'DM Sans';">/acre/yr</span></div>
+      <div style="font-size:.7rem;color:rgba(255,255,255,.3);">≈ KSh {{ '{:,}'.format((p.tonnes_co2_per_acre_year * farm_acres * 12 * 130)|int) }} value</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+<!-- List Credits -->
+{% if total_tonnes > 0 %}
+<div class="panel">
+  <div class="panel-title">💰 List Carbon Credits for Sale</div>
+  <div style="font-size:.8rem;color:rgba(255,255,255,.4);margin-bottom:14px;">International voluntary carbon market price: ~$12/tonne (KSh {{ '{:,}'.format(12*130) }}). Connect with carbon buyers worldwide.</div>
+  <form method="POST" action="{{ url_for('carbon_list') }}" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end;">
+    <div><label class="sf-label">Tonnes to List</label><input type="number" class="sf-input" name="tonnes" step="0.1" max="{{ total_tonnes }}" value="{{ total_tonnes }}" required></div>
+    <div><label class="sf-label">Price/tonne (USD)</label><input type="number" class="sf-input" name="price_per_tonne" value="12" min="5" step="0.5"></div>
+    <div><label class="sf-label">Notes</label><input class="sf-input" name="notes" placeholder="Verification details..."></div>
+    <button type="submit" class="btn-green">List for Sale</button>
+  </form>
+</div>
+{% endif %}
+{% endblock %}

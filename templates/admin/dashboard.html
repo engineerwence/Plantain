@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+.adm-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px;}
+.adm-eyebrow{font-family:'Syne',sans-serif;font-size:.62rem;color:#f87171;text-transform:uppercase;letter-spacing:2px;margin-bottom:5px;display:flex;align-items:center;gap:7px;}
+.adm-dot{width:7px;height:7px;border-radius:50%;background:#f87171;display:inline-block;animation:admpulse 2s step-end infinite;}
+@keyframes admpulse{0%,100%{opacity:1;}50%{opacity:0;}}
+.adm-title{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:800;color:white;margin:0;}
+/* Stat cards */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:22px;}
+.sc{background:rgba(8,20,12,.9);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:16px;position:relative;overflow:hidden;transition:border-color .2s;}
+.sc::before{content:'';position:absolute;top:0;inset-inline:0;height:2px;background:var(--top,linear-gradient(90deg,transparent,rgba(248,113,113,.4),transparent));}
+.sc:hover{border-color:rgba(255,255,255,.18);}
+.sc-val{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:800;line-height:1;color:var(--vc,white);}
+.sc-lbl{font-family:'Syne',sans-serif;font-size:.63rem;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.5px;margin-top:3px;}
+.sc-sub{font-size:.68rem;margin-top:4px;}
+/* Quick actions */
+.qa-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px;}
+.qa-btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:10px;font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;text-decoration:none;transition:all .2s;}
+.qa-red{background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.2);color:#f87171;}
+.qa-red:hover{background:rgba(248,113,113,.2);color:#f87171;}
+.qa-cyan{background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.2);color:#22d3ee;}
+.qa-cyan:hover{background:rgba(34,211,238,.18);color:#22d3ee;}
+.qa-amber{background:rgba(212,160,23,.1);border:1px solid rgba(212,160,23,.2);color:var(--amber);}
+.qa-amber:hover{background:rgba(212,160,23,.18);color:var(--amber);}
+.qa-green{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);color:#4ade80;}
+.qa-green:hover{background:rgba(74,222,128,.18);color:#4ade80;}
+/* Tables */
+.adm-panel{background:rgba(8,20,12,.9);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:20px;margin-bottom:16px;}
+.adm-panel-title{font-family:'Syne',sans-serif;font-weight:700;font-size:.68rem;text-transform:uppercase;letter-spacing:1.2px;color:rgba(255,255,255,.4);margin-bottom:14px;display:flex;align-items:center;gap:8px;justify-content:space-between;}
+.adm-table{width:100%;border-collapse:collapse;}
+.adm-table th{font-family:'Syne',sans-serif;font-size:.63rem;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.25);padding:8px 10px;text-align:left;border-bottom:1px solid rgba(255,255,255,.05);}
+.adm-table td{padding:10px 10px;font-size:.82rem;color:rgba(255,255,255,.7);border-bottom:1px solid rgba(255,255,255,.04);}
+.adm-table tr:last-child td{border-bottom:none;}
+.adm-table tr:hover td{background:rgba(255,255,255,.02);}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-family:'Syne',sans-serif;font-size:.62rem;font-weight:700;}
+.badge-free{background:rgba(255,255,255,.07);color:rgba(255,255,255,.4);}
+.badge-pro{background:rgba(46,139,74,.12);color:var(--lime);}
+.badge-enterprise{background:rgba(34,211,238,.1);color:#22d3ee;}
+.badge-smart{background:rgba(168,85,247,.12);color:#c084fc;}
+.badge-ok{background:rgba(74,222,128,.1);color:#4ade80;}
+.badge-pending{background:rgba(251,191,36,.1);color:#fbbf24;}
+.badge-fail{background:rgba(248,113,113,.1);color:#f87171;}
+/* Two-col grid */
+.adm-grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:900px){.adm-grid2{grid-template-columns:1fr;}}
+</style>
+{% endblock %}
+{% block content %}
+
+<div class="adm-header">
+  <div>
+    <div class="adm-eyebrow"><span class="adm-dot"></span>Admin Control Panel</div>
+    <h1 class="adm-title">🛡️ Platform Overview</h1>
+    <div style="font-size:.78rem;color:rgba(255,255,255,.3);margin-top:4px;">Welcome back, {{ session.user_name }}</div>
+  </div>
+</div>
+
+<!-- QUICK ACTIONS -->
+<div class="qa-row">
+  <a href="{{ url_for('admin_approvals') }}" class="qa-btn qa-amber">
+    ⏳ Pending Approvals
+    {% set pending = (stats.pending_agrovets|default(0)) + (stats.pending_specialists|default(0)) + (stats.pending_sellers|default(0)) %}
+    {% if pending > 0 %}<span style="background:#fbbf24;color:#070D09;border-radius:20px;padding:1px 8px;font-size:.62rem;">{{ pending }}</span>{% endif %}
+  </a>
+  <a href="{{ url_for('admin_users') }}" class="qa-btn qa-cyan">👥 Manage Users</a>
+  <a href="{{ url_for('admin_transactions') }}" class="qa-btn qa-green">💰 Transactions</a>
+  <a href="{{ url_for('admin_settings') }}" class="qa-btn qa-red">⚙️ Settings</a>
+  <a href="{{ url_for('admin_logs') }}" class="qa-btn qa-amber">📋 Audit Logs</a>
+</div>
+
+<!-- STAT CARDS -->
+<div class="stat-grid">
+  <div class="sc" style="--vc:#22d3ee;--top:linear-gradient(90deg,transparent,rgba(34,211,238,.4),transparent);">
+    <div class="sc-val">{{ stats.users|default(0) }}</div>
+    <div class="sc-lbl">Total Users</div>
+    <div class="sc-sub" style="color:#4ade80;">+{{ stats.new_users_7d|default(0) }} this week</div>
+  </div>
+  <div class="sc" style="--vc:var(--lime);--top:linear-gradient(90deg,transparent,rgba(46,139,74,.4),transparent);">
+    <div class="sc-val">{{ stats.diagnoses|default(0) }}</div>
+    <div class="sc-lbl">Total Diagnoses</div>
+    <div class="sc-sub" style="color:#4ade80;">{{ stats.diagnoses_24h|default(0) }} in 24h</div>
+  </div>
+  <div class="sc" style="--vc:var(--amber);--top:linear-gradient(90deg,transparent,rgba(212,160,23,.4),transparent);">
+    <div class="sc-val">KSh {{ '{:,}'.format((stats.revenue_month|default(0))|int) }}</div>
+    <div class="sc-lbl">Revenue (month)</div>
+    <div class="sc-sub" style="color:rgba(255,255,255,.3);">KSh {{ '{:,}'.format((stats.revenue|default(0))|int) }} all time</div>
+  </div>
+  <div class="sc" style="--vc:#c084fc;--top:linear-gradient(90deg,transparent,rgba(168,85,247,.4),transparent);">
+    <div class="sc-val">{{ stats.paid_transactions|default(0) }}</div>
+    <div class="sc-lbl">Paid Transactions</div>
+  </div>
+  <div class="sc" style="--vc:#f87171;--top:linear-gradient(90deg,transparent,rgba(248,113,113,.35),transparent);">
+    <div class="sc-val">{{ stats.pending_agrovets|default(0) }}</div>
+    <div class="sc-lbl">Pending Agrovets</div>
+    <div class="sc-sub" style="color:#4ade80;">{{ stats.verified_agrovets|default(0) }} verified</div>
+  </div>
+  <div class="sc" style="--vc:#f87171;">
+    <div class="sc-val">{{ stats.pending_specialists|default(0) }}</div>
+    <div class="sc-lbl">Pending Specialists</div>
+    <div class="sc-sub" style="color:#4ade80;">{{ stats.verified_specialists|default(0) }} verified</div>
+  </div>
+  <div class="sc" style="--vc:#fbbf24;">
+    <div class="sc-val">{{ stats.pending_sellers|default(0) }}</div>
+    <div class="sc-lbl">Pending Sellers</div>
+    <div class="sc-sub" style="color:#4ade80;">{{ stats.verified_sellers|default(0) }} verified</div>
+  </div>
+  <div class="sc" style="--vc:var(--lime);">
+    <div class="sc-val">{{ stats.active_listings|default(0) }}</div>
+    <div class="sc-lbl">Active Listings</div>
+  </div>
+</div>
+
+<!-- PLAN BREAKDOWN -->
+{% if stats.plans %}
+<div class="adm-panel" style="margin-bottom:16px;">
+  <div class="adm-panel-title">Plan Distribution</div>
+  <div style="display:flex;gap:14px;flex-wrap:wrap;">
+    {% for plan, count in stats.plans.items() %}
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:12px 18px;text-align:center;min-width:100px;">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:800;color:white;">{{ count }}</div>
+      <span class="badge badge-{{ plan }}">{{ plan|upper }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- CHARTS -->
+<div class="adm-grid2">
+  <div class="adm-panel">
+    <div class="adm-panel-title">User Signups — Last 14 Days</div>
+    <canvas id="signupChart" height="100"></canvas>
+  </div>
+  <div class="adm-panel">
+    <div class="adm-panel-title">M-Pesa Revenue — Last 14 Days (KSh)</div>
+    <canvas id="revenueChart" height="100"></canvas>
+  </div>
+</div>
+
+<!-- RECENT DATA -->
+<div class="adm-grid2">
+  <div class="adm-panel">
+    <div class="adm-panel-title">
+      Recent Signups
+      <a href="{{ url_for('admin_users') }}" style="color:var(--lime);font-size:.7rem;text-decoration:none;">View all →</a>
+    </div>
+    <table class="adm-table">
+      <tr><th>Name</th><th>Plan</th><th>Joined</th></tr>
+      {% for u in recent_users %}
+      <tr>
+        <td><a href="{{ url_for('admin_user_detail', uid=u.id) }}" style="color:#22d3ee;text-decoration:none;">{{ u.name }}</a><div style="font-size:.68rem;color:rgba(255,255,255,.3);">{{ u.email }}</div></td>
+        <td><span class="badge badge-{{ u.subscription_plan }}">{{ u.subscription_plan|upper }}</span></td>
+        <td style="font-size:.75rem;color:rgba(255,255,255,.35);">{{ u.created_at.strftime('%d %b') if u.created_at else '—' }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="3" style="color:rgba(255,255,255,.25);text-align:center;padding:20px;">No users yet</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+  <div class="adm-panel">
+    <div class="adm-panel-title">
+      Recent M-Pesa Transactions
+      <a href="{{ url_for('admin_transactions') }}" style="color:var(--lime);font-size:.7rem;text-decoration:none;">View all →</a>
+    </div>
+    <table class="adm-table">
+      <tr><th>User</th><th>Amount</th><th>Status</th></tr>
+      {% for t in recent_txns %}
+      <tr>
+        <td>{{ t.user_name or 'Unknown' }}<div style="font-size:.65rem;color:rgba(255,255,255,.3);">{{ t.account_ref }}</div></td>
+        <td style="color:var(--amber);font-weight:700;">KSh {{ '{:,}'.format((t.amount or 0)|int) }}</td>
+        <td><span class="badge badge-{{ 'ok' if t.status=='completed' else 'fail' if t.status=='failed' else 'pending' }}">{{ t.status|upper }}</span></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="3" style="color:rgba(255,255,255,.25);text-align:center;padding:20px;">No transactions yet</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const chartDefaults = {
+  responsive:true,
+  plugins:{legend:{display:false}},
+  scales:{
+    x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'rgba(255,255,255,.35)',font:{size:10}}},
+    y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'rgba(255,255,255,.35)',font:{size:10}},beginAtZero:true}
+  }
+};
+const sd = {{ signup_chart | tojson }};
+const rd = {{ revenue_chart | tojson }};
+new Chart(document.getElementById('signupChart'), {
+  type:'bar',
+  data:{
+    labels: sd.map(r => r.d ? r.d.toString().slice(5) : ''),
+    datasets:[{label:'Signups', data: sd.map(r=>r.n),
+      backgroundColor:'rgba(46,139,74,.4)',borderColor:'#4DB86A',borderWidth:2,borderRadius:5}]
+  },
+  options: chartDefaults
+});
+new Chart(document.getElementById('revenueChart'), {
+  type:'line',
+  data:{
+    labels: rd.map(r => r.d ? r.d.toString().slice(5) : ''),
+    datasets:[{label:'Revenue', data: rd.map(r=>r.n||0),
+      backgroundColor:'rgba(212,160,23,.1)',borderColor:'#E8B84B',borderWidth:2,
+      fill:true,tension:.4,pointRadius:3}]
+  },
+  options: chartDefaults
+});
+</script>
+{% endblock %}

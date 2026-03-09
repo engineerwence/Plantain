@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}Input Sellers{% endblock %}
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+  <div>
+    <div class="ptag">Farm Inputs</div>
+    <h1 class="ptitle">Input Sellers</h1>
+    <p class="psub">Buy feeds, medicines, equipment — delivered to your farm</p>
+  </div>
+  <div style="display:flex;gap:10px;">
+    <a href="{{ url_for('seller_register') }}" style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:rgba(255,255,255,.6);padding:10px 18px;border-radius:10px;text-decoration:none;font-family:'Syne',sans-serif;font-size:.8rem;font-weight:600;">Become a Seller</a>
+    <a href="{{ url_for('seller_dashboard') }}" style="background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:10px 18px;border-radius:10px;text-decoration:none;font-family:'Syne',sans-serif;font-weight:700;font-size:.8rem;">My Seller Dashboard</a>
+  </div>
+</div>
+
+<div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+  <input type="text" id="sellerSearch" placeholder="Search sellers or products..." oninput="filterSellers()"
+    style="flex:1;min-width:200px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;padding:10px 16px;color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;">
+  {% for cat in categories %}
+  <button onclick="filterByCategory('{{ cat }}')" class="qchip" style="font-size:.75rem;">{{ cat }}</button>
+  {% endfor %}
+</div>
+
+{% if sellers %}
+<div id="sellerGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;">
+{% for s in sellers %}
+<div class="pc fu fu1 seller-card" data-name="{{ s.business_name|lower }}" data-cats="{{ s.categories|lower }}">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+    <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,rgba(212,160,23,.2),rgba(212,160,23,.05));display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;">🏪</div>
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.92rem;">{{ s.business_name }}</div>
+      <div style="font-size:.72rem;color:var(--muted);">📍 {{ s.town }}, {{ s.county }}</div>
+      {% if s.rating > 0 %}<div style="font-size:.7rem;color:var(--amber);">⭐ {{ '%.1f'|format(s.rating) }}</div>{% endif %}
+    </div>
+  </div>
+  {% if s.categories %}
+  <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;">
+    {% for cat in s.categories.split(',')[:4] %}
+    <span style="background:rgba(46,139,74,.1);border:1px solid rgba(46,139,74,.2);color:var(--lime);padding:2px 9px;border-radius:20px;font-size:.68rem;font-family:'Syne',sans-serif;font-weight:600;">{{ cat.strip() }}</span>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% if s.description %}<p style="font-size:.78rem;color:rgba(255,255,255,.5);margin-bottom:12px;line-height:1.5;">{{ s.description[:100] }}{% if s.description|length>100 %}...{% endif %}</p>{% endif %}
+  <div style="display:flex;gap:8px;">
+    <button onclick="openSeller({{ s.id }}, '{{ s.business_name }}')"
+      style="flex:1;background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:9px;border:none;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:.78rem;cursor:pointer;">
+      🛒 View Products
+    </button>
+  </div>
+</div>
+{% endfor %}
+</div>
+{% else %}
+<div style="text-align:center;padding:60px 20px;" class="pc fu fu1">
+  <div style="font-size:3rem;margin-bottom:16px;">🏪</div>
+  <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:1.1rem;margin-bottom:8px;">No sellers yet</div>
+  <p style="color:var(--muted);font-size:.85rem;margin-bottom:20px;">Be the first input seller to join Plantain AI!</p>
+  <a href="{{ url_for('seller_register') }}" style="background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:12px 28px;border-radius:10px;font-family:'Syne',sans-serif;font-weight:700;text-decoration:none;">Register as Seller</a>
+</div>
+{% endif %}
+
+<!-- Order modal -->
+<div id="orderModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#0D2B1A;border:1px solid var(--border);border-radius:18px;padding:28px;max-width:460px;width:90%;max-height:80vh;overflow-y:auto;">
+    <h3 style="font-family:'Syne',sans-serif;color:white;margin-bottom:4px;" id="orderSellerName">Products</h3>
+    <div id="productList" style="margin-bottom:16px;"></div>
+    <div id="orderForm" style="display:none;">
+      <h4 style="font-family:'Syne',sans-serif;color:var(--amber);font-size:.88rem;margin-bottom:12px;" id="orderProductName"></h4>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div><label style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:5px;">Quantity</label>
+        <input id="orderQty" type="number" step="0.1" min="1" value="1" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:white;font-size:.82rem;outline:none;box-sizing:border-box;" oninput="updateTotal()"></div>
+        <div><label style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:5px;">Total</label>
+        <div id="orderTotal" style="background:rgba(46,139,74,.1);border:1px solid rgba(46,139,74,.2);border-radius:8px;padding:9px 12px;color:var(--lime);font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;">KSh 0</div></div>
+      </div>
+      <div style="margin-bottom:12px;"><label style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:5px;">Delivery Address</label>
+      <textarea id="orderAddress" rows="2" placeholder="Village, town, county" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:white;font-size:.82rem;outline:none;resize:none;box-sizing:border-box;"></textarea></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+        <div><label style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:5px;">Payment</label>
+        <select id="orderPayment" style="width:100%;background:rgba(20,40,25,.95);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:white;font-size:.82rem;outline:none;box-sizing:border-box;">
+          <option value="mpesa">M-Pesa</option><option value="cash">Cash on Delivery</option>
+        </select></div>
+        <div><label style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:5px;">M-Pesa Ref</label>
+        <input id="orderMpesa" placeholder="Optional" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:white;font-size:.82rem;outline:none;box-sizing:border-box;"></div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="submitOrder()" style="flex:1;background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:11px;border:none;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;">Place Order →</button>
+        <button onclick="document.getElementById('orderForm').style.display='none';document.getElementById('productList').style.display='block'" style="background:rgba(255,255,255,.05);border:1px solid var(--border);color:rgba(255,255,255,.5);padding:11px 14px;border-radius:8px;cursor:pointer;font-family:'Syne',sans-serif;font-size:.8rem;">← Back</button>
+        <button onclick="document.getElementById('orderModal').style.display='none'" style="background:rgba(255,255,255,.05);border:1px solid var(--border);color:rgba(255,255,255,.5);padding:11px 14px;border-radius:8px;cursor:pointer;font-family:'Syne',sans-serif;font-size:.8rem;">✕</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+let currentProduct = null;
+function filterSellers(){
+  const q=document.getElementById('sellerSearch').value.toLowerCase();
+  document.querySelectorAll('.seller-card').forEach(c=>{c.style.display=c.dataset.name.includes(q)||c.dataset.cats.includes(q)?'':'none';});
+}
+function filterByCategory(cat){
+  document.getElementById('sellerSearch').value=cat;filterSellers();
+}
+// Mock products for demo — in production fetch from /sellers/{id}/products
+const mockProducts = {
+  1:[{id:1,name:'Dairy Meal 50kg',category:'Animal Feeds',price_ksh:2800,unit:'bag',stock_qty:50},
+     {id:2,name:'Napier Grass Seeds',category:'Seeds',price_ksh:500,unit:'kg',stock_qty:20}]
+};
+function openSeller(id, name){
+  document.getElementById('orderSellerName').textContent=name;
+  document.getElementById('orderForm').style.display='none';
+  const pl=document.getElementById('productList');
+  const products=mockProducts[id]||[{id:1,name:'Contact seller for product list',category:'',price_ksh:0,unit:'',stock_qty:0}];
+  pl.innerHTML=products.map(p=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;margin-bottom:8px;">
+      <div><div style="font-size:.85rem;font-weight:600;color:white;">${p.name}</div>
+      <div style="font-size:.7rem;color:rgba(255,255,255,.35);">${p.category} · Stock: ${p.stock_qty}</div></div>
+      <div style="text-align:right;">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--lime);font-size:.9rem;">KSh ${p.price_ksh.toLocaleString()}</div>
+        <div style="font-size:.65rem;color:rgba(255,255,255,.3);">per ${p.unit}</div>
+        <button onclick="selectProduct(${JSON.stringify(p).replace(/"/g,'&quot;')})" style="margin-top:4px;background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:4px 12px;border:none;border-radius:6px;font-family:'Syne',sans-serif;font-size:.7rem;font-weight:700;cursor:pointer;">Order</button>
+      </div>
+    </div>`).join('');
+  pl.style.display='block';
+  document.getElementById('orderModal').style.display='flex';
+}
+function selectProduct(p){
+  currentProduct=p;
+  document.getElementById('orderProductName').textContent=`${p.name} — KSh ${p.price_ksh.toLocaleString()}/${p.unit}`;
+  document.getElementById('productList').style.display='none';
+  document.getElementById('orderForm').style.display='block';
+  updateTotal();
+}
+function updateTotal(){
+  if(!currentProduct) return;
+  const qty=parseFloat(document.getElementById('orderQty').value)||1;
+  document.getElementById('orderTotal').textContent=`KSh ${(currentProduct.price_ksh*qty).toLocaleString()}`;
+}
+async function submitOrder(){
+  const fd=new FormData();
+  fd.append('product_id',currentProduct.id);
+  fd.append('qty',document.getElementById('orderQty').value);
+  fd.append('delivery_address',document.getElementById('orderAddress').value);
+  fd.append('payment_method',document.getElementById('orderPayment').value);
+  fd.append('mpesa_ref',document.getElementById('orderMpesa').value);
+  const r=await fetch('/sellers/order',{method:'POST',body:fd});
+  const d=await r.json();
+  if(d.ok){document.getElementById('orderModal').style.display='none';alert(`✅ Order #${d.order_id} placed! Total: KSh ${d.total.toLocaleString()}. Check Alerts for updates.`);}
+  else alert('Error: '+d.error);
+}
+</script>
+{% endblock %}

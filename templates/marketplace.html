@@ -1,0 +1,1141 @@
+﻿{% extends "base.html" %}
+{% block title %}AgriMarket Kenya{% endblock %}
+
+{% block head %}
+<style>
+/* ═══════════════════════════════════════════════
+   MARKETPLACE — FRESH BUILD
+   Premium dark African agritech aesthetic
+   LinkedIn discovery + Jiji listing cards
+   Middleman model — no direct contact ever
+═══════════════════════════════════════════════ */
+
+/* Reset page wrapper */
+.pw { padding:0 !important; max-width:100% !important; }
+
+/* ── FONTS ── */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700;800&family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap');
+
+/* ── HERO ── */
+.mhero {
+    background: linear-gradient(160deg, #040C07 0%, #0A1F12 50%, #0D2B1A 100%);
+    border-bottom: 1px solid rgba(46,139,74,.15);
+    padding: 44px 0 0;
+    position: relative; overflow: hidden;
+}
+.mhero::before {
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:
+        linear-gradient(35deg, rgba(212,160,23,.025) 1px, transparent 1px),
+        linear-gradient(125deg, rgba(212,160,23,.025) 1px, transparent 1px);
+    background-size: 52px 52px;
+}
+.mhero-glow {
+    position:absolute; width:600px; height:600px; border-radius:50%;
+    background: radial-gradient(circle, rgba(46,139,74,.15) 0%, transparent 70%);
+    top:-200px; right:-150px; pointer-events:none;
+}
+.mhero-inner { max-width:1200px; margin:0 auto; padding:0 28px; position:relative; z-index:2; }
+.mhero h1 {
+    font-family:'Cormorant Garamond',serif; font-size:clamp(2rem,4vw,3rem);
+    font-weight:800; letter-spacing:-1px; line-height:1.06; margin-bottom:8px; color:white;
+}
+.mhero-sub { color:rgba(255,255,255,.38); font-size:.88rem; margin-bottom:22px; font-family:'DM Sans',sans-serif; }
+.mhero-eyebrow {
+    font-family:'Syne',sans-serif; font-size:.68rem; font-weight:700;
+    text-transform:uppercase; letter-spacing:2.5px; color:rgba(232,184,75,.75);
+    display:flex; align-items:center; gap:8px; margin-bottom:10px;
+}
+.mhero-eyebrow::before { content:''; width:18px; height:2px; background:#E8B84B; border-radius:2px; }
+
+/* ── PLATFORM BADGE ── */
+.platform-badge {
+    display:inline-flex; align-items:center; gap:9px;
+    background:rgba(212,160,23,.08); border:1px solid rgba(212,160,23,.18);
+    border-radius:10px; padding:10px 16px; margin-bottom:22px; max-width:620px;
+}
+.platform-badge p { color:rgba(255,255,255,.5); font-size:.78rem; margin:0; line-height:1.5; font-family:'DM Sans',sans-serif; }
+.platform-badge strong { color:#E8B84B; }
+
+/* ── SEARCH BAR ── */
+.msearch {
+    display:flex; gap:8px; align-items:center;
+    background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.09);
+    border-radius:12px; padding:7px 7px 7px 18px; max-width:740px; margin-bottom:26px;
+    transition:all .2s;
+}
+.msearch:focus-within {
+    border-color:rgba(46,139,74,.4); background:rgba(46,139,74,.05);
+    box-shadow:0 0 0 4px rgba(46,139,74,.08);
+}
+.msearch input {
+    flex:1; background:transparent; border:none; outline:none;
+    color:white; font-family:'DM Sans',sans-serif; font-size:.9rem;
+}
+.msearch input::placeholder { color:rgba(255,255,255,.2); }
+.msearch-sep { width:1px; height:20px; background:rgba(255,255,255,.09); flex-shrink:0; }
+.msearch-loc {
+    background:transparent; border:none; outline:none;
+    color:rgba(255,255,255,.4); font-family:'DM Sans',sans-serif; font-size:.83rem;
+    width:110px; padding:0 8px;
+}
+.msearch-btn {
+    background:linear-gradient(135deg,#C8860A,#E8B84B); color:#060C08;
+    border:none; border-radius:9px; padding:10px 20px;
+    font-family:'Syne',sans-serif; font-weight:700; font-size:.8rem;
+    cursor:pointer; transition:all .2s; white-space:nowrap; display:flex; align-items:center; gap:6px;
+}
+.msearch-btn:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(212,160,23,.35); }
+
+/* ── TABS ── */
+.mtabs {
+    display:flex; gap:0; overflow-x:auto; scrollbar-width:none;
+    border-top:1px solid rgba(255,255,255,.055); margin-top:2px;
+}
+.mtabs::-webkit-scrollbar { display:none; }
+.mtab {
+    font-family:'Syne',sans-serif; font-size:.72rem; font-weight:700;
+    text-transform:uppercase; letter-spacing:.6px;
+    color:rgba(255,255,255,.32); padding:13px 18px;
+    border-bottom:2px solid transparent; cursor:pointer; white-space:nowrap;
+    background:transparent; border-left:none; border-right:none; border-top:none;
+    transition:all .2s; text-decoration:none; display:block;
+}
+.mtab:hover { color:rgba(255,255,255,.6); }
+.mtab.on { color:#E8B84B; border-bottom-color:#E8B84B; }
+
+/* ── PAGE BODY ── */
+.mbody {
+    max-width:1200px; margin:0 auto; padding:24px 28px 80px;
+    display:grid; grid-template-columns:248px 1fr; gap:22px; align-items:start;
+}
+
+/* ── SIDEBAR ── */
+.mside { position:sticky; top:76px; }
+.scard {
+    background:rgba(10,31,18,.6); border:1px solid rgba(255,255,255,.07);
+    border-radius:14px; padding:18px; margin-bottom:14px; backdrop-filter:blur(20px);
+}
+.stitle {
+    font-family:'Syne',sans-serif; font-size:.65rem; font-weight:700;
+    text-transform:uppercase; letter-spacing:1.8px; color:rgba(255,255,255,.28);
+    margin-bottom:13px; display:flex; align-items:center; gap:8px;
+}
+.stitle::after { content:''; flex:1; height:1px; background:rgba(255,255,255,.05); }
+
+/* Post button */
+.post-btn {
+    width:100%; padding:12px; background:linear-gradient(135deg,#C8860A,#E8B84B);
+    border:none; border-radius:11px; color:#060C08;
+    font-family:'Syne',sans-serif; font-weight:800; font-size:.85rem;
+    cursor:pointer; transition:all .25s; display:flex; align-items:center; justify-content:center; gap:7px;
+}
+.post-btn:hover { transform:translateY(-2px); box-shadow:0 8px 22px rgba(212,160,23,.38); }
+
+/* Plan card in sidebar */
+.plan-pill {
+    border-radius:10px; padding:12px 14px; border:1px solid;
+}
+.plan-pill.free { background:rgba(255,255,255,.03); border-color:rgba(255,255,255,.08); }
+.plan-pill.pro  { background:rgba(212,160,23,.07);  border-color:rgba(212,160,23,.2); }
+.plan-pill.ent  { background:rgba(46,139,74,.07);   border-color:rgba(46,139,74,.2); }
+.plan-name { font-family:'Syne',sans-serif; font-size:.73rem; font-weight:800; text-transform:uppercase; letter-spacing:.4px; }
+.plan-price { font-family:'Cormorant Garamond',serif; font-size:1.05rem; font-weight:800; }
+.plan-desc { font-size:.7rem; color:rgba(255,255,255,.3); margin-top:3px; line-height:1.4; }
+.plan-name.free-c { color:rgba(255,255,255,.4); }
+.plan-name.pro-c  { color:#E8B84B; }
+.plan-name.ent-c  { color:#4DB86A; }
+
+/* Usage bar */
+.usage-bar-bg { background:rgba(255,255,255,.06); border-radius:20px; height:4px; overflow:hidden; margin-top:6px; }
+.usage-bar-fill { height:100%; border-radius:20px; transition:width .4s; }
+
+/* Filter elements */
+.flabel { font-family:'Syne',sans-serif; font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:rgba(255,255,255,.38); margin-bottom:7px; display:block; }
+.frange { width:100%; accent-color:#2E8B4A; cursor:pointer; }
+.fcheck { display:flex; align-items:center; gap:8px; padding:6px 0; cursor:pointer; }
+.fcheck input[type=checkbox] { width:14px; height:14px; accent-color:#2E8B4A; cursor:pointer; }
+.fcheck span { font-size:.8rem; color:rgba(255,255,255,.55); }
+.fcheck .fc { margin-left:auto; font-size:.68rem; color:rgba(255,255,255,.2); font-family:'Syne',sans-serif; }
+.apply-btn {
+    width:100%; padding:9px; background:linear-gradient(135deg,#1E5C35,#2E8B4A);
+    border:none; border-radius:9px; color:white;
+    font-family:'Syne',sans-serif; font-weight:700; font-size:.77rem;
+    cursor:pointer; transition:all .2s; margin-top:6px;
+}
+.apply-btn:hover { filter:brightness(1.1); transform:translateY(-1px); }
+.upgrade-btn {
+    width:100%; padding:9px; background:linear-gradient(135deg,#C8860A,#E8B84B);
+    border:none; border-radius:9px; color:#060C08;
+    font-family:'Syne',sans-serif; font-weight:800; font-size:.77rem;
+    cursor:pointer; transition:all .2s; margin-top:10px;
+}
+.upgrade-btn:hover { transform:translateY(-1px); box-shadow:0 6px 16px rgba(212,160,23,.35); }
+
+/* ── RESULTS BAR ── */
+.rbar {
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:16px; flex-wrap:wrap; gap:10px;
+}
+.rcount { font-size:.8rem; color:rgba(255,255,255,.3); }
+.rcount strong { color:white; }
+.rsort {
+    background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.09);
+    border-radius:8px; color:rgba(255,255,255,.55); padding:7px 12px;
+    font-family:'Syne',sans-serif; font-size:.73rem; cursor:pointer; outline:none;
+}
+.rsort option { background:#0D2B1A; }
+
+/* ── LISTING CARDS GRID ── */
+.lgrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(285px,1fr)); gap:15px; }
+
+.lcard {
+    background:rgba(10,31,18,.55); border:1px solid rgba(255,255,255,.07);
+    border-radius:16px; overflow:hidden; transition:all .3s; backdrop-filter:blur(16px);
+}
+.lcard:hover {
+    border-color:rgba(46,139,74,.3); transform:translateY(-4px);
+    box-shadow:0 18px 44px rgba(0,0,0,.45), 0 0 0 1px rgba(46,139,74,.1);
+}
+
+/* Farmer strip — alias only, no real name */
+.lcard-who {
+    padding:13px 16px 11px; display:flex; align-items:center; gap:11px;
+    border-bottom:1px solid rgba(255,255,255,.05);
+}
+.who-av {
+    width:36px; height:36px; border-radius:50%; flex-shrink:0;
+    background:linear-gradient(135deg,#C8860A,#E8B84B);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Syne',sans-serif; font-weight:800; font-size:.82rem; color:#060C08;
+}
+.who-alias { font-family:'Syne',sans-serif; font-weight:700; font-size:.8rem; color:rgba(255,255,255,.65); }
+.who-loc { font-size:.7rem; color:rgba(255,255,255,.25); display:flex; align-items:center; gap:4px; margin-top:2px; }
+.protected {
+    margin-left:auto; flex-shrink:0;
+    background:rgba(212,160,23,.1); border:1px solid rgba(212,160,23,.18);
+    color:#E8B84B; padding:3px 9px; border-radius:20px;
+    font-family:'Syne',sans-serif; font-size:.6rem; font-weight:700; letter-spacing:.3px;
+    display:flex; align-items:center; gap:4px;
+}
+
+/* Photo area */
+.lcard-photo { position:relative; height:190px; overflow:hidden; }
+.lcard-photo img { width:100%; height:100%; object-fit:cover; display:block; }
+.lcard-photo-fallback {
+    width:100%; height:100%;
+    background:linear-gradient(160deg,rgba(4,10,6,.95),rgba(16,42,24,.9));
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+}
+.fallback-emoji { font-size:3rem; line-height:1; }
+.fallback-hint { font-size:.68rem; color:rgba(255,255,255,.2); font-family:'DM Sans',sans-serif; }
+.price-tag {
+    position:absolute; top:12px; right:12px; z-index:2;
+    background:linear-gradient(135deg,#C8860A,#E8B84B); color:#060C08;
+    padding:5px 13px; border-radius:20px;
+    font-family:'Syne',sans-serif; font-weight:800; font-size:.8rem;
+    box-shadow:0 4px 12px rgba(212,160,23,.3);
+}
+.plan-star {
+    position:absolute; top:12px; left:12px; z-index:2;
+    padding:3px 9px; border-radius:20px;
+    font-family:'Syne',sans-serif; font-weight:700; font-size:.6rem; letter-spacing:.3px;
+}
+.plan-star.pro  { background:rgba(212,160,23,.15); border:1px solid rgba(212,160,23,.25); color:#E8B84B; }
+.plan-star.ent  { background:rgba(46,139,74,.15);  border:1px solid rgba(46,139,74,.25);  color:#4DB86A; }
+.photo-overlay {
+    position:absolute; bottom:0; left:0; right:0; z-index:2;
+    padding:8px 14px 10px;
+    background:linear-gradient(transparent,rgba(4,10,6,.92));
+}
+.overlay-name { font-family:'Cormorant Garamond',serif; font-size:1.2rem; font-weight:800; color:white; letter-spacing:-.3px; }
+.overlay-desc { font-size:.72rem; color:rgba(255,255,255,.35); margin-top:1px; }
+.commission-tag {
+    position:absolute; bottom:10px; right:12px; z-index:3;
+    background:rgba(46,139,74,.12); border:1px solid rgba(46,139,74,.22);
+    color:#4DB86A; padding:2px 9px; border-radius:20px;
+    font-family:'Syne',sans-serif; font-weight:700; font-size:.6rem;
+}
+
+/* Details */
+.lcard-info { padding:13px 16px 14px; }
+.drow {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:5px 0; border-bottom:1px solid rgba(255,255,255,.04); font-size:.78rem;
+}
+.drow:last-child { border:none; }
+.dk { color:rgba(255,255,255,.26); display:flex; align-items:center; gap:5px; }
+.dv { color:rgba(255,255,255,.7); font-weight:500; }
+
+/* Actions */
+.lcard-actions { padding:10px 16px 14px; display:flex; gap:7px; }
+.btn-inquiry {
+    flex:1; padding:9px 12px;
+    background:linear-gradient(135deg,#1E5C35,#2E8B4A);
+    border:none; border-radius:9px; color:white;
+    font-family:'Syne',sans-serif; font-weight:700; font-size:.76rem;
+    cursor:pointer; transition:all .2s; display:flex; align-items:center; justify-content:center; gap:5px;
+}
+.btn-inquiry:hover { filter:brightness(1.1); transform:translateY(-1px); }
+.btn-save {
+    width:36px; height:36px; background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.08); border-radius:9px;
+    color:rgba(255,255,255,.3); cursor:pointer; transition:all .2s;
+    display:flex; align-items:center; justify-content:center; font-size:.82rem;
+}
+.btn-save:hover { border-color:rgba(212,160,23,.35); color:#E8B84B; }
+
+/* ── FARMER PROFILE CARDS ── */
+.pcard {
+    background:rgba(10,31,18,.55); border:1px solid rgba(255,255,255,.07);
+    border-radius:16px; overflow:hidden; transition:all .3s; backdrop-filter:blur(16px);
+}
+.pcard:hover { border-color:rgba(212,160,23,.22); transform:translateY(-4px); box-shadow:0 18px 44px rgba(0,0,0,.45); }
+.pcard-cover {
+    height:62px;
+    background:linear-gradient(135deg,#0A1F12,#1E5C35,#2E8B4A);
+    position:relative;
+}
+.pcard-cover::after {
+    content:''; position:absolute; inset:0;
+    background-image:linear-gradient(45deg,rgba(212,160,23,.05) 1px,transparent 1px),
+                     linear-gradient(135deg,rgba(212,160,23,.05) 1px,transparent 1px);
+    background-size:18px 18px;
+}
+.pcard-av {
+    width:52px; height:52px; border-radius:50%;
+    background:linear-gradient(135deg,#C8860A,#E8B84B);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Syne',sans-serif; font-weight:800; font-size:1.05rem; color:#060C08;
+    border:3px solid #080E0A;
+    position:absolute; bottom:-20px; left:16px; z-index:2;
+    box-shadow:0 4px 14px rgba(212,160,23,.28);
+}
+.pcard-body { padding:28px 16px 16px; }
+.pcard-alias { font-family:'Syne',sans-serif; font-weight:700; font-size:.88rem; color:rgba(255,255,255,.65); margin-bottom:2px; }
+.pcard-private { font-size:.7rem; color:rgba(255,255,255,.22); display:flex; align-items:center; gap:5px; margin-bottom:10px; }
+.crop-tags { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:11px; }
+.ctag {
+    background:rgba(46,139,74,.1); border:1px solid rgba(46,139,74,.18);
+    color:#4DB86A; padding:2px 9px; border-radius:20px;
+    font-family:'Syne',sans-serif; font-size:.63rem; font-weight:700; text-transform:uppercase; letter-spacing:.4px;
+}
+.pstats { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin:10px 0 12px; padding:10px 0; border-top:1px solid rgba(255,255,255,.05); border-bottom:1px solid rgba(255,255,255,.05); }
+.pstat-n { font-family:'Cormorant Garamond',serif; font-size:1.15rem; font-weight:800; color:#E8B84B; display:block; text-align:center; }
+.pstat-l { font-size:.62rem; color:rgba(255,255,255,.22); text-transform:uppercase; letter-spacing:.5px; display:block; text-align:center; margin-top:2px; }
+.btn-connect {
+    width:100%; padding:8px; background:transparent;
+    border:1px solid rgba(46,139,74,.28); border-radius:9px;
+    color:#4DB86A; font-family:'Syne',sans-serif; font-weight:700; font-size:.75rem;
+    cursor:pointer; transition:all .2s; display:flex; align-items:center; justify-content:center; gap:6px;
+}
+.btn-connect:hover { background:rgba(46,139,74,.1); }
+
+/* ── MODALS ── */
+.modal-content { background:#091610 !important; border:1px solid rgba(46,139,74,.18) !important; border-radius:16px !important; }
+.mhd { padding:20px 24px 16px; border-bottom:1px solid rgba(255,255,255,.06); }
+.mhd h5 { font-family:'Cormorant Garamond',serif; font-size:1.4rem; font-weight:800; color:white; margin:0; }
+.mhd p { color:rgba(255,255,255,.28); font-size:.76rem; margin:3px 0 0; font-family:'DM Sans',sans-serif; }
+.mbd { padding:20px 24px 24px; }
+.mlbl { font-family:'Syne',sans-serif; font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:rgba(255,255,255,.35); margin-bottom:6px; display:block; }
+.minput {
+    width:100% !important; background:rgba(255,255,255,.04) !important;
+    border:1px solid rgba(255,255,255,.09) !important; border-radius:9px !important;
+    padding:11px 14px !important; font-family:'DM Sans',sans-serif !important;
+    font-size:.9rem !important; color:white !important; transition:all .2s !important;
+}
+.minput:focus { background:rgba(46,139,74,.07) !important; border-color:rgba(46,139,74,.38) !important; box-shadow:0 0 0 3px rgba(46,139,74,.08) !important; outline:none !important; }
+.minput::placeholder { color:rgba(255,255,255,.16) !important; }
+.minput option { background:#0D2B1A; }
+.mbtn {
+    width:100%; padding:12px; background:linear-gradient(135deg,#C8860A,#E8B84B);
+    border:none; border-radius:11px; color:#060C08;
+    font-family:'Syne',sans-serif; font-weight:800; font-size:.9rem;
+    cursor:pointer; transition:all .25s; display:flex; align-items:center; justify-content:center; gap:7px;
+}
+.mbtn:hover { transform:translateY(-2px); box-shadow:0 8px 22px rgba(212,160,23,.38); }
+.mbtn-green {
+    width:100%; padding:12px; background:linear-gradient(135deg,#1E5C35,#2E8B4A);
+    border:none; border-radius:11px; color:white;
+    font-family:'Syne',sans-serif; font-weight:800; font-size:.9rem;
+    cursor:pointer; transition:all .25s; display:flex; align-items:center; justify-content:center; gap:7px;
+}
+.mbtn-green:hover { filter:brightness(1.1); transform:translateY(-2px); }
+
+/* ── PHOTO UPLOAD AREA ── */
+.photo-drop {
+    border:2px dashed rgba(46,139,74,.28); border-radius:11px;
+    padding:24px 16px; text-align:center; cursor:pointer;
+    background:rgba(46,139,74,.03); transition:all .25s;
+}
+.photo-drop:hover { border-color:rgba(77,184,106,.5); background:rgba(46,139,74,.06); }
+.photo-drop.dragover { border-color:#4DB86A; background:rgba(46,139,74,.1); }
+
+/* ── PLAN SELECT CARDS ── */
+.psc {
+    border:2px solid rgba(255,255,255,.07); border-radius:13px;
+    padding:18px; cursor:pointer; transition:all .25s;
+    background:rgba(255,255,255,.02);
+}
+.psc:hover { border-color:rgba(255,255,255,.18); }
+.psc.selected-free { border-color:rgba(255,255,255,.35); background:rgba(255,255,255,.06); }
+.psc.selected-pro  { border-color:rgba(212,160,23,.65); background:rgba(212,160,23,.1); }
+.psc.selected-ent  { border-color:rgba(46,139,74,.65);  background:rgba(46,139,74,.1); }
+.psc-name { font-family:'Syne',sans-serif; font-weight:800; font-size:.78rem; text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px; }
+.psc-price { font-family:'Cormorant Garamond',serif; font-size:1.7rem; font-weight:800; line-height:1; margin-bottom:10px; }
+.psc-feat { list-style:none; padding:0; margin:0; font-size:.77rem; color:rgba(255,255,255,.5); }
+.psc-feat li { padding:3px 0; border-bottom:1px solid rgba(255,255,255,.04); }
+.psc-feat li:last-child { border:none; }
+
+/* ── INQUIRY SUCCESS ── */
+.inq-success { text-align:center; padding:28px 16px; }
+.inq-check { width:60px; height:60px; border-radius:50%; background:rgba(46,139,74,.13); border:2px solid rgba(46,139,74,.28); display:flex; align-items:center; justify-content:center; margin:0 auto 14px; font-size:1.4rem; }
+.inq-success h4 { font-family:'Cormorant Garamond',serif; font-size:1.5rem; margin-bottom:6px; }
+.inq-success p { color:rgba(255,255,255,.38); font-size:.82rem; line-height:1.6; }
+
+/* ── ANIMATIONS ── */
+@keyframes fu { from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);} }
+.fu  { animation:fu .4s ease both; }
+.fd1 { animation-delay:.05s; } .fd2 { animation-delay:.1s; }
+.fd3 { animation-delay:.15s; } .fd4 { animation-delay:.2s; }
+
+/* ── RESPONSIVE ── */
+@media(max-width:880px){
+    .mbody { grid-template-columns:1fr; }
+    .mside { position:static; }
+    .mhero-inner,.mbody { padding-left:16px; padding-right:16px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ══ HERO ══════════════════════════════════════════════════ -->
+<div class="mhero">
+    <div class="mhero-glow"></div>
+    <div class="mhero-inner">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div class="fu">
+                <div class="mhero-eyebrow">Kenya Agriculture Marketplace</div>
+                <h1>Find. Inquire. <span style="background:linear-gradient(135deg,#4DB86A,#E8B84B);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Trade Safely.</span></h1>
+                <p class="mhero-sub">All deals coordinated through Plantain AI — your trusted agricultural middleman.</p>
+
+                <div class="platform-badge">
+                    <i class="fas fa-shield-alt" style="color:#E8B84B;font-size:1.1rem;flex-shrink:0;"></i>
+                    <p><strong>Platform Protected.</strong> Farmer and buyer identities stay private until Plantain AI confirms your deal. A small commission applies on completed transactions.</p>
+                </div>
+            </div>
+
+            <div class="d-flex gap-3 fu fd2" style="align-items:center;">
+                <div style="text-align:center;">
+                    <div style="font-family:'Cormorant Garamond',serif;font-size:1.7rem;font-weight:800;color:#E8B84B;line-height:1;">{{ listings|length }}</div>
+                    <div style="font-size:.63rem;color:rgba(255,255,255,.28);text-transform:uppercase;letter-spacing:1px;font-family:'Syne',sans-serif;margin-top:2px;">Listings</div>
+                </div>
+                <div style="width:1px;height:32px;background:rgba(255,255,255,.07);"></div>
+                <div style="text-align:center;">
+                    <div style="font-family:'Cormorant Garamond',serif;font-size:1.7rem;font-weight:800;color:#4DB86A;line-height:1;">{{ farmers_count }}</div>
+                    <div style="font-size:.63rem;color:rgba(255,255,255,.28);text-transform:uppercase;letter-spacing:1px;font-family:'Syne',sans-serif;margin-top:2px;">Farmers</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEARCH -->
+        <div class="msearch fu fd2">
+            <i class="fas fa-search" style="color:rgba(255,255,255,.2);font-size:.85rem;flex-shrink:0;"></i>
+            <input type="text" id="sInput" placeholder="Search crops, county, produce type..." oninput="filterCards()">
+            <div class="msearch-sep"></div>
+            <i class="fas fa-map-marker-alt" style="color:rgba(255,255,255,.2);font-size:.8rem;flex-shrink:0;"></i>
+            <input class="msearch-loc" type="text" id="lInput" placeholder="County" oninput="filterCards()">
+            <button class="msearch-btn" onclick="filterCards()"><i class="fas fa-search"></i> Search</button>
+        </div>
+
+        <!-- TABS -->
+        <div class="mtabs fu fd3">
+            <a class="mtab on"  onclick="switchTab(this,'all')">🌾 All</a>
+            <a class="mtab"     onclick="switchTab(this,'fruit')">🍌 Fruits</a>
+            <a class="mtab"     onclick="switchTab(this,'vegetable')">🥬 Vegetables</a>
+            <a class="mtab"     onclick="switchTab(this,'grain')">🌽 Grains</a>
+            <a class="mtab"     onclick="switchTab(this,'tuber')">🟤 Tubers</a>
+            <a class="mtab"     onclick="switchTab(this,'farmers')">👨‍🌾 Farmers</a>
+        </div>
+    </div>
+</div>
+
+<!-- ══ BODY ══════════════════════════════════════════════════ -->
+<div class="mbody">
+
+    <!-- SIDEBAR -->
+    <aside class="mside d-none d-lg-block">
+
+        <!-- POST PRODUCE -->
+        <div class="scard" style="background:rgba(16,44,26,.7);">
+            <button class="post-btn" data-bs-toggle="modal" data-bs-target="#postModal">
+                <i class="fas fa-plus-circle"></i> Post Produce
+            </button>
+            <p style="text-align:center;font-size:.7rem;color:rgba(255,255,255,.18);margin-top:9px;font-family:'DM Sans',sans-serif;line-height:1.5;">
+                Reach verified buyers across Kenya
+            </p>
+        </div>
+
+        <!-- CURRENT PLAN -->
+        <div class="scard">
+            <div class="stitle">Your Plan</div>
+
+            {% if current_plan == 'enterprise' %}
+            <div class="plan-pill ent">
+                <div class="plan-name ent-c">🚀 Enterprise <span style="float:right;font-size:.6rem;background:rgba(46,139,74,.18);padding:2px 7px;border-radius:20px;">ACTIVE</span></div>
+                <div class="plan-price" style="color:#4DB86A;">KSh 4,999<span style="font-size:.7rem;opacity:.5;">/mo</span></div>
+                <div class="plan-desc">2% commission · Unlimited listings · Account manager</div>
+            </div>
+            {% elif current_plan == 'pro' %}
+            <div class="plan-pill pro">
+                <div class="plan-name pro-c">🌟 Pro <span style="float:right;font-size:.6rem;background:rgba(212,160,23,.18);padding:2px 7px;border-radius:20px;">ACTIVE</span></div>
+                <div class="plan-price" style="color:#E8B84B;">KSh 999<span style="font-size:.7rem;opacity:.5;">/mo</span></div>
+                <div class="plan-desc">4% commission · Unlimited listings · Priority placement</div>
+            </div>
+            {% else %}
+            <div class="plan-pill free">
+                <div class="plan-name free-c">Free <span style="float:right;font-size:.6rem;background:rgba(255,255,255,.08);padding:2px 7px;border-radius:20px;">ACTIVE</span></div>
+                <div class="plan-price" style="color:rgba(255,255,255,.4);">KSh 0<span style="font-size:.7rem;opacity:.5;">/mo</span></div>
+                <div class="plan-desc">3 listings · 8% commission · Standard visibility</div>
+            </div>
+            {% endif %}
+
+            <!-- Usage -->
+            <div style="margin:12px 0 0;">
+                <div style="display:flex;justify-content:space-between;font-size:.7rem;color:rgba(255,255,255,.3);margin-bottom:5px;">
+                    <span>Listings used</span>
+                    <span style="color:{% if current_plan=='free' and my_listing_count>=3 %}#E8B84B{% else %}rgba(255,255,255,.4){% endif %};">
+                        {{ my_listing_count }} / {% if current_plan=='free' %}3{% else %}∞{% endif %}
+                    </span>
+                </div>
+                <div class="usage-bar-bg">
+                    <div class="usage-bar-fill" style="
+                        width:{% if current_plan=='free' %}{{ [my_listing_count * 34, 100]|min }}%{% else %}25%{% endif %};
+                        background:{% if current_plan=='free' and my_listing_count>=3 %}#E8B84B{% elif current_plan=='pro' %}linear-gradient(90deg,#C8860A,#E8B84B){% elif current_plan=='enterprise' %}linear-gradient(90deg,#2E8B4A,#4DB86A){% else %}rgba(46,139,74,.6){% endif %};">
+                    </div>
+                </div>
+                {% if current_plan=='free' and my_listing_count>=3 %}
+                <p style="font-size:.7rem;color:#E8B84B;margin-top:6px;">⚠️ Limit reached — upgrade to post more</p>
+                {% endif %}
+            </div>
+
+            {% if current_plan != 'enterprise' %}
+            <button class="upgrade-btn" data-bs-toggle="modal" data-bs-target="#upgradeModal">⚡ Upgrade Plan</button>
+            {% endif %}
+        </div>
+
+        <!-- FILTERS -->
+        <div class="scard">
+            <div class="stitle">Filters</div>
+            <div style="margin-bottom:13px;">
+                <span class="flabel">Price (KSh/kg)</span>
+                <div style="display:flex;justify-content:space-between;font-size:.7rem;color:rgba(255,255,255,.3);margin-bottom:5px;">
+                    <span>0</span><span id="pval">Any</span>
+                </div>
+                <input class="frange" type="range" min="0" max="1000" value="1000" id="prange"
+                       oninput="document.getElementById('pval').textContent=this.value>=1000?'Any':this.value;filterCards()">
+            </div>
+            <div style="margin-bottom:10px;">
+                <span class="flabel">Availability</span>
+                <label class="fcheck"><input type="checkbox" checked onchange="filterCards()"><span>In Stock</span><span class="fc">{{ listings|length }}</span></label>
+                <label class="fcheck"><input type="checkbox" onchange="filterCards()"><span>Pre-Order</span><span class="fc">0</span></label>
+            </div>
+            <button class="apply-btn" onclick="filterCards()">Apply Filters</button>
+        </div>
+
+        <!-- TRENDING -->
+        <div class="scard">
+            <div class="stitle">Trending in Kenya</div>
+            {% set seen=[] %}
+            {% for l in listings[:7] %}
+                {% if l.crop_type not in seen %}
+                    {% set _=seen.append(l.crop_type) %}
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+                        <span style="font-size:.8rem;color:rgba(255,255,255,.6);">{{ l.crop_type }}</span>
+                        <span style="font-size:.68rem;color:#4DB86A;font-family:'Syne',sans-serif;font-weight:700;">↑</span>
+                    </div>
+                {% endif %}
+            {% else %}
+                <p style="font-size:.76rem;color:rgba(255,255,255,.22);text-align:center;padding:10px 0;">No data yet</p>
+            {% endfor %}
+        </div>
+
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main>
+        <!-- RESULTS BAR -->
+        <div class="rbar">
+            <p class="rcount"><strong id="rcount">{{ listings|length }}</strong> listings · identities protected</p>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <button class="btn-save d-lg-none" style="width:auto;padding:7px 13px;font-family:'Syne',sans-serif;font-size:.73rem;font-weight:700;color:#E8B84B;border-color:rgba(212,160,23,.22);"
+                        data-bs-toggle="modal" data-bs-target="#postModal">
+                    <i class="fas fa-plus"></i> Post
+                </button>
+                <select class="rsort" onchange="sortCards(this.value)">
+                    <option value="new">Newest First</option>
+                    <option value="price_asc">Price ↑</option>
+                    <option value="price_desc">Price ↓</option>
+                    <option value="qty">Most Stock</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- LISTINGS GRID -->
+        <div class="lgrid" id="lgrid">
+        {% if listings %}
+            {% for l in listings %}
+            <div class="lcard fu fd{{ (loop.index%4)+1 }}"
+                 data-crop="{{ l.crop_type|lower }}"
+                 data-loc="{{ l.location|lower }}"
+                 data-price="{{ l.price_per_kg|float }}"
+                 data-qty="{{ l.quantity_kg|float }}">
+
+                <!-- Farmer — alias only -->
+                <div class="lcard-who">
+                    <div class="who-av">{{ l.farmer_name[0]|upper }}</div>
+                    <div>
+                        <div class="who-alias">Grower #{{ l.id }}K</div>
+                        <div class="who-loc"><i class="fas fa-map-marker-alt" style="font-size:.58rem;"></i> {{ l.location or 'Kenya' }}</div>
+                    </div>
+                    <div class="protected"><i class="fas fa-lock" style="font-size:.52rem;"></i> Private</div>
+                </div>
+
+                <!-- Photo or fallback -->
+                <div class="lcard-photo">
+                    <div class="price-tag">KSh {{ l.price_per_kg }}/kg</div>
+
+                    {% if l.farmer_plan == 'pro' %}
+                    <div class="plan-star pro">🌟 PRO</div>
+                    {% elif l.farmer_plan == 'enterprise' %}
+                    <div class="plan-star ent">🚀 ENTERPRISE</div>
+                    {% endif %}
+
+                    {% if l.photo_path %}
+                        <img src="{{ url_for('static', filename=l.photo_path.replace('static/','')) }}" alt="{{ l.crop_type }}">
+                    {% else %}
+                        <div class="lcard-photo-fallback">
+                            <span class="fallback-emoji">
+                                {% set cn=l.crop_type|lower %}
+                                {% if 'banana' in cn or 'plantain' in cn %}🍌
+                                {% elif 'tomato' in cn %}🍅
+                                {% elif 'maize' in cn or 'corn' in cn %}🌽
+                                {% elif 'mango' in cn %}🥭
+                                {% elif 'avocado' in cn %}🥑
+                                {% elif 'kale' in cn or 'sukuma' in cn %}🥬
+                                {% elif 'pepper' in cn or 'capsicum' in cn %}🌶️
+                                {% elif 'pineapple' in cn %}🍍
+                                {% elif 'watermelon' in cn %}🍉
+                                {% elif 'passion' in cn %}🍈
+                                {% elif 'orange' in cn %}🍊
+                                {% elif 'coffee' in cn or 'tea' in cn %}☕
+                                {% elif 'rice' in cn %}🌾
+                                {% elif 'cassava' in cn or 'yam' in cn or 'arrow' in cn %}🟤
+                                {% elif 'potato' in cn %}🥔
+                                {% elif 'carrot' in cn %}🥕
+                                {% elif 'onion' in cn %}🧅
+                                {% elif 'groundnut' in cn or 'peanut' in cn %}🥜
+                                {% else %}🌿{% endif %}
+                            </span>
+                            <span class="fallback-hint">No photo uploaded</span>
+                        </div>
+                    {% endif %}
+
+                    <div class="photo-overlay">
+                        <div class="overlay-name">{{ l.crop_type }}</div>
+                        <div class="overlay-desc">
+                            {% if l.description %}{{ l.description[:50] }}{% if l.description|length>50 %}...{% endif %}
+                            {% else %}Fresh harvest · Ready for collection{% endif %}
+                        </div>
+                    </div>
+                    <div class="commission-tag">✓ {{ '2%' if l.farmer_plan=='enterprise' else ('4%' if l.farmer_plan=='pro' else '8%') }} commission</div>
+                </div>
+
+                <!-- Details -->
+                <div class="lcard-info">
+                    <div class="drow">
+                        <span class="dk"><i class="fas fa-weight-hanging"></i> Available</span>
+                        <span class="dv">{{ l.quantity_kg }} kg</span>
+                    </div>
+                    <div class="drow">
+                        <span class="dk"><i class="fas fa-coins"></i> Total value</span>
+                        <span class="dv" style="color:#E8B84B;font-weight:700;">KSh {{ "{:,.0f}".format(l.quantity_kg|float * l.price_per_kg|float) }}</span>
+                    </div>
+                    <div class="drow">
+                        <span class="dk"><i class="fas fa-clock"></i> Listed</span>
+                        <span class="dv">{{ l.created_at }}</span>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="lcard-actions">
+                    <button class="btn-inquiry"
+                            onclick="openInquiry({{ l.id }},'{{ l.crop_type }}',{{ l.price_per_kg|float }},{{ l.quantity_kg|float }})">
+                        <i class="fas fa-paper-plane"></i> Send Inquiry
+                    </button>
+                    <button class="btn-save" title="Save" onclick="this.style.color='#E8B84B'">
+                        <i class="fas fa-bookmark"></i>
+                    </button>
+                </div>
+
+            </div>
+            {% endfor %}
+        {% else %}
+            <div style="grid-column:1/-1;text-align:center;padding:70px 20px;">
+                <div style="font-size:3rem;margin-bottom:12px;">🌾</div>
+                <h4 style="font-family:'Cormorant Garamond',serif;font-size:1.7rem;margin-bottom:8px;">No listings yet</h4>
+                <p style="color:rgba(255,255,255,.3);font-size:.85rem;margin-bottom:20px;">Be the first farmer to list produce on AgriMarket Kenya</p>
+                <button class="post-btn" style="width:auto;padding:11px 26px;display:inline-flex;" data-bs-toggle="modal" data-bs-target="#postModal">
+                    <i class="fas fa-plus-circle"></i> Post First Listing
+                </button>
+            </div>
+        {% endif %}
+        </div>
+
+        <!-- FARMERS TAB SECTION -->
+        <div id="farmersSection" class="d-none">
+            <p style="font-family:'Syne',sans-serif;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,.25);margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+                <span style="width:14px;height:1px;background:rgba(255,255,255,.12);"></span>
+                Registered Farmers · Identity shown only after deal confirmation
+            </p>
+            <div class="lgrid">
+                {% for f in farmers %}
+                <div class="pcard fu">
+                    <div class="pcard-cover">
+                        <div class="pcard-av">{{ f.name[0]|upper }}</div>
+                    </div>
+                    <div class="pcard-body">
+                        <div class="pcard-alias">Grower #{{ f.id }}K</div>
+                        <div class="pcard-private"><i class="fas fa-lock" style="font-size:.58rem;"></i> Identity revealed after confirmation</div>
+                        <div class="crop-tags">
+                            {% for c in f.crops[:4] %}<span class="ctag">{{ c }}</span>{% endfor %}
+                            {% if f.crops|length > 4 %}<span class="ctag" style="background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.08);color:rgba(255,255,255,.3);">+{{ f.crops|length-4 }}</span>{% endif %}
+                        </div>
+                        <div class="pstats">
+                            <div><span class="pstat-n">{{ f.listing_count }}</span><span class="pstat-l">Listings</span></div>
+                            <div><span class="pstat-n">{{ f.crop_count }}</span><span class="pstat-l">Crops</span></div>
+                            <div><span class="pstat-n">{{ f.diagnosis_count }}</span><span class="pstat-l">Scans</span></div>
+                        </div>
+                        <button class="btn-connect" onclick="openInquiry(0,'General Produce',0,0)">
+                            <i class="fas fa-paper-plane"></i> Inquire via Platform
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<!-- ══ POST PRODUCE MODAL ════════════════════════════════════ -->
+<div class="modal fade" id="postModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="mhd d-flex justify-content-between align-items-start">
+                <div>
+                    <h5>Post Your Produce</h5>
+                    <p>Your contact details stay private — buyers reach you through Plantain AI only</p>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="mbd">
+                <form method="POST" action="{{ url_for('add_listing') }}" enctype="multipart/form-data">
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+                            <label class="mlbl">Crop / Produce Name *</label>
+                            <input type="text" name="crop_type" class="minput"
+                                   placeholder="e.g. Sukuma Wiki, Avocado, Arrow Roots…"
+                                   list="cropSugg" required>
+                            <datalist id="cropSugg">
+                                <option value="Sukuma Wiki"><option value="Avocado"><option value="Arrow Roots">
+                                <option value="Banana"><option value="Plantain"><option value="Mango">
+                                <option value="Tomato"><option value="Maize"><option value="Beans">
+                                <option value="Kale"><option value="Spinach"><option value="Onion">
+                                <option value="Carrot"><option value="Potato"><option value="Sweet Potato">
+                                <option value="Cassava"><option value="Yam"><option value="Pineapple">
+                                <option value="Passion Fruit"><option value="Watermelon"><option value="Pawpaw">
+                                <option value="Orange"><option value="Lemon"><option value="Coconut">
+                                <option value="Coffee"><option value="Tea"><option value="Sugarcane">
+                                <option value="Rice"><option value="Sorghum"><option value="Millet">
+                                <option value="Groundnut"><option value="Soybean"><option value="Sunflower">
+                                <option value="Ginger"><option value="Turmeric"><option value="Garlic">
+                                <option value="Capsicum"><option value="Chilli"><option value="Macadamia">
+                            </datalist>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="mlbl">Category</label>
+                            <select name="category" class="minput">
+                                <option value="vegetable">🥬 Vegetables</option>
+                                <option value="fruit">🍌 Fruits</option>
+                                <option value="grain">🌽 Grains & Cereals</option>
+                                <option value="tuber">🟤 Tubers & Roots</option>
+                                <option value="legume">🫘 Legumes</option>
+                                <option value="spice">🌶️ Spices & Herbs</option>
+                                <option value="cash_crop">☕ Cash Crops</option>
+                                <option value="other">🌿 Other</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="mlbl">Quantity (kg) *</label>
+                            <input type="number" name="quantity_kg" class="minput" placeholder="e.g. 500" step="0.01" min="0.01" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="mlbl">Price per kg (KSh) *</label>
+                            <input type="number" name="price_per_kg" class="minput" placeholder="e.g. 80" step="0.01" min="0.01" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="mlbl">Harvest Date</label>
+                            <input type="date" name="harvest_date" class="minput">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="mlbl">Pickup County / Location *</label>
+                            <input type="text" name="location" class="minput" placeholder="e.g. Kiambu, Nakuru, Meru…" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="mlbl">Grade / Condition</label>
+                            <select name="grade" class="minput">
+                                <option value="Grade A - Premium">Grade A — Premium (Export quality)</option>
+                                <option value="Grade B - Good">Grade B — Good (Local market)</option>
+                                <option value="Grade C - Standard">Grade C — Standard (Processing)</option>
+                                <option value="Mixed - Ungraded">Mixed / Ungraded</option>
+                            </select>
+                        </div>
+
+                        <!-- PHOTO UPLOAD -->
+                        <div class="col-12">
+                            <label class="mlbl">Product Photo <span style="color:rgba(255,255,255,.22);font-weight:400;text-transform:none;letter-spacing:0;">(listings with photos get 5× more inquiries)</span></label>
+                            <div class="photo-drop" id="dropZone" onclick="document.getElementById('photoFile').click()"
+                                 ondragover="event.preventDefault();this.classList.add('dragover')"
+                                 ondragleave="this.classList.remove('dragover')"
+                                 ondrop="handleDrop(event)">
+                                <div id="dropHint">
+                                    <div style="font-size:1.8rem;margin-bottom:6px;">📸</div>
+                                    <p style="font-family:'Syne',sans-serif;font-weight:700;color:#4DB86A;font-size:.82rem;margin-bottom:3px;">Click or drag to upload</p>
+                                    <p style="font-size:.72rem;color:rgba(255,255,255,.22);margin:0;">JPG or PNG · max 10MB · real photo of your actual produce</p>
+                                </div>
+                                <img id="photoPreview" class="d-none" style="max-height:200px;border-radius:8px;max-width:100%;object-fit:cover;">
+                            </div>
+                            <input type="file" name="photo" id="photoFile" accept="image/jpeg,image/png,image/webp" class="d-none">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="mlbl">Description</label>
+                            <textarea name="description" class="minput" rows="3" style="resize:none;"
+                                      placeholder="Freshness, growing method, delivery options… (do NOT share phone numbers here)"></textarea>
+                        </div>
+
+                        <!-- COMMISSION INFO -->
+                        <div class="col-12">
+                            <div style="background:rgba(212,160,23,.06);border:1px solid rgba(212,160,23,.15);border-radius:10px;padding:13px 15px;display:flex;gap:11px;align-items:flex-start;">
+                                <i class="fas fa-info-circle" style="color:#E8B84B;margin-top:2px;flex-shrink:0;"></i>
+                                <div>
+                                    <p style="font-family:'Syne',sans-serif;font-weight:700;color:#E8B84B;font-size:.75rem;margin-bottom:3px;text-transform:uppercase;letter-spacing:.3px;">Commission Notice</p>
+                                    <p style="color:rgba(255,255,255,.4);font-size:.77rem;margin:0;line-height:1.5;">
+                                        Plantain AI charges
+                                        <strong style="color:#E8B84B;">{{ '2%' if current_plan=='enterprise' else ('4%' if current_plan=='pro' else '8%') }}</strong>
+                                        of the final sale on your current
+                                        <strong style="color:{% if current_plan=='enterprise' %}#4DB86A{% elif current_plan=='pro' %}#E8B84B{% else %}rgba(255,255,255,.5){% endif %};">{{ current_plan|title }}</strong>
+                                        plan. Upgrade to reduce your commission rate.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <button type="submit" class="mbtn"><i class="fas fa-store"></i> List on AgriMarket Kenya</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══ INQUIRY MODAL ════════════════════════════════════════ -->
+<div class="modal fade" id="inquiryModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="mhd d-flex justify-content-between align-items-start">
+                <div>
+                    <h5>Send Inquiry</h5>
+                    <p>Delivered through Plantain AI — seller identity stays private</p>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <!-- FORM STATE -->
+            <div class="mbd" id="inqForm">
+                <div style="background:rgba(46,139,74,.07);border:1px solid rgba(46,139,74,.13);border-radius:11px;padding:14px;margin-bottom:18px;display:flex;gap:12px;align-items:center;">
+                    <div style="font-size:2rem;" id="inqEmoji">🌿</div>
+                    <div style="flex:1;">
+                        <div id="inqCrop" style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.88rem;margin-bottom:2px;"></div>
+                        <div id="inqPrice" style="font-size:.77rem;color:#E8B84B;font-weight:600;"></div>
+                    </div>
+                    <div style="background:rgba(212,160,23,.1);border:1px solid rgba(212,160,23,.18);color:#E8B84B;padding:3px 10px;border-radius:20px;font-family:'Syne',sans-serif;font-size:.62rem;font-weight:700;letter-spacing:.3px;flex-shrink:0;">
+                        <i class="fas fa-shield-alt me-1"></i>PROTECTED
+                    </div>
+                </div>
+
+                <form method="POST" action="{{ url_for('submit_inquiry') }}" id="inqFormEl">
+                    <input type="hidden" name="listing_id" id="inqListingId">
+                    <div class="mb-3">
+                        <label class="mlbl">Your Name</label>
+                        <input type="text" name="buyer_name" class="minput" placeholder="Your full name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="mlbl">Quantity Needed (kg)</label>
+                        <input type="number" name="quantity_needed" class="minput" placeholder="e.g. 200" min="1">
+                    </div>
+                    <div class="mb-3">
+                        <label class="mlbl">Your County / Location</label>
+                        <input type="text" name="buyer_location" class="minput" placeholder="e.g. Nairobi, Mombasa, Kisumu…">
+                    </div>
+                    <div class="mb-4">
+                        <label class="mlbl">Message to Seller (via Plantain AI)</label>
+                        <textarea name="message" class="minput" rows="3" style="resize:none;"
+                                  placeholder="e.g. I need 200kg weekly. What's the minimum order?" required></textarea>
+                    </div>
+
+                    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:9px;padding:11px 13px;margin-bottom:16px;font-size:.75rem;color:rgba(255,255,255,.3);line-height:1.6;">
+                        <i class="fas fa-lock me-2" style="color:rgba(212,160,23,.45);"></i>
+                        <strong style="color:rgba(255,255,255,.45);">Privacy guarantee:</strong>
+                        Your contact details and the seller's are never shared directly. Plantain AI coordinates every deal and charges a platform commission on successful transactions.
+                    </div>
+
+                    <button type="submit" class="mbtn-green">
+                        <i class="fas fa-paper-plane"></i> Submit Inquiry to Plantain AI
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══ UPGRADE PLAN MODAL ════════════════════════════════════ -->
+<div class="modal fade" id="upgradeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="mhd d-flex justify-content-between align-items-start">
+                <div>
+                    <h5>Choose Your Plan</h5>
+                    <p>Current plan: <strong style="color:{% if current_plan=='enterprise' %}#4DB86A{% elif current_plan=='pro' %}#E8B84B{% else %}rgba(255,255,255,.4){% endif %};">{{ current_plan|title }}</strong></p>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="mbd">
+                <div class="row g-3 mb-4">
+
+                    <div class="col-md-4">
+                        <div class="psc {% if current_plan=='free' %}selected-free{% endif %}" id="psc-free" onclick="pickPlan('free')">
+                            <div class="psc-name" style="color:rgba(255,255,255,.4);">Free {% if current_plan=='free' %}<span style="float:right;font-size:.6rem;background:rgba(255,255,255,.08);padding:2px 7px;border-radius:20px;">NOW</span>{% endif %}</div>
+                            <div class="psc-price" style="color:rgba(255,255,255,.45);">KSh 0<span style="font-size:.75rem;opacity:.5;">/mo</span></div>
+                            <ul class="psc-feat">
+                                <li>✓ 3 listings max</li>
+                                <li>✓ 8% commission/sale</li>
+                                <li>✓ Standard visibility</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="psc {% if current_plan=='pro' %}selected-pro{% endif %}" id="psc-pro" onclick="pickPlan('pro')" style="border-color:rgba(212,160,23,.18);">
+                            <div class="psc-name" style="color:#E8B84B;">🌟 Pro {% if current_plan=='pro' %}<span style="float:right;font-size:.6rem;background:rgba(212,160,23,.18);padding:2px 7px;border-radius:20px;">NOW</span>{% endif %}</div>
+                            <div class="psc-price" style="color:#E8B84B;">KSh 999<span style="font-size:.75rem;opacity:.5;">/mo</span></div>
+                            <ul class="psc-feat">
+                                <li>✓ Unlimited listings</li>
+                                <li>✓ 4% commission/sale</li>
+                                <li>✓ Priority placement</li>
+                                <li>✓ Verified badge</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="psc {% if current_plan=='enterprise' %}selected-ent{% endif %}" id="psc-enterprise" onclick="pickPlan('enterprise')" style="border-color:rgba(46,139,74,.18);">
+                            <div class="psc-name" style="color:#4DB86A;">🚀 Enterprise {% if current_plan=='enterprise' %}<span style="float:right;font-size:.6rem;background:rgba(46,139,74,.18);padding:2px 7px;border-radius:20px;">NOW</span>{% endif %}</div>
+                            <div class="psc-price" style="color:#4DB86A;">KSh 4,999<span style="font-size:.75rem;opacity:.5;">/mo</span></div>
+                            <ul class="psc-feat">
+                                <li>✓ Unlimited listings</li>
+                                <li>✓ 2% commission/sale</li>
+                                <li>✓ Cooperative accounts</li>
+                                <li>✓ Account manager</li>
+                                <li>✓ Analytics dashboard</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary -->
+                <div id="planSummary" style="background:rgba(46,139,74,.06);border:1px solid rgba(46,139,74,.13);border-radius:11px;padding:14px 17px;margin-bottom:18px;display:none;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div>
+                            <p id="sumTitle" style="font-family:'Syne',sans-serif;font-weight:700;font-size:.86rem;margin:0 0 2px;color:white;"></p>
+                            <p id="sumDesc"  style="font-size:.76rem;color:rgba(255,255,255,.32);margin:0;"></p>
+                        </div>
+                        <div id="sumPrice" style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:800;"></div>
+                    </div>
+                </div>
+
+                <form method="POST" action="{{ url_for('subscribe') }}">
+                    <input type="hidden" name="plan" id="selectedPlan" value="{{ current_plan }}">
+                    <button type="submit" id="confirmPlan" class="mbtn" style="opacity:.35;pointer-events:none;">
+                        <i class="fas fa-check-circle"></i> <span id="confirmTxt">Select a plan above</span>
+                    </button>
+                </form>
+
+                <p style="text-align:center;font-size:.7rem;color:rgba(255,255,255,.18);margin-top:12px;line-height:1.6;">
+                    No real payment yet — plan activates immediately for demo purposes.<br>
+                    M-Pesa integration coming soon.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── TAB SWITCHING ─────────────────────────────────────────────
+function switchTab(el, tab) {
+    document.querySelectorAll('.mtab').forEach(t => t.classList.remove('on'));
+    el.classList.add('on');
+    const fs = document.getElementById('farmersSection');
+    const lg = document.getElementById('lgrid');
+    const rb = document.querySelector('.rbar');
+    if (tab === 'farmers') {
+        lg.style.display = 'none'; rb.style.display = 'none';
+        fs.classList.remove('d-none');
+    } else {
+        lg.style.display = 'grid'; rb.style.display = 'flex';
+        fs.classList.add('d-none');
+        filterCards(tab === 'all' ? '' : tab);
+    }
+}
+
+// ── FILTER ────────────────────────────────────────────────────
+function filterCards(cat = '') {
+    const s   = document.getElementById('sInput').value.toLowerCase();
+    const loc = document.getElementById('lInput').value.toLowerCase();
+    const cards = document.querySelectorAll('#lgrid .lcard');
+    let n = 0;
+    cards.forEach(c => {
+        const crop = c.dataset.crop || '';
+        const cloc = c.dataset.loc  || '';
+        const ok = (!s || crop.includes(s) || cloc.includes(s))
+                && (!loc || cloc.includes(loc))
+                && (!cat || crop.includes(cat));
+        c.style.display = ok ? '' : 'none';
+        if (ok) n++;
+    });
+    document.getElementById('rcount').textContent = n;
+}
+
+// ── SORT ──────────────────────────────────────────────────────
+function sortCards(by) {
+    const grid  = document.getElementById('lgrid');
+    const cards = [...grid.querySelectorAll('.lcard')];
+    cards.sort((a, b) => {
+        if (by === 'price_asc')  return +a.dataset.price - +b.dataset.price;
+        if (by === 'price_desc') return +b.dataset.price - +a.dataset.price;
+        if (by === 'qty')        return +b.dataset.qty   - +a.dataset.qty;
+        return 0;
+    });
+    cards.forEach(c => grid.appendChild(c));
+}
+
+// ── INQUIRY MODAL ─────────────────────────────────────────────
+const emojiMap = {
+    banana:'🍌',plantain:'🍌',tomato:'🍅',maize:'🌽',corn:'🌽',
+    mango:'🥭',avocado:'🥑',kale:'🥬',sukuma:'🥬',pepper:'🌶️',
+    pineapple:'🍍',watermelon:'🍉',passion:'🍈',orange:'🍊',
+    coffee:'☕',tea:'☕',rice:'🌾',cassava:'🟤',yam:'🟤',
+    arrow:'🟤',potato:'🥔',carrot:'🥕',onion:'🧅',groundnut:'🥜',
+};
+function cropEmoji(name) {
+    const n = name.toLowerCase();
+    for (const [k,v] of Object.entries(emojiMap)) if (n.includes(k)) return v;
+    return '🌿';
+}
+
+function openInquiry(id, crop, price, qty) {
+    document.getElementById('inqListingId').value = id;
+    document.getElementById('inqEmoji').textContent = cropEmoji(crop);
+    document.getElementById('inqCrop').textContent  = crop || 'General Inquiry';
+    document.getElementById('inqPrice').textContent =
+        price ? `KSh ${parseFloat(price).toLocaleString()}/kg · ${parseFloat(qty).toLocaleString()}kg available` : 'Multiple produce available';
+    new bootstrap.Modal(document.getElementById('inquiryModal')).show();
+}
+
+// ── PHOTO UPLOAD ──────────────────────────────────────────────
+document.getElementById('photoFile').addEventListener('change', function () {
+    if (this.files[0]) previewPhoto(this.files[0]);
+});
+function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById('dropZone').classList.remove('dragover');
+    const f = e.dataTransfer.files[0];
+    if (f && f.type.startsWith('image/')) {
+        document.getElementById('photoFile').files = e.dataTransfer.files;
+        previewPhoto(f);
+    }
+}
+function previewPhoto(file) {
+    const r = new FileReader();
+    r.onload = e => {
+        document.getElementById('dropHint').classList.add('d-none');
+        const img = document.getElementById('photoPreview');
+        img.src = e.target.result; img.classList.remove('d-none');
+        const dz = document.getElementById('dropZone');
+        dz.style.borderColor = 'rgba(77,184,106,.55)';
+        dz.style.background  = 'rgba(46,139,74,.08)';
+    };
+    r.readAsDataURL(file);
+}
+
+// ── PLAN SELECTION ────────────────────────────────────────────
+const planInfo = {
+    free:       { title:'Free Plan',         price:'KSh 0/mo',     desc:'3 listings · 8% commission',               color:'rgba(255,255,255,.45)' },
+    pro:        { title:'🌟 Pro Plan',        price:'KSh 999/mo',   desc:'Unlimited listings · 4% commission',       color:'#E8B84B' },
+    enterprise: { title:'🚀 Enterprise Plan', price:'KSh 4,999/mo', desc:'Unlimited listings · 2% commission',       color:'#4DB86A' },
+};
+const currentPlan = '{{ current_plan }}';
+
+function pickPlan(plan) {
+    ['free','pro','enterprise'].forEach(p => {
+        const el = document.getElementById('psc-'+p);
+        el.classList.remove('selected-free','selected-pro','selected-ent');
+        if (p==='pro')        el.style.borderColor = 'rgba(212,160,23,.18)';
+        else if (p==='enterprise') el.style.borderColor = 'rgba(46,139,74,.18)';
+        else                  el.style.borderColor = 'rgba(255,255,255,.07)';
+    });
+    const sel = document.getElementById('psc-'+plan);
+    sel.classList.add(plan==='free'?'selected-free':plan==='pro'?'selected-pro':'selected-ent');
+
+    const d = planInfo[plan];
+    document.getElementById('sumTitle').textContent   = d.title;
+    document.getElementById('sumTitle').style.color   = d.color;
+    document.getElementById('sumPrice').textContent   = d.price;
+    document.getElementById('sumPrice').style.color   = d.color;
+    document.getElementById('sumDesc').textContent    = d.desc;
+    document.getElementById('planSummary').style.display = 'block';
+
+    document.getElementById('selectedPlan').value = plan;
+    const btn = document.getElementById('confirmPlan');
+    if (plan === currentPlan) {
+        btn.style.opacity = '.35'; btn.style.pointerEvents = 'none';
+        document.getElementById('confirmTxt').textContent = 'This is your current plan';
+    } else {
+        btn.style.opacity = '1'; btn.style.pointerEvents = 'auto';
+        document.getElementById('confirmTxt').textContent =
+            plan==='free' ? 'Downgrade to Free' : `Activate ${d.title}`;
+    }
+}
+</script>
+{% endblock %}

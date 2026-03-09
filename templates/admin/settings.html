@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Admin — Settings{% endblock %}
+{% block head %}
+<style>
+.adm-panel{background:rgba(8,20,12,.9);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:24px;margin-bottom:16px;}
+.sf-label{font-family:'Syne',sans-serif;font-size:.7rem;color:rgba(255,255,255,.35);display:block;margin-bottom:5px;font-weight:600;}
+.sf-input{width:100%;background:rgba(20,40,25,.95);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:10px 13px;color:white;font-family:'DM Sans',sans-serif;font-size:.84rem;outline:none;box-sizing:border-box;transition:border-color .2s;}
+.sf-input:focus{border-color:rgba(46,139,74,.4);}
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.sec-divider{font-family:'Syne',sans-serif;font-size:.7rem;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.3);padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.sec-divider::before{content:'';width:14px;height:2px;background:var(--amber);}
+</style>
+{% endblock %}
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+  <div>
+    <div style="font-family:'Syne',sans-serif;font-size:.62rem;color:#f87171;text-transform:uppercase;letter-spacing:2px;margin-bottom:5px;">Admin · Settings</div>
+    <h1 style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:800;color:white;margin:0;">⚙️ Platform Settings</h1>
+  </div>
+  <a href="{{ url_for('admin_dashboard') }}" style="color:rgba(255,255,255,.4);font-size:.8rem;text-decoration:none;">← Dashboard</a>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}{% for cat, msg in messages %}<div style="background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.18);color:#4ade80;padding:10px 16px;border-radius:9px;margin-bottom:14px;font-size:.84rem;">✅ {{ msg }}</div>{% endfor %}{% endif %}{% endwith %}
+
+<form method="POST">
+<div class="adm-panel">
+  <div class="sec-divider">General</div>
+  <div class="settings-grid">
+    <div><label class="sf-label">Site Name</label><input class="sf-input" name="site_name" value="{{ settings.site_name|default('Plantain AI') }}"></div>
+    <div><label class="sf-label">Tagline</label><input class="sf-input" name="site_tagline" value="{{ settings.site_tagline|default('Autonomous AgriTech for African Farmers') }}"></div>
+    <div><label class="sf-label">Support Phone</label><input class="sf-input" name="support_phone" value="{{ settings.support_phone|default('') }}" placeholder="+254..."></div>
+    <div><label class="sf-label">Support Email</label><input class="sf-input" name="support_email" value="{{ settings.support_email|default('') }}"></div>
+    <div><label class="sf-label">Maintenance Mode</label>
+      <select name="maintenance_mode" class="sf-input">
+        <option value="0" {% if settings.maintenance_mode|default('0') == '0' %}selected{% endif %}>Off</option>
+        <option value="1" {% if settings.maintenance_mode|default('0') == '1' %}selected{% endif %}>On — show maintenance page</option>
+      </select>
+    </div>
+    <div><label class="sf-label">Free Plan — Diagnoses/Month</label><input type="number" class="sf-input" name="plan_free_diagnoses" value="{{ settings.plan_free_diagnoses|default('5') }}"></div>
+  </div>
+
+  <div class="sec-divider" style="margin-top:20px;">M-Pesa / Daraja API</div>
+  <div style="background:rgba(34,211,238,.04);border:1px solid rgba(34,211,238,.1);border-radius:9px;padding:12px 16px;margin-bottom:14px;font-size:.8rem;color:rgba(255,255,255,.45);">
+    🔐 These keys are also read from your <strong style="color:rgba(255,255,255,.7);">.env</strong> file. Settings here override .env at runtime. Get keys from <a href="https://developer.safaricom.co.ke" target="_blank" style="color:#22d3ee;">developer.safaricom.co.ke</a>
+  </div>
+  <div class="settings-grid">
+    <div><label class="sf-label">Shortcode (Paybill/Till)</label><input class="sf-input" name="mpesa_shortcode" value="{{ settings.mpesa_shortcode|default('174379') }}" placeholder="e.g. 174379 (sandbox)"></div>
+    <div><label class="sf-label">Passkey</label><input class="sf-input" name="mpesa_passkey" value="{{ settings.mpesa_passkey|default('') }}" type="password" placeholder="From Daraja portal"></div>
+    <div><label class="sf-label">Consumer Key</label><input class="sf-input" name="mpesa_consumer_key" value="{{ settings.mpesa_consumer_key|default('') }}" placeholder="App consumer key"></div>
+    <div><label class="sf-label">Consumer Secret</label><input class="sf-input" name="mpesa_consumer_secret" value="{{ settings.mpesa_consumer_secret|default('') }}" type="password" placeholder="App consumer secret"></div>
+  </div>
+
+  <div class="sec-divider" style="margin-top:20px;">Subscription Prices (KSh/month)</div>
+  <div class="settings-grid">
+    <div><label class="sf-label">🌾 Kilimo Pro</label><input type="number" class="sf-input" name="plan_pro_price" value="{{ settings.plan_pro_price|default('500') }}"></div>
+    <div><label class="sf-label">🏢 Biashara Enterprise</label><input type="number" class="sf-input" name="plan_enterprise_price" value="{{ settings.plan_enterprise_price|default('2000') }}"></div>
+    <div><label class="sf-label">🤖 Shamba Smart</label><input type="number" class="sf-input" name="plan_smart_price" value="{{ settings.plan_smart_price|default('5000') }}"></div>
+  </div>
+
+  <div style="margin-top:20px;">
+    <button type="submit" style="background:linear-gradient(135deg,var(--lime),#4DB86A);color:white;padding:12px 32px;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-weight:800;font-size:.88rem;cursor:pointer;">💾 Save Settings</button>
+  </div>
+</div>
+</form>
+{% endblock %}

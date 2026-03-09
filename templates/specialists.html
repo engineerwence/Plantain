@@ -1,0 +1,108 @@
+﻿{% extends "base.html" %}
+{% block title %}Agricultural Specialists{% endblock %}
+{% block content %}
+<div class="fu" style="margin-bottom:24px;">
+  <div class="ptag">Expert Help</div>
+  <h1 class="ptitle">Agricultural Specialists</h1>
+  <p class="psub">Book a certified agronomist or specialist for your farm challenges</p>
+</div>
+
+<div style="display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;align-items:center;">
+  <input type="text" id="searchBox" placeholder="Search by name, specialization or county..." oninput="filterSpecs()"
+    style="flex:1;min-width:200px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;padding:10px 16px;color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;">
+  <a href="{{ url_for('specialist_register') }}" style="background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:10px 20px;border-radius:10px;font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;text-decoration:none;white-space:nowrap;">
+    + Join as Specialist
+  </a>
+</div>
+
+{% if user_county %}
+<div style="background:rgba(46,139,74,.08);border:1px solid rgba(46,139,74,.2);border-radius:10px;padding:10px 16px;margin-bottom:20px;font-size:.82rem;color:rgba(255,255,255,.6);">
+  📍 Showing specialists nearest to <strong style="color:var(--lime);">{{ user_county }}</strong> first
+</div>
+{% endif %}
+
+<!-- Book modal -->
+<div id="bookModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#0D2B1A;border:1px solid var(--border);border-radius:16px;padding:28px;max-width:440px;width:90%;margin:auto;">
+    <h3 style="font-family:'Syne',sans-serif;color:white;margin-bottom:6px;" id="modalName">Book Consultation</h3>
+    <p style="font-size:.8rem;color:var(--muted);margin-bottom:16px;" id="modalSub"></p>
+    <textarea id="bookMessage" rows="4" placeholder="Describe your farm problem so the specialist can prepare..." style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;resize:vertical;box-sizing:border-box;margin-bottom:14px;"></textarea>
+    <div style="display:flex;gap:10px;">
+      <button onclick="submitBooking()" style="flex:1;background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:11px;border:none;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;">Send Request</button>
+      <button onclick="closeModal()" style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:rgba(255,255,255,.6);padding:11px 16px;border-radius:8px;cursor:pointer;font-family:'Syne',sans-serif;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="specGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;">
+{% if specialists %}
+  {% for s in specialists %}
+  <div class="spec-card pc fu fu1" data-name="{{ s.name|lower }}" data-spec="{{ s.specialization|lower }}" data-county="{{ s.county|lower }}">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+      <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--moss),var(--leaf));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;color:white;flex-shrink:0;">{{ s.name[0]|upper }}</div>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.95rem;">{{ s.name }}</div>
+        <div style="font-size:.75rem;color:var(--lime);">{{ s.specialization }}</div>
+        <div style="font-size:.72rem;color:var(--muted);">📍 {{ s.county }}</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      {% if s.available_online %}<span style="background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);color:rgba(56,189,248,.9);padding:3px 10px;border-radius:20px;font-size:.7rem;font-family:'Syne',sans-serif;font-weight:600;">💻 Online</span>{% endif %}
+      {% if s.available_visit %}<span style="background:rgba(46,139,74,.1);border:1px solid rgba(46,139,74,.2);color:var(--lime);padding:3px 10px;border-radius:20px;font-size:.7rem;font-family:'Syne',sans-serif;font-weight:600;">🚗 Farm Visit</span>{% endif %}
+      <span style="background:rgba(212,160,23,.1);border:1px solid rgba(212,160,23,.2);color:var(--amber);padding:3px 10px;border-radius:20px;font-size:.7rem;font-family:'Syne',sans-serif;font-weight:600;">{{ s.experience_yrs }} yrs exp</span>
+    </div>
+    {% if s.bio %}<p style="font-size:.8rem;color:rgba(255,255,255,.55);line-height:1.5;margin-bottom:12px;">{{ s.bio[:120] }}{% if s.bio|length > 120 %}...{% endif %}</p>{% endif %}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--amber);font-size:.9rem;">KSh {{ '{:,.0f}'.format(s.consult_fee) }} <span style="font-size:.7rem;color:var(--muted);font-weight:400;">/ consultation</span></div>
+      {% if s.rating > 0 %}<div style="font-size:.78rem;color:rgba(255,255,255,.5);">⭐ {{ '%.1f'|format(s.rating) }} · {{ s.consultations }} consults</div>{% endif %}
+    </div>
+    <button onclick="openBooking({{ s.id }}, '{{ s.name }}', '{{ s.specialization }}', {{ s.consult_fee }})"
+      style="width:100%;background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:10px;border:none;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;cursor:pointer;">
+      📅 Book Consultation
+    </button>
+  </div>
+  {% endfor %}
+{% else %}
+  <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--muted);">
+    <div style="font-size:3rem;margin-bottom:16px;">👨‍🌾</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;color:white;margin-bottom:8px;">No specialists listed yet</div>
+    <p style="font-size:.85rem;margin-bottom:20px;">Are you an agronomist? Join Plantain AI and connect with farmers!</p>
+    <a href="{{ url_for('specialist_register') }}" style="background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:12px 28px;border-radius:10px;font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;text-decoration:none;">Join as Specialist</a>
+  </div>
+{% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+let currentSpecId = null;
+function filterSpecs(){
+  const q = document.getElementById('searchBox').value.toLowerCase();
+  document.querySelectorAll('.spec-card').forEach(c => {
+    const match = c.dataset.name.includes(q)||c.dataset.spec.includes(q)||c.dataset.county.includes(q);
+    c.style.display = match ? '' : 'none';
+  });
+}
+function openBooking(id, name, spec, fee){
+  currentSpecId = id;
+  document.getElementById('modalName').textContent = `Book — ${name}`;
+  document.getElementById('modalSub').textContent = `${spec} · KSh ${fee.toLocaleString()} per consultation`;
+  document.getElementById('bookModal').style.display = 'flex';
+}
+function closeModal(){ document.getElementById('bookModal').style.display = 'none'; }
+async function submitBooking(){
+  const msg = document.getElementById('bookMessage').value.trim();
+  if(!msg){ alert('Please describe your farm problem first.'); return; }
+  const fd = new FormData();
+  fd.append('message', msg);
+  const r = await fetch(`/specialists/book/${currentSpecId}`, {method:'POST', body:fd});
+  const data = await r.json();
+  if(data.ok){
+    closeModal();
+    alert(`Request sent to ${data.name}! They will call you shortly.`);
+  } else { alert('Something went wrong. Try again.'); }
+}
+document.getElementById('bookModal').addEventListener('click', e => {
+  if(e.target === document.getElementById('bookModal')) closeModal();
+});
+</script>
+{% endblock %}

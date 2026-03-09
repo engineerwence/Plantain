@@ -1,0 +1,372 @@
+﻿{% extends "base.html" %}
+{% block title %}Live Market Prices{% endblock %}
+{% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+.price-card{background:rgba(8,20,12,.85);border:1px solid rgba(46,139,74,.15);border-radius:14px;padding:18px;transition:all .2s;}
+.price-card:hover{border-color:rgba(46,139,74,.4);transform:translateY(-2px);}
+.price-card.my-crop{border-color:rgba(212,160,23,.3);background:rgba(212,160,23,.04);}
+.price-card.my-animal{border-color:rgba(34,211,238,.3);background:rgba(34,211,238,.04);}
+.trend-rising,.trend-up{color:#4ade80;}
+.trend-falling,.trend-down{color:#F87171;}
+.trend-stable{color:rgba(255,255,255,.4);}
+.source-badge{background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.15);color:rgba(34,211,238,.7);padding:2px 8px;border-radius:20px;font-size:.62rem;font-family:'Syne',sans-serif;font-weight:700;}
+.tab-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.5);padding:8px 18px;border-radius:10px;font-family:'Syne',sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;transition:all .2s;}
+.tab-btn.active{background:rgba(46,139,74,.2);border-color:rgba(46,139,74,.4);color:var(--lime);}
+.cat-badge{padding:3px 10px;border-radius:20px;font-size:.62rem;font-family:'Syne',sans-serif;font-weight:700;text-transform:uppercase;}
+.cat-live_animal{background:rgba(34,211,238,.1);color:#22d3ee;}
+.cat-meat{background:rgba(239,68,68,.1);color:#f87171;}
+.cat-dairy{background:rgba(212,160,23,.1);color:var(--amber);}
+.cat-honey,.cat-fibre{background:rgba(251,191,36,.1);color:#fbbf24;}
+.cat-fish,.cat-seafood{background:rgba(34,211,238,.1);color:#22d3ee;}
+.cat-game{background:rgba(212,160,23,.1);color:var(--amber);}
+.mon-card{background:rgba(8,20,12,.85);border:1px solid rgba(46,139,74,.15);border-radius:14px;padding:18px;}
+</style>
+{% endblock %}
+{% block content %}
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+  <div>
+    <div style="font-family:'Syne',sans-serif;font-size:.65rem;color:var(--lime);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px;">
+      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--lime);animation:pulseDot 2s infinite;"></span> &nbsp;Live Prices
+    </div>
+    <h1 style="font-family:'Cormorant Garamond',serif;font-size:2rem;color:white;margin:0;">📈 Market Prices</h1>
+    <div style="font-size:.75rem;color:rgba(255,255,255,.35);margin-top:2px;">Crops · Live Animals · Meat · Dairy · Honey · Updated today</div>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+    <input type="text" id="searchPrices" placeholder="Search..." oninput="filterPrices()"
+      style="background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;padding:9px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:.82rem;outline:none;width:160px;">
+    <button onclick="autoList()" style="background:linear-gradient(135deg,#22d3ee,#0891b2);color:white;padding:9px 18px;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-weight:700;font-size:.78rem;cursor:pointer;">
+      ⚡ Auto-List at Market Price
+    </button>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
+  <button class="tab-btn active" onclick="switchTab('crops',this)">🌽 Crops</button>
+  <button class="tab-btn" onclick="switchTab('animals',this)">🐄 Live Animals</button>
+  <button class="tab-btn" onclick="switchTab('meat',this)">🥩 Meat &amp; Fish</button>
+  <button class="tab-btn" onclick="switchTab('dairy',this)">🥛 Dairy &amp; Eggs</button>
+  <button class="tab-btn" onclick="switchTab('honey',this)">🍯 Honey &amp; Fibre</button>
+  <button class="tab-btn" onclick="switchTab('fish',this)">🐟 Fish &amp; Seafood</button>
+  <button class="tab-btn" onclick="switchTab('game',this)">🐊 Game &amp; Specialty</button>
+  <button class="tab-btn" onclick="switchTab('monitor',this)">📡 Farm Monitor</button>
+</div>
+
+<!-- My highlights -->
+{% if user_animals %}
+<div id="myAnimalsBar" style="display:none;background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.2);border-radius:12px;padding:14px 18px;margin-bottom:20px;">
+  <div style="font-family:'Syne',sans-serif;font-size:.7rem;color:#22d3ee;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">🐄 Your Livestock — Current Market Values</div>
+  <div style="display:flex;flex-wrap:wrap;gap:10px;">
+    {% for name, info in animal_prices.items() %}
+    {% for atype in user_animals %}{% if atype in name %}
+    <div style="background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.2);border-radius:10px;padding:10px 14px;">
+      <div style="font-weight:700;color:white;font-size:.82rem;">{{ info.emoji }} {{ name }}</div>
+      <div style="font-size:1.1rem;font-weight:800;color:#22d3ee;">KSh {{ '{:,}'.format(info.retail if info.retail is defined else info.adjusted_price) }}</div>
+      <div style="font-size:.68rem;color:rgba(255,255,255,.35);">{{ info.unit }}</div>
+    </div>
+    {% endif %}{% endfor %}
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if user_crops %}
+<div id="myCropsBar" style="background:rgba(212,160,23,.06);border:1px solid rgba(212,160,23,.2);border-radius:12px;padding:14px 18px;margin-bottom:20px;">
+  <div style="font-family:'Syne',sans-serif;font-size:.7rem;color:var(--amber);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">🌾 Your Crops — Current Prices</div>
+  <div style="display:flex;flex-wrap:wrap;gap:10px;">
+    {% for crop in user_crops %}{% set c = crop|lower %}{% if c in prices %}
+    <div style="background:rgba(212,160,23,.08);border:1px solid rgba(212,160,23,.2);border-radius:10px;padding:10px 14px;">
+      <div style="font-weight:700;color:white;font-size:.85rem;">{{ crop }}</div>
+      <div style="font-size:1.1rem;font-weight:800;color:var(--amber);">KSh {{ prices[c].price_kg }}/kg</div>
+      <div style="font-size:.68rem;color:rgba(255,255,255,.35);">
+        <span class="trend-{{ prices[c].trend }}">{{ '↑' if prices[c].trend=='rising' else '↓' if prices[c].trend=='falling' else '→' }} {{ prices[c].trend }}</span>
+      </div>
+    </div>
+    {% endif %}{% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- ═══ TAB: CROPS ═══ -->
+<div id="tab-crops">
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;margin-bottom:24px;">
+  {% for crop, info in prices.items() %}
+  <div class="price-card {% if crop in user_crops|map('lower')|list %}my-crop{% endif %}" data-name="{{ crop }}">
+    {% if crop in user_crops|map('lower')|list %}<div style="font-size:.6rem;color:var(--amber);font-family:'Syne',sans-serif;font-weight:700;margin-bottom:4px;">⭐ YOUR CROP</div>{% endif %}
+    <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.88rem;text-transform:capitalize;margin-bottom:8px;">{{ crop }}</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:2rem;color:var(--lime);line-height:1;margin-bottom:2px;">{{ info.price_kg }}</div>
+    <div style="font-size:.7rem;color:rgba(255,255,255,.35);margin-bottom:8px;">KSh / kg</div>
+    <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:8px;">90kg bag: <strong style="color:rgba(255,255,255,.7);">KSh {{ '{:,}'.format(info.price_90kg_bag) }}</strong></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <span class="trend-{{ info.trend }}">{{ '↑ Rising' if info.trend=='rising' else '↓ Falling' if info.trend=='falling' else '→ Stable' }}</span>
+      <span class="source-badge">Wakulima</span>
+    </div>
+  </div>
+  {% endfor %}
+  </div>
+  {% if user_crops %}
+  <div style="background:rgba(8,20,12,.85);border:1px solid rgba(46,139,74,.15);border-radius:16px;padding:24px;margin-bottom:16px;">
+    <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.88rem;margin-bottom:16px;">📊 Your Crops — Price Comparison (KSh/kg)</div>
+    <canvas id="priceChart" height="80"></canvas>
+  </div>
+  {% endif %}
+</div>
+
+<!-- ═══ TAB: LIVE ANIMALS ═══ -->
+<div id="tab-animals" style="display:none;">
+  <div style="background:rgba(34,211,238,.04);border:1px solid rgba(34,211,238,.1);border-radius:12px;padding:12px 18px;margin-bottom:16px;font-size:.8rem;color:rgba(255,255,255,.5);">
+    💡 Prices per animal. Festive season (Dec–Jan) and Easter push prices 15–25% higher. Negotiate directly with buyers from the Livestock section.
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
+  {% for name, info in animal_prices.items() if info.category in ['beef','goats','sheep','camel','pigs','poultry','game'] and ('live' in name or 'per head' in name or 'per bird' in name or 'per animal' in name or 'live weight' in name or 'rabbit' in name or 'donkey' in name) %}
+  <div class="price-card" data-name="{{ name }}">
+    <div style="font-size:1.8rem;margin-bottom:8px;">{{ info.emoji }}</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.85rem;text-transform:capitalize;margin-bottom:8px;">{{ name }}</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:#22d3ee;line-height:1;margin-bottom:2px;">{{ '{:,}'.format(info.retail if info.retail is defined else info.adjusted_price) }}</div>
+    <div style="font-size:.7rem;color:rgba(255,255,255,.35);margin-bottom:8px;">{{ info.price_unit if info.price_unit is defined else info.unit }}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <span class="trend-{{ info.trend }}">{{ '↑ Rising' if info.trend=='rising' else '↓ Falling' if info.trend=='falling' else '→ Stable' }}</span>
+      <span class="cat-badge cat-live_animal">Live</span>
+    </div>
+    <div style="font-size:.68rem;color:rgba(255,255,255,.3);">{{ info.season_note }}</div>
+  </div>
+  {% endfor %}
+  </div>
+</div>
+
+<!-- ═══ TAB: MEAT & FISH ═══ -->
+<div id="tab-meat" style="display:none;">
+  <div style="background:rgba(239,68,68,.04);border:1px solid rgba(239,68,68,.1);border-radius:12px;padding:12px 18px;margin-bottom:16px;font-size:.8rem;color:rgba(255,255,255,.5);">
+    🥩 Carcass and retail prices. Find butchery buyers in your county from the Livestock section.
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
+  {% for name, info in animal_prices.items() if info.category in ['beef','goats','sheep','camel','pigs','poultry','game'] and ('carcass' in name or 'meat' in name or 'offal' in name or 'pork' in name or 'mutton' in name) %}
+  <div class="price-card" data-name="{{ name }}">
+    <div style="font-size:1.8rem;margin-bottom:8px;">{{ info.emoji }}</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.85rem;text-transform:capitalize;margin-bottom:8px;">{{ name }}</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:#f87171;line-height:1;margin-bottom:2px;">{{ '{:,}'.format(info.retail if info.retail is defined else info.adjusted_price) }}</div>
+    <div style="font-size:.7rem;color:rgba(255,255,255,.35);margin-bottom:8px;">{{ info.price_unit if info.price_unit is defined else info.unit }}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <span class="trend-{{ info.trend }}">{{ '↑ Rising' if info.trend=='rising' else '↓ Falling' if info.trend=='falling' else '→ Stable' }}</span>
+      <span class="cat-badge cat-meat">Meat</span>
+    </div>
+    <div style="font-size:.68rem;color:rgba(255,255,255,.3);">{{ info.season_note }}</div>
+  </div>
+  {% endfor %}
+  </div>
+</div>
+
+<!-- ═══ TAB: DAIRY & EGGS ═══ -->
+<div id="tab-dairy" style="display:none;">
+  <div style="background:rgba(212,160,23,.04);border:1px solid rgba(212,160,23,.1);border-radius:12px;padding:12px 18px;margin-bottom:16px;font-size:.8rem;color:rgba(255,255,255,.5);">
+    🥛 Farm gate prices. Cooperatives (KCC, Brookside) pay slightly less but guarantee daily collection.
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
+  {% for name, info in animal_prices.items() if info.category in ['dairy','eggs'] %}
+  <div class="price-card" data-name="{{ name }}">
+    <div style="font-size:1.8rem;margin-bottom:8px;">{{ info.emoji }}</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.85rem;text-transform:capitalize;margin-bottom:8px;">{{ name }}</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:var(--amber);line-height:1;margin-bottom:2px;">{{ '{:,}'.format(info.retail if info.retail is defined else info.adjusted_price) }}</div>
+    <div style="font-size:.7rem;color:rgba(255,255,255,.35);margin-bottom:8px;">{{ info.price_unit if info.price_unit is defined else info.unit }}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <span class="trend-{{ info.trend }}">{{ '↑ Rising' if info.trend=='rising' else '↓ Falling' if info.trend=='falling' else '→ Stable' }}</span>
+      <span class="cat-badge cat-dairy">Dairy</span>
+    </div>
+    <div style="font-size:.68rem;color:rgba(255,255,255,.3);">{{ info.season_note }}</div>
+  </div>
+  {% endfor %}
+  </div>
+</div>
+
+<!-- ═══ TAB: HONEY & FIBRE ═══ -->
+<div id="tab-honey" style="display:none;">
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
+  {% for name, info in animal_prices.items() if info.category in ['bees'] or 'wool' in name or 'wax' in name or 'feather' in name %}
+  <div class="price-card" data-name="{{ name }}">
+    <div style="font-size:1.8rem;margin-bottom:8px;">{{ info.emoji }}</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.85rem;text-transform:capitalize;margin-bottom:8px;">{{ name }}</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:#fbbf24;line-height:1;margin-bottom:2px;">{{ '{:,}'.format(info.retail if info.retail is defined else info.adjusted_price) }}</div>
+    <div style="font-size:.7rem;color:rgba(255,255,255,.35);margin-bottom:8px;">{{ info.price_unit if info.price_unit is defined else info.unit }}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <span class="trend-{{ info.trend }}">{{ '↑ Rising' if info.trend=='rising' else '↓ Falling' if info.trend=='falling' else '→ Stable' }}</span>
+      <span class="cat-badge cat-honey">{{ info.category|title }}</span>
+    </div>
+    <div style="font-size:.68rem;color:rgba(255,255,255,.3);">{{ info.season_note }}</div>
+  </div>
+  {% endfor %}
+  </div>
+</div>
+
+
+<!-- ═══ TAB: FISH & SEAFOOD ═══ -->
+<div id="tab-fish" style="display:none;">
+  <div style="background:rgba(34,211,238,.04);border:1px solid rgba(34,211,238,.1);border-radius:12px;padding:12px 18px;margin-bottom:16px;font-size:.8rem;color:rgba(255,255,255,.5);">
+    🐟 Freshwater (Lake Victoria, Baringo, Naivasha) + Coastal (Mombasa, Kilifi, Lamu) prices. Omena/dagaa prices are per kg dried weight.
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
+  {% for name, info in animal_prices.items() if info.category in ['fish','seafood'] %}
+  <div class="price-card" data-name="{{ name }}">
+    <div style="font-size:1.8rem;margin-bottom:8px;">{{ info.emoji }}</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.85rem;text-transform:capitalize;margin-bottom:8px;">{{ name }}</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:#22d3ee;line-height:1;margin-bottom:2px;">{{ '{:,}'.format(info.retail if info.retail is defined else info.adjusted_price) }}</div>
+    <div style="font-size:.7rem;color:rgba(255,255,255,.35);margin-bottom:8px;">{{ info.price_unit if info.price_unit is defined else info.unit }}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <span class="trend-{{ info.trend }}">{{ '↑ Rising' if info.trend=='rising' else '↓ Falling' if info.trend=='falling' else '→ Stable' }}</span>
+      <span class="cat-badge" style="background:rgba(34,211,238,.1);color:#22d3ee;">Fish</span>
+    </div>
+    <div style="font-size:.68rem;color:rgba(255,255,255,.3);">{{ info.season_note }}</div>
+  </div>
+  {% endfor %}
+  </div>
+</div>
+
+<!-- ═══ TAB: GAME & SPECIALTY ═══ -->
+<div id="tab-game" style="display:none;">
+  <div style="background:rgba(212,160,23,.04);border:1px solid rgba(212,160,23,.1);border-radius:12px;padding:12px 18px;margin-bottom:16px;font-size:.8rem;color:rgba(255,255,255,.5);">
+    🐊 Game meat, insects, snails and specialty products. Crocodile farming requires KWS licence. Edible insects are a growing market in Kenya.
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
+  {% for name, info in animal_prices.items() if info.category == 'game' %}
+  <div class="price-card" data-name="{{ name }}">
+    <div style="font-size:1.8rem;margin-bottom:8px;">{{ info.emoji }}</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.85rem;text-transform:capitalize;margin-bottom:8px;">{{ name }}</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:var(--amber);line-height:1;margin-bottom:2px;">{{ '{:,}'.format(info.retail if info.retail is defined else info.adjusted_price) }}</div>
+    <div style="font-size:.7rem;color:rgba(255,255,255,.35);margin-bottom:8px;">{{ info.price_unit if info.price_unit is defined else info.unit }}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <span class="trend-{{ info.trend }}">{{ '↑ Rising' if info.trend=='rising' else '↓ Falling' if info.trend=='falling' else '→ Stable' }}</span>
+      <span class="cat-badge" style="background:rgba(212,160,23,.1);color:var(--amber);">Specialty</span>
+    </div>
+    <div style="font-size:.68rem;color:rgba(255,255,255,.3);">{{ info.season_note }}</div>
+  </div>
+  {% endfor %}
+  </div>
+</div>
+
+<!-- ═══ TAB: FARM MONITOR ═══ -->
+<div id="tab-monitor" style="display:none;">
+  <div style="margin-bottom:20px;">
+    <h2 style="font-family:'Syne',sans-serif;font-size:1.1rem;color:white;margin-bottom:6px;">📡 How Plantain AI Monitors Your Farm When No One Is Around</h2>
+    <p style="font-size:.82rem;color:rgba(255,255,255,.45);line-height:1.6;">For small-scale farmers who cannot be on the farm 24/7 — Plantain AI acts as your eyes, ears and decision-maker. It uses sensors, AI and automated alerts to keep your farm safe even when you are in town, at the market, or asleep.</p>
+  </div>
+  <div style="background:linear-gradient(135deg,rgba(46,139,74,.15),rgba(8,145,178,.1));border:1px solid rgba(46,139,74,.2);border-radius:14px;padding:20px;margin-bottom:24px;">
+    <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--lime);font-size:.85rem;margin-bottom:14px;text-transform:uppercase;letter-spacing:1px;">How It Works</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;">
+      {% for icon, step, desc in [
+        ('📱','1. Your Phone = Farm Manager','The AI reads sensor data and farm records then calls you only when something needs action.'),
+        ('🌡️','2. Sensors Watch 24/7','IoT sensors send readings every hour. No human needed on-site.'),
+        ('🚨','3. Automatic Alerts','Dry soil, sick animal, price spike — instant SMS or WhatsApp to your phone.'),
+        ('⚙️','4. Auto-Responses','Smart Farm tier triggers irrigation, closes vents, activates sprinklers automatically.')
+      ] %}
+      <div style="background:rgba(0,0,0,.3);border-radius:10px;padding:14px;">
+        <div style="font-size:1.5rem;margin-bottom:6px;">{{ icon }}</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.8rem;margin-bottom:6px;">{{ step }}</div>
+        <div style="font-size:.75rem;color:rgba(255,255,255,.45);line-height:1.5;">{{ desc }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.88rem;margin-bottom:14px;">What Gets Monitored Automatically</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin-bottom:28px;">
+    {% for icon, title, desc in [
+      ('💧','Soil Moisture','Drops below 30% — AI triggers irrigation and alerts you.'),
+      ('🌡️','Temperature & Humidity','Greenhouse too hot or cold — instant alert before crop damage.'),
+      ('🐄','Livestock Activity','No movement logged — possible illness or predator alert.'),
+      ('🥛','Milk Production Drop','Sudden drop triggers mastitis or heat stress check.'),
+      ('🐔','Egg Production Drop','Sudden drop triggers disease, stress or feed alert.'),
+      ('💊','Vaccination Due','3-day SMS reminder before any animal vaccination is due.'),
+      ('🌧️','Rain Forecast','Heavy rain cancels scheduled irrigation automatically.'),
+      ('🐟','Water Quality (Fish)','pH or oxygen drops below safe range — instant alert.'),
+      ('🦟','Disease Outbreak Alert','3+ farmers in your county report same disease — prevention advisory sent to you.'),
+      ('📦','Harvest Readiness','Crop or animal ready to sell — alert with current market price.'),
+      ('🔋','Sensor Battery Low','Device battery below 20% — recharge reminder before coverage lost.'),
+      ('💰','Price Opportunity','Your crop or animal price spikes above target — sell now alert.')
+    ] %}
+    <div class="mon-card">
+      <div style="font-size:1.6rem;margin-bottom:8px;">{{ icon }}</div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.82rem;margin-bottom:6px;">{{ title }}</div>
+      <div style="font-size:.75rem;color:rgba(255,255,255,.45);line-height:1.5;">{{ desc }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div style="background:rgba(8,20,12,.9);border:1px solid rgba(46,139,74,.2);border-radius:14px;padding:22px;margin-bottom:20px;">
+    <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--lime);font-size:.88rem;margin-bottom:14px;">🛠️ What You Need (Small Scale Farmer)</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;">
+      {% for item, cost, note in [
+        ('Soil moisture sensor (ESP32)','KSh 800–1,500','Plugs into ground, WiFi, sends readings hourly'),
+        ('Temperature/humidity sensor','KSh 500–900','Works for greenhouse and ambient air'),
+        ('Water level sensor','KSh 400–700','Float sensor for troughs, tanks or fish ponds'),
+        ('Small WiFi router','KSh 2,000–4,000','Covers 50–100m radius on the farm'),
+        ('Solar power bank','KSh 1,500–3,000','Keeps sensors running 24/7 without mains power'),
+        ('Your smartphone','Already have it','Receives all alerts via SMS or WhatsApp')
+      ] %}
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:14px;">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.8rem;margin-bottom:4px;">{{ item }}</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--lime);font-size:.9rem;margin-bottom:6px;">{{ cost }}</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.4);line-height:1.4;">{{ note }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    <div style="margin-top:14px;padding:12px;background:rgba(46,139,74,.08);border-radius:8px;font-size:.78rem;color:rgba(255,255,255,.5);">
+      💡 <strong style="color:var(--lime);">Total setup: KSh 5,000–10,000</strong> for a basic 1–2 acre monitoring system. Less than the cost of one missed irrigation or undetected disease.
+    </div>
+  </div>
+
+  <div style="background:linear-gradient(135deg,rgba(8,145,178,.15),rgba(46,139,74,.1));border:1px solid rgba(34,211,238,.2);border-radius:14px;padding:24px;text-align:center;">
+    <div style="font-size:2rem;margin-bottom:8px;">🤖</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:1rem;margin-bottom:8px;">Activate Smart Farm Monitoring</div>
+    <div style="font-size:.82rem;color:rgba(255,255,255,.45);margin-bottom:16px;">Register your IoT devices, set automation rules, and receive real-time alerts — even when you are 100km away from your farm.</div>
+    <a href="{{ url_for('smart_farm') }}" style="background:linear-gradient(135deg,#22d3ee,#0891b2);color:white;padding:12px 28px;border-radius:10px;text-decoration:none;font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;display:inline-block;">
+      📡 Open Smart Farm Control Panel →
+    </a>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+function switchTab(tab, btn) {
+  ['crops','animals','meat','dairy','honey','fish','game','monitor'].forEach(t => {
+    const el = document.getElementById('tab-'+t);
+    if(el) el.style.display = 'none';
+  });
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const target = document.getElementById('tab-'+tab);
+  if(target) target.style.display = '';
+  btn.classList.add('active');
+  const cb = document.getElementById('myCropsBar');
+  const ab = document.getElementById('myAnimalsBar');
+  if(cb) cb.style.display = tab==='crops' ? '' : 'none';
+  if(ab) ab.style.display = ['animals','meat','dairy','honey','fish','game'].includes(tab) ? '' : 'none';
+}
+function filterPrices() {
+  const q = document.getElementById('searchPrices').value.toLowerCase();
+  document.querySelectorAll('.price-card').forEach(c => {
+    c.style.display = c.dataset.name.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+{% if user_crops %}
+const ctx = document.getElementById('priceChart');
+if(ctx) {
+  const names = {{ user_crops|tojson }};
+  const pd = {{ prices|tojson }};
+  new Chart(ctx.getContext('2d'),{
+    type:'bar',
+    data:{labels:names,datasets:[{label:'KSh/kg',data:names.map(c=>pd[c.toLowerCase()]?pd[c.toLowerCase()].price_kg:0),
+      backgroundColor:names.map((_,i)=>`hsla(${120+i*30},60%,50%,.4)`),
+      borderColor:names.map((_,i)=>`hsla(${120+i*30},60%,60%,1)`),borderWidth:2,borderRadius:6}]},
+    options:{responsive:true,plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'rgba(255,255,255,.5)'}},
+              y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'rgba(255,255,255,.5)',callback:v=>'KSh '+v}}}}
+  });
+}
+{% endif %}
+function autoList(){
+  if(!confirm('Auto-list all your produce at current market prices?')) return;
+  alert('Done! Your crops and animal products are listed at current market prices.');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}AI Negotiation Assistant{% endblock %}
+{% block head %}<style>
+.pg-eyebrow{font-family:"Syne",sans-serif;font-size:.62rem;color:var(--lime);text-transform:uppercase;letter-spacing:2px;margin-bottom:5px;}
+.pg-title{font-family:"Cormorant Garamond",serif;font-size:clamp(1.6rem,3vw,2.2rem);font-weight:800;color:white;margin:0;}
+.panel{background:rgba(8,20,12,.9);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:22px;margin-bottom:16px;}
+.panel-title{font-family:"Syne",sans-serif;font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.3);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
+.card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:16px;transition:all .2s;}
+.card:hover{border-color:rgba(255,255,255,.14);transform:translateY(-2px);}
+.sf-input{background:rgba(20,40,25,.95);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:10px 13px;color:white;font-family:"DM Sans",sans-serif;font-size:.84rem;outline:none;width:100%;box-sizing:border-box;transition:border-color .2s;}
+.sf-input:focus{border-color:rgba(46,139,74,.4);}
+.sf-label{font-family:"Syne",sans-serif;font-size:.7rem;color:rgba(255,255,255,.35);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
+.btn-green{background:linear-gradient(135deg,var(--lime),#4DB86A);color:white;border:none;padding:10px 22px;border-radius:10px;font-family:"Syne",sans-serif;font-weight:700;cursor:pointer;font-size:.84rem;}
+.btn-cyan{background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.2);color:#22d3ee;padding:9px 18px;border-radius:9px;font-family:"Syne",sans-serif;font-weight:700;cursor:pointer;font-size:.8rem;text-decoration:none;display:inline-block;}
+.btn-amber{background:rgba(212,160,23,.1);border:1px solid rgba(212,160,23,.2);color:var(--amber);padding:9px 18px;border-radius:9px;font-family:"Syne",sans-serif;font-weight:700;cursor:pointer;font-size:.8rem;text-decoration:none;display:inline-block;}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-family:"Syne",sans-serif;font-size:.62rem;font-weight:700;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:768px){.grid2{grid-template-columns:1fr;}}
+.flash-ok{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.18);color:#4ade80;padding:11px 16px;border-radius:9px;margin-bottom:14px;font-size:.84rem;}
+.flash-err{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.18);color:#f87171;padding:11px 16px;border-radius:9px;margin-bottom:14px;font-size:.84rem;}
+
+</style>{% endblock %}
+{% block content %}
+<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+  <div><div class="pg-eyebrow">Market Intelligence</div><h1 class="pg-title">🤝 AI Negotiation Assistant</h1><div style="font-size:.78rem;color:rgba(255,255,255,.3);margin-top:4px;">Know when to sell, who to sell to, and at what price</div></div>
+</div>
+
+<!-- Timing Recommendations -->
+{% if recs %}
+<div class="panel">
+  <div class="panel-title">Your Crop Timing Recommendations</div>
+  <div class="card-grid">
+    {% for r in recs %}
+    <div class="card" style="border-color:rgba({% if r.trend=='rising' %}74,222,128{% elif r.trend=='falling' %}248,113,113{% else %}255,255,255{% endif %},.15);">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.88rem;text-transform:capitalize;margin-bottom:6px;">{{ r.crop }}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.6rem;color:var(--lime);line-height:1;">KSh {{ r.price }}<span style="font-size:.75rem;color:rgba(255,255,255,.3);font-family:'DM Sans';">/kg</span></div>
+      <div style="margin-top:8px;font-size:.78rem;color:{% if r.trend=='rising' %}#4ade80{% elif r.trend=='falling' %}#f87171{% else %}rgba(255,255,255,.5){% endif %};">{{ r.advice }}</div>
+      <button onclick="getAIAdvice('{{ r.crop }}', {{ r.price }})" style="margin-top:10px;background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.15);color:#22d3ee;padding:7px 14px;border-radius:8px;font-family:'Syne',sans-serif;font-size:.72rem;font-weight:700;cursor:pointer;width:100%;">🤖 Get AI Advice</button>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- AI Advice Form -->
+<div class="panel">
+  <div class="panel-title">Get Personalised Selling Strategy</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end;margin-bottom:14px;" class="advice-form">
+    <div><label class="sf-label">Crop</label><input class="sf-input" id="advCrop" placeholder="e.g. maize, tomatoes"></div>
+    <div><label class="sf-label">Quantity (kg)</label><input class="sf-input" type="number" id="advQty" value="100"></div>
+    <div><label class="sf-label">Your County</label><input class="sf-input" id="advCounty" placeholder="e.g. Nakuru"></div>
+    <button onclick="getAIAdviceForm()" class="btn-green">Ask AI</button>
+  </div>
+  <div id="aiAdviceResult" style="display:none;"></div>
+</div>
+
+<!-- Buyer Demands -->
+<div class="panel">
+  <div class="panel-title">🛒 Open Buyer Demands <a href="{{ url_for('buyer_demands') }}" style="color:var(--lime);font-size:.72rem;text-decoration:none;">View all →</a></div>
+  {% if demands %}
+  {% for d in demands[:6] %}
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.04);flex-wrap:wrap;gap:8px;">
+    <div>
+      <div style="font-size:.88rem;font-weight:600;color:white;">{{ d.crop_type }} · {{ d.quantity_kg }}kg</div>
+      <div style="font-size:.74rem;color:rgba(255,255,255,.35);">{{ d.buyer_county or 'Kenya' }} · Deadline: {{ d.deadline or 'Open' }}</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--amber);">KSh {{ '{:,}'.format((d.price_offered or 0)|int) }}/kg</div>
+      <div style="font-size:.7rem;color:rgba(255,255,255,.3);">By {{ d.buyer_name or 'Anonymous' }}</div>
+    </div>
+  </div>
+  {% endfor %}
+  {% else %}
+  <div style="color:rgba(255,255,255,.2);font-size:.82rem;padding:12px 0;">No open buyer demands yet. Post yours below.</div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+async function getAIAdvice(crop, price){
+  document.getElementById('advCrop').value=crop;
+  await getAIAdviceForm();
+}
+async function getAIAdviceForm(){
+  const crop=document.getElementById('advCrop').value;
+  const qty=document.getElementById('advQty').value;
+  const county=document.getElementById('advCounty').value;
+  if(!crop){alert('Enter a crop name');return;}
+  const el=document.getElementById('aiAdviceResult');
+  el.style.display='';
+  el.innerHTML='<div style="color:rgba(255,255,255,.4);font-size:.82rem;padding:12px;">🤖 Getting AI advice...</div>';
+  const fd=new FormData(); fd.append('crop',crop); fd.append('quantity',qty); fd.append('county',county);
+  const r=await fetch('/negotiate/ai-advice',{method:'POST',body:fd});
+  const d=await r.json();
+  if(d.advice){
+    const col=d.trend==='rising'?'#4ade80':d.trend==='falling'?'#f87171':'rgba(255,255,255,.5)';
+    el.innerHTML=`<div style="background:rgba(34,211,238,.04);border:1px solid rgba(34,211,238,.1);border-radius:12px;padding:18px;"><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;"><span style="font-size:1.2rem;">🤖</span><div><div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.84rem;">${d.crop} — AI Selling Strategy</div><div style="font-size:.72rem;color:rgba(255,255,255,.3);">KSh ${d.price}/kg · <span style="color:${col}">${d.trend}</span></div></div></div><div style="font-size:.84rem;color:rgba(255,255,255,.75);line-height:1.7;white-space:pre-wrap;">${d.advice}</div></div>`;
+  }else{el.innerHTML='<div style="color:#f87171;font-size:.82rem;">Could not get advice</div>';}
+}
+</script>
+{% endblock %}

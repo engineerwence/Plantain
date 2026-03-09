@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Welcome to Plantain AI{% endblock %}
+{% block content %}
+<div style="max-width:620px;margin:0 auto;padding:20px 0;">
+<div style="text-align:center;margin-bottom:36px;" class="fu">
+  <div style="font-size:3rem;margin-bottom:12px;">🌿</div>
+  <h1 style="font-family:'Cormorant Garamond',serif;font-size:2.2rem;color:white;margin-bottom:8px;">Welcome, {{ session['user_name'].split()[0] }}!</h1>
+  <p style="color:rgba(255,255,255,.45);font-size:.9rem;">Tell us about your farm so we can personalise your experience.</p>
+</div>
+
+<form method="POST" id="onboardForm">
+  <!-- Step 1: Farm type -->
+  <div class="pc fu fu1" style="padding:28px;margin-bottom:16px;">
+    <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--lime);font-size:.72rem;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:16px;">Step 1 — What do you farm?</div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;" id="farmTypeGrid">
+      {% for val,label,emoji,desc in [
+        ('crops','Crops Only','🌽','Maize, tomatoes, bananas etc'),
+        ('livestock','Livestock Only','🐄','Cattle, goats, sheep, poultry'),
+        ('mixed','Mixed Farm','🌾','Both crops and animals'),
+        ('seller','Input Seller','🏪','Sell feeds, medicine, equipment'),
+      ] %}
+      <label style="cursor:pointer;">
+        <input type="radio" name="farm_type" value="{{ val }}" style="display:none;" onchange="updateType('{{ val }}')">
+        <div class="farm-type-opt" data-val="{{ val }}" onclick="selectType('{{ val }}')"
+          style="background:rgba(255,255,255,.04);border:2px solid rgba(255,255,255,.08);border-radius:12px;padding:16px;text-align:center;transition:all .15s;">
+          <div style="font-size:1.8rem;margin-bottom:6px;">{{ emoji }}</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.85rem;">{{ label }}</div>
+          <div style="font-size:.72rem;color:rgba(255,255,255,.35);margin-top:3px;">{{ desc }}</div>
+        </div>
+      </label>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Step 2: Livestock types (shown if livestock/mixed) -->
+  <div id="livestockStep" class="pc fu fu2" style="padding:28px;margin-bottom:16px;display:none;">
+    <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--lime);font-size:.72rem;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:16px;">Step 2 — Which animals do you keep?</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      {% for val,label,emoji in [
+        ('dairy','Dairy Cattle','🐄'),('beef','Beef / Goats','🐂'),
+        ('sheep','Sheep','🐑'),('poultry','Poultry','🐔'),
+        ('bees','Bees','🐝'),('pigs','Pigs','🐷'),('fish','Fish Farming','🐟')
+      ] %}
+      <label style="cursor:pointer;">
+        <input type="checkbox" name="livestock_types" value="{{ val }}" style="display:none;">
+        <div class="livestock-opt" data-val="{{ val }}" onclick="toggleLivestock(this)"
+          style="background:rgba(255,255,255,.04);border:2px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 16px;display:flex;align-items:center;gap:8px;transition:all .15s;">
+          <span style="font-size:1.2rem;">{{ emoji }}</span>
+          <span style="font-family:'Syne',sans-serif;font-weight:600;color:rgba(255,255,255,.7);font-size:.82rem;">{{ label }}</span>
+        </div>
+      </label>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Step 3: Farm details -->
+  <div class="pc fu fu3" style="padding:28px;margin-bottom:16px;">
+    <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--lime);font-size:.72rem;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:16px;">Step 3 — Farm Details</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">County *</label>
+      <select name="location" required style="width:100%;background:rgba(20,40,25,.95);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;box-sizing:border-box;">
+        <option value="">Select county</option>
+        {% for c in counties %}<option>{{ c }}</option>{% endfor %}
+      </select></div>
+      <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">Farm Scale</label>
+      <select name="farm_scale" style="width:100%;background:rgba(20,40,25,.95);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;box-sizing:border-box;">
+        <option value="small">Small (under 5 acres)</option>
+        <option value="mid">Mid (5–20 acres)</option>
+        <option value="large">Large (20+ acres)</option>
+      </select></div>
+    </div>
+    <div id="sellerNameWrap" style="margin-top:14px;display:none;">
+      <label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">Business Name</label>
+      <input name="business_name" placeholder="e.g. Kamau Feeds & Supplies" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;box-sizing:border-box;">
+    </div>
+  </div>
+
+  <button type="submit" style="width:100%;background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:15px;border:none;border-radius:12px;font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;cursor:pointer;letter-spacing:.3px;">
+    🌿 Set Up My Farm →
+  </button>
+</form>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+let selectedType = '';
+function selectType(val){
+  selectedType = val;
+  document.querySelectorAll('.farm-type-opt').forEach(el => {
+    const sel = el.dataset.val === val;
+    el.style.borderColor = sel ? 'var(--lime)' : 'rgba(255,255,255,.08)';
+    el.style.background  = sel ? 'rgba(46,139,74,.12)' : 'rgba(255,255,255,.04)';
+  });
+  document.querySelector(`input[value="${val}"]`).checked = true;
+  document.getElementById('livestockStep').style.display = (val==='livestock'||val==='mixed') ? 'block' : 'none';
+  document.getElementById('sellerNameWrap').style.display = val==='seller' ? 'block' : 'none';
+}
+function toggleLivestock(el){
+  const cb = el.previousElementSibling;
+  cb.checked = !cb.checked;
+  el.style.borderColor = cb.checked ? 'var(--lime)' : 'rgba(255,255,255,.08)';
+  el.style.background  = cb.checked ? 'rgba(46,139,74,.12)' : 'rgba(255,255,255,.04)';
+}
+document.getElementById('onboardForm').addEventListener('submit', e => {
+  if(!selectedType){ e.preventDefault(); alert('Please select what you farm.'); }
+});
+// Auto-select first option visually
+selectType('mixed');
+</script>
+{% endblock %}

@@ -1,0 +1,74 @@
+﻿{% extends "base.html" %}
+{% block title %}Diagnosis Result{% endblock %}
+{% block content %}
+<div style="max-width:760px;margin:0 auto;">
+
+    <div class="fu" style="margin-bottom:28px;">
+        <div class="ptag">AI Analysis Complete</div>
+        <h1 class="ptitle">Diagnosis Result</h1>
+    </div>
+
+    <!-- MAIN RESULT CARD -->
+    <div class="fu fu1" style="background:linear-gradient(135deg,rgba(4,12,7,.95),rgba(13,43,26,.9));border:1px solid rgba(46,139,74,.2);border-radius:18px;overflow:hidden;margin-bottom:20px;">
+        <div style="padding:32px;">
+            <div class="row g-4 align-items-center">
+                <div class="col-md-5">
+                    <img src="{{ url_for('static', filename=diagnosis.image_path.replace('static/', '')) }}"
+                         alt="Crop" style="width:100%;border-radius:14px;object-fit:cover;max-height:240px;box-shadow:0 12px 40px rgba(0,0,0,.5);">
+                </div>
+                <div class="col-md-7">
+                    <div class="d-flex align-items-center gap-3 flex-wrap mb-3">
+                        <h2 style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:800;letter-spacing:-.5px;margin:0;">{{ diagnosis.disease_name }}</h2>
+                        <span class="{% if diagnosis.severity=='low' %}bl{% elif diagnosis.severity=='medium' %}bm{% else %}bhi{% endif %}">{{ diagnosis.severity|upper }}</span>
+                    </div>
+                    <p style="color:var(--muted);font-size:.85rem;margin-bottom:20px;">
+                        <i class="fas fa-leaf me-2" style="color:var(--lime);"></i>
+                        Crop: <strong style="color:rgba(255,255,255,.75);">{{ diagnosis.crop_type }}</strong>
+                    </p>
+
+                    <div style="margin-bottom:20px;">
+                        <div style="display:flex;justify-content:space-between;margin-bottom:7px;">
+                            <span style="font-family:'Syne',sans-serif;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);">AI Confidence</span>
+                            <span style="color:var(--amber);font-weight:700;font-size:.88rem;">{{ diagnosis.confidence }}%</span>
+                        </div>
+                        <div class="pp"><div class="ppb" style="width:{{ diagnosis.confidence }}%;"></div></div>
+                    </div>
+
+                    {% if diagnosis.severity=='high' %}
+                    <div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:10px;padding:12px 14px;">
+                        <p style="color:#F87171;font-family:'Syne',sans-serif;font-weight:700;font-size:.78rem;margin:0;text-transform:uppercase;letter-spacing:.5px;">🤖 Autonomous action — alert sent & crop marked diseased</p>
+                    </div>
+                    {% elif diagnosis.severity=='medium' %}
+                    <div style="background:rgba(232,184,75,.08);border:1px solid rgba(232,184,75,.2);border-radius:10px;padding:12px 14px;">
+                        <p style="color:var(--amber);font-family:'Syne',sans-serif;font-weight:700;font-size:.78rem;margin:0;text-transform:uppercase;letter-spacing:.5px;">🤖 Autonomous action — crop marked at risk & alert sent</p>
+                    </div>
+                    {% else %}
+                    <div style="background:rgba(77,184,106,.08);border:1px solid rgba(77,184,106,.2);border-radius:10px;padding:12px 14px;">
+                        <p style="color:var(--lime);font-family:'Syne',sans-serif;font-weight:700;font-size:.78rem;margin:0;text-transform:uppercase;letter-spacing:.5px;">🤖 AI decision — crop is healthy, no action required</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TREATMENT -->
+    <div class="pc fu fu2" style="padding:28px;margin-bottom:20px;">
+        <div class="slabel">Treatment Plan</div>
+        {% for step in treatment_steps %}
+        <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:14px;">
+            <div style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--moss),var(--leaf));display:flex;align-items:center;justify-content:center;color:white;font-family:'Syne',sans-serif;font-weight:800;font-size:.8rem;flex-shrink:0;">{{ loop.index }}</div>
+            <p style="margin:0;padding-top:5px;color:rgba(255,255,255,.75);line-height:1.65;font-size:.9rem;">{{ step }}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="d-flex gap-3 flex-wrap fu fu3">
+        <a href="{{ url_for('diagnose') }}" class="bg"><i class="fas fa-redo"></i> Diagnose Another</a>
+        <a href="{{ url_for('chat') }}" class="bgg"><i class="fas fa-robot"></i> Ask AI for Help</a>
+        <a href="{{ url_for('dashboard') }}" class="bgh"><i class="fas fa-home"></i> Dashboard</a>
+    </div>
+
+</div>
+{% endblock %}

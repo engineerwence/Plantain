@@ -1,0 +1,79 @@
+﻿{% extends "base.html" %}
+{% block title %}Register Your Agrovet{% endblock %}
+{% block content %}
+<div style="max-width:680px;margin:0 auto;">
+<div class="fu" style="margin-bottom:24px;">
+  <div class="ptag">Join Plantain AI</div>
+  <h1 class="ptitle">Register Your Agrovet</h1>
+  <p class="psub">Join thousands of farmers on Plantain AI. One-time registration fee applies.</p>
+</div>
+
+{% if success %}
+<div class="pc fu fu1" style="text-align:center;padding:48px 24px;">
+  <div style="font-size:3rem;margin-bottom:16px;">✅</div>
+  <h2 style="font-family:'Syne',sans-serif;color:white;margin-bottom:10px;">Registration Submitted!</h2>
+  <p style="color:var(--muted);font-size:.88rem;margin-bottom:24px;">Your agrovet is under review. We will approve it within 24 hours and notify you by phone.</p>
+  <a href="{{ url_for('agrovets') }}" style="background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:12px 28px;border-radius:10px;font-family:'Syne',sans-serif;font-weight:700;text-decoration:none;">View Agrovets</a>
+</div>
+{% else %}
+{% if error %}<div style="background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);border-radius:10px;padding:12px 16px;margin-bottom:20px;color:#F87171;font-size:.85rem;">⚠️ {{ error }}</div>{% endif %}
+
+<div class="pc fu fu1">
+  <form method="POST">
+    <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--lime);font-size:.75rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;">Business Information</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+      <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">Agrovet Name *</label>
+      <input name="name" required placeholder="e.g. Kamau Agrovet" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;box-sizing:border-box;"></div>
+      <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">Owner Name *</label>
+      <input name="owner_name" required placeholder="Your full name" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;box-sizing:border-box;"></div>
+      <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">Phone Number *</label>
+      <input name="phone" required placeholder="07XX XXX XXX" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;box-sizing:border-box;"></div>
+      <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">Email Address *</label>
+      <input name="email" type="email" required placeholder="email@example.com" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;box-sizing:border-box;"></div>
+      <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">County *</label>
+      <select name="county" required style="width:100%;background:rgba(20,40,25,.95);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;box-sizing:border-box;">
+        <option value="">Select county</option>
+        {% for c in counties %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+      </select></div>
+      <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">Town / Area *</label>
+      <input name="town" required placeholder="e.g. Githurai" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;box-sizing:border-box;"></div>
+    </div>
+    <div style="margin-bottom:14px;"><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">Street Address</label>
+    <input name="address" placeholder="Building, street, landmark" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;box-sizing:border-box;"></div>
+
+    <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--lime);font-size:.75rem;text-transform:uppercase;letter-spacing:1px;margin:20px 0 12px;">Products Sold</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
+      {% for p in products %}
+      <label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:7px 12px;cursor:pointer;font-size:.8rem;color:rgba(255,255,255,.7);">
+        <input type="checkbox" name="products" value="{{ p }}" style="accent-color:var(--lime);"> {{ p }}
+      </label>
+      {% endfor %}
+    </div>
+
+    <div style="margin-bottom:20px;"><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">Brief Description</label>
+    <textarea name="description" rows="3" placeholder="Tell farmers what makes your agrovet special..." style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;resize:vertical;box-sizing:border-box;"></textarea></div>
+
+    <div style="background:rgba(212,160,23,.08);border:1px solid rgba(212,160,23,.2);border-radius:12px;padding:20px;margin-bottom:20px;">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--amber);font-size:.85rem;margin-bottom:4px;">💳 Registration Fee — KSh 500 (One Time)</div>
+      <p style="font-size:.8rem;color:rgba(255,255,255,.55);margin-bottom:14px;">Pay via M-Pesa, bank transfer or cash. Your listing goes live after payment is confirmed.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">Payment Method</label>
+        <select name="payment_method" style="width:100%;background:rgba(20,40,25,.95);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;box-sizing:border-box;">
+          <option value="mpesa">M-Pesa</option>
+          <option value="bank">Bank Transfer</option>
+          <option value="cash">Cash at Office</option>
+        </select></div>
+        <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">M-Pesa/Reference No.</label>
+        <input name="mpesa_ref" placeholder="e.g. QHJ7K8L9M2" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;box-sizing:border-box;"></div>
+      </div>
+      <div style="margin-top:12px;font-size:.78rem;color:rgba(255,255,255,.4);">Send M-Pesa to: <strong style="color:var(--amber);">0712 345 678</strong> (Plantain AI Ltd) then enter the reference number above.</div>
+    </div>
+
+    <button type="submit" style="width:100%;background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:14px;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-weight:800;font-size:.95rem;cursor:pointer;letter-spacing:.3px;">
+      Submit Registration →
+    </button>
+  </form>
+</div>
+{% endif %}
+</div>
+{% endblock %}

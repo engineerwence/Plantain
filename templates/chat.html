@@ -1,0 +1,374 @@
+﻿{% extends "base.html" %}
+{% block title %}Plantain AI Chat{% endblock %}
+
+{% block head %}
+<style>
+.chat-shell{display:flex;height:calc(100vh - 72px);background:var(--ink);overflow:hidden;border-radius:16px;border:1px solid var(--border);}
+.chat-sidebar{width:260px;min-width:260px;background:rgba(8,18,12,.9);border-right:1px solid var(--border);display:flex;flex-direction:column;transition:width .25s,min-width .25s;overflow:hidden;}
+.chat-sidebar.collapsed{width:0;min-width:0;border:none;}
+.sidebar-top{padding:14px 12px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.new-chat-btn{width:100%;background:rgba(46,139,74,.15);border:1px solid rgba(46,139,74,.3);border-radius:10px;padding:10px 12px;color:var(--lime);font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .2s;letter-spacing:.3px;}
+.new-chat-btn:hover{background:rgba(46,139,74,.25);}
+.sidebar-label{padding:10px 14px 6px;font-family:'Syne',sans-serif;font-size:.65rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.sidebar-list{flex:1;overflow-y:auto;padding:0 6px 12px;}
+.sidebar-list::-webkit-scrollbar{width:3px;}
+.sidebar-list::-webkit-scrollbar-thumb{background:rgba(46,139,74,.3);border-radius:10px;}
+.hist-item{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:8px;cursor:pointer;transition:background .15s;position:relative;margin-bottom:2px;}
+.hist-item:hover{background:rgba(255,255,255,.06);}
+.hist-item.active{background:rgba(46,139,74,.12);border:1px solid rgba(46,139,74,.2);}
+.hist-text{flex:1;font-size:.78rem;color:rgba(255,255,255,.65);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hist-item.active .hist-text{color:rgba(255,255,255,.9);}
+.hist-del{opacity:0;background:none;border:none;color:rgba(255,255,255,.3);cursor:pointer;font-size:.75rem;padding:2px 5px;border-radius:4px;transition:all .15s;flex-shrink:0;}
+.hist-item:hover .hist-del{opacity:1;}
+.hist-del:hover{color:#F87171;background:rgba(248,113,113,.1);}
+.chat-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+.chat-topbar{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:rgba(13,43,26,.5);flex-shrink:0;}
+.topbar-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--amber));display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+.topbar-title{font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.9rem;}
+.topbar-sub{font-size:.7rem;color:var(--muted);display:flex;align-items:center;gap:5px;margin-top:2px;}
+.online-dot{width:6px;height:6px;border-radius:50%;background:#4CAF50;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.topbar-actions{margin-left:auto;display:flex;gap:8px;align-items:center;}
+.topbar-btn{background:rgba(255,255,255,.05);border:1px solid var(--border);color:rgba(255,255,255,.55);padding:6px 12px;border-radius:8px;font-size:.75rem;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;font-family:'Syne',sans-serif;font-weight:600;}
+.topbar-btn:hover{background:rgba(46,139,74,.12);border-color:rgba(46,139,74,.3);color:var(--lime);}
+.topbar-btn.danger:hover{background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.3);color:#F87171;}
+.chat-messages{flex:1;overflow-y:auto;padding:28px 20px;scroll-behavior:smooth;}
+.chat-messages::-webkit-scrollbar{width:4px;}
+.chat-messages::-webkit-scrollbar-thumb{background:rgba(46,139,74,.3);border-radius:10px;}
+.msg-row{display:flex;gap:12px;margin-bottom:20px;animation:fadeUp .25s ease;}
+.msg-row.user-row{flex-direction:row-reverse;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.msg-avatar{width:34px;height:34px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.85rem;margin-top:2px;}
+.msg-avatar.ai-av{background:linear-gradient(135deg,var(--gold),var(--amber));}
+.msg-avatar.user-av{background:linear-gradient(135deg,var(--moss),var(--leaf));font-family:'Syne',sans-serif;font-weight:800;font-size:.78rem;color:white;}
+.msg-bubble{max-width:72%;padding:12px 16px;font-size:.875rem;line-height:1.6;}
+.msg-bubble.ai{background:rgba(255,255,255,.04);color:rgba(255,255,255,.85);border:1px solid var(--border);border-radius:4px 16px 16px 16px;}
+.msg-bubble.user{background:linear-gradient(135deg,rgba(30,92,53,.9),rgba(46,139,74,.7));color:white;border:1px solid rgba(46,139,74,.3);border-radius:16px 4px 16px 16px;}
+.msg-time{font-size:.68rem;color:var(--muted);margin-top:4px;padding:0 4px;}
+.quick-bar{padding:10px 16px;border-top:1px solid var(--border);background:rgba(13,43,26,.3);display:flex;gap:7px;flex-wrap:wrap;flex-shrink:0;}
+.qchip{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.5);padding:6px 13px;border-radius:20px;font-family:'Syne',sans-serif;font-size:.72rem;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.qchip:hover{background:rgba(46,139,74,.12);border-color:rgba(46,139,74,.3);color:var(--lime);}
+.chat-input-area{padding:14px 16px;border-top:1px solid var(--border);background:rgba(8,14,10,.7);flex-shrink:0;}
+.input-wrap{display:flex;align-items:flex-end;gap:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:8px 8px 8px 16px;transition:all .2s;}
+.input-wrap:focus-within{border-color:rgba(46,139,74,.4);background:rgba(46,139,74,.05);box-shadow:0 0 0 3px rgba(46,139,74,.08);}
+#chatInput{flex:1;background:none;border:none;outline:none;color:white;font-family:'DM Sans',sans-serif;font-size:.9rem;line-height:1.5;resize:none;max-height:120px;padding:4px 0;}
+#chatInput::placeholder{color:rgba(255,255,255,.2);}
+.send-btn{width:38px;height:38px;border-radius:10px;flex-shrink:0;background:linear-gradient(135deg,var(--gold),var(--amber));border:none;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;font-size:.85rem;}
+.send-btn:hover{transform:scale(1.05);}
+.send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.typing-row{display:flex;gap:12px;margin-bottom:20px;}
+.typing-dots{display:flex;align-items:center;gap:4px;padding:14px 16px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:4px 16px 16px 16px;}
+.tdot{width:7px;height:7px;border-radius:50%;background:var(--lime);}
+.tdot:nth-child(1){animation:bounce 1s 0s infinite;}
+.tdot:nth-child(2){animation:bounce 1s .2s infinite;}
+.tdot:nth-child(3){animation:bounce 1s .4s infinite;}
+@keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
+.chat-shell.expanded{position:fixed;top:0;left:0;right:0;bottom:0;height:100vh;z-index:9999;border-radius:0;}
+.welcome-screen{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;}
+.welcome-card{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:left;cursor:pointer;transition:all .2s;}
+.welcome-card:hover{background:rgba(46,139,74,.08);border-color:rgba(46,139,74,.3);}
+@media(max-width:768px){.chat-sidebar{width:0;min-width:0;position:absolute;z-index:100;height:100%;}.chat-sidebar.mobile-open{width:260px;min-width:260px;}.msg-bubble{max-width:88%;}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-shell" id="chatShell">
+
+  <!-- SIDEBAR -->
+  <div class="chat-sidebar" id="chatSidebar">
+    <div class="sidebar-top">
+      <button class="new-chat-btn" onclick="startNewChat()">
+        <i class="fas fa-plus" style="font-size:.7rem;"></i> New Conversation
+      </button>
+    </div>
+    <div class="sidebar-label">Chat History</div>
+    <div class="sidebar-list" id="historyList">
+      {% if chat_sessions %}
+        {% for cs in chat_sessions %}
+        <div class="hist-item {% if cs.chat_session_id == current_session_id %}active{% endif %}"
+             id="hist-{{ cs.chat_session_id }}" onclick="loadSession({{ cs.chat_session_id }})">
+          <i class="fas fa-comment" style="font-size:.72rem;color:var(--muted);flex-shrink:0;"></i>
+          <div class="hist-text">{{ cs.preview or 'New conversation' }}</div>
+          <button class="hist-del" onclick="deleteSession(event,{{ cs.chat_session_id }})" title="Delete">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div style="padding:20px 14px;color:var(--muted);font-size:.78rem;text-align:center;line-height:1.7;">No previous chats.<br>Start a conversation!</div>
+      {% endif %}
+    </div>
+    <div style="padding:12px;border-top:1px solid var(--border);flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.03);">
+        <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--moss),var(--leaf));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:.75rem;color:white;flex-shrink:0;">{{ session['user_name'][0]|upper }}</div>
+        <div style="flex:1;overflow:hidden;">
+          <div style="font-size:.78rem;color:white;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ session['user_name'] }}</div>
+          <div style="font-size:.68rem;color:var(--muted);">{{ session.get('subscription_plan','free')|capitalize }} Plan</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CHAT -->
+  <div class="chat-main">
+    <div class="chat-topbar">
+      <button class="topbar-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+      <div class="topbar-avatar">🌿</div>
+      <div>
+        <div class="topbar-title">Plantain AI</div>
+        <div class="topbar-sub"><span class="online-dot"></span> Online · Knows your farm · Always learning</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="topbar-btn" onclick="startNewChat()"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">New Chat</span></button>
+        <button class="topbar-btn" id="expandBtn" onclick="toggleExpand()"><i class="fas fa-expand" id="expandIcon"></i></button>
+        <a href="{{ url_for('dashboard') }}" class="topbar-btn danger"><i class="fas fa-times"></i> <span class="d-none d-md-inline">Exit</span></a>
+      </div>
+    </div>
+
+    <div class="chat-messages" id="chatMessages">
+      {% if not history %}
+      <div class="welcome-screen" id="welcomeScreen">
+        <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--amber));display:flex;align-items:center;justify-content:center;font-size:2rem;margin-bottom:20px;">🌿</div>
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:white;margin-bottom:8px;">How can I help today?</h2>
+        <p style="color:var(--muted);font-size:.88rem;max-width:400px;line-height:1.6;margin-bottom:32px;">I'm your personal AI agronomist. I know your crops, your diagnoses, and Kenyan farming. Ask me anything.</p>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-width:560px;width:100%;">
+          <button class="welcome-card" onclick="usePrompt('How do I diagnose a sick crop on Plantain AI?')"><div style="font-size:1.4rem;margin-bottom:6px;">🔬</div><div style="font-family:'Syne',sans-serif;font-size:.75rem;font-weight:700;color:var(--lime);margin-bottom:4px;">Guide Me</div><div style="font-size:.76rem;color:var(--muted);">How do I use this platform?</div></button>
+          <button class="welcome-card" onclick="usePrompt('What diseases commonly affect maize in Kenya and how do I treat them?')"><div style="font-size:1.4rem;margin-bottom:6px;">🌽</div><div style="font-family:'Syne',sans-serif;font-size:.75rem;font-weight:700;color:var(--lime);margin-bottom:4px;">Crop Diseases</div><div style="font-size:.76rem;color:var(--muted);">Identify and treat diseases</div></button>
+          <button class="welcome-card" onclick="usePrompt('My animal is sick, what should I do? Give me specific treatment.')"><div style="font-size:1.4rem;margin-bottom:6px;">🐄</div><div style="font-family:'Syne',sans-serif;font-size:.75rem;font-weight:700;color:var(--lime);margin-bottom:4px;">Animal Health</div><div style="font-size:.76rem;color:var(--muted);">Livestock & poultry help</div></button>
+          <button class="welcome-card" onclick="usePrompt('What is the current market price for tomatoes, maize and avocado in Kenya?')"><div style="font-size:1.4rem;margin-bottom:6px;">💰</div><div style="font-family:'Syne',sans-serif;font-size:.75rem;font-weight:700;color:var(--lime);margin-bottom:4px;">Market Prices</div><div style="font-size:.76rem;color:var(--muted);">Current KSh prices today</div></button>
+          <button class="welcome-card" onclick="usePrompt('How do I sell my crops on the Plantain AI marketplace?')"><div style="font-size:1.4rem;margin-bottom:6px;">🛒</div><div style="font-family:'Syne',sans-serif;font-size:.75rem;font-weight:700;color:var(--lime);margin-bottom:4px;">Sell My Crops</div><div style="font-size:.76rem;color:var(--muted);">List on the marketplace</div></button>
+          <button class="welcome-card" onclick="usePrompt('How do I get a farm report and predict my yield on Plantain AI?')"><div style="font-size:1.4rem;margin-bottom:6px;">📊</div><div style="font-family:'Syne',sans-serif;font-size:.75rem;font-weight:700;color:var(--lime);margin-bottom:4px;">Farm Report</div><div style="font-size:.76rem;color:var(--muted);">Generate PDF farm report</div></button>
+        </div>
+      </div>
+      {% else %}
+      <div id="welcomeScreen" style="display:none;"></div>
+      {% for msg in history %}
+      <div class="msg-row {{ 'user-row' if msg.role=='user' else '' }}">
+        <div class="msg-avatar {{ 'user-av' if msg.role=='user' else 'ai-av' }}">{{ session['user_name'][0]|upper if msg.role=='user' else '🌿' }}</div>
+        <div>
+          <div class="msg-bubble {{ 'user' if msg.role=='user' else 'ai' }}">{{ msg.message|replace('\n','<br>')|safe }}</div>
+          <div class="msg-time {{ 'd-flex justify-content-end' if msg.role=='user' else '' }}">{{ msg.created_at }}</div>
+        </div>
+      </div>
+      {% endfor %}
+      {% endif %}
+
+      <div class="typing-row d-none" id="typingRow">
+        <div class="msg-avatar ai-av">🌿</div>
+        <div class="typing-dots"><div class="tdot"></div><div class="tdot"></div><div class="tdot"></div></div>
+      </div>
+    </div>
+
+    <div class="quick-bar" id="quickBar">
+      <button class="qchip" onclick="usePrompt(this.textContent)">How do I diagnose my crop?</button>
+      <button class="qchip" onclick="usePrompt(this.textContent)">How do I sell on the marketplace?</button>
+      <button class="qchip" onclick="usePrompt(this.textContent)">Treat black sigatoka</button>
+      <button class="qchip" onclick="usePrompt(this.textContent)">My goat is sick, what do I do?</button>
+      <button class="qchip" onclick="usePrompt(this.textContent)">Price of avocado today?</button>
+      <button class="qchip" onclick="usePrompt(this.textContent)">How do I get a farm report?</button>
+      <button class="qchip" onclick="usePrompt(this.textContent)">Find an agrovet near me</button>
+    </div>
+
+    <div class="chat-input-area">
+      <!-- Photo preview -->
+      <div id="photoPreviewBar" style="display:none;padding:8px 4px;margin-bottom:8px;display:none;align-items:center;gap:10px;background:rgba(46,139,74,.08);border:1px solid rgba(46,139,74,.2);border-radius:10px;padding:8px 12px;">
+        <img id="photoThumb" src="" style="width:44px;height:44px;object-fit:cover;border-radius:7px;flex-shrink:0;">
+        <span style="font-size:.8rem;color:rgba(255,255,255,.7);flex:1;" id="photoName">Photo ready</span>
+        <button onclick="clearPhoto()" style="background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:.9rem;"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="input-wrap">
+        <button onclick="document.getElementById('photoInput').click()" title="Send a photo for AI analysis"
+                style="background:none;border:none;color:rgba(255,255,255,.3);cursor:pointer;padding:4px 6px;font-size:1rem;transition:color .2s;flex-shrink:0;"
+                onmouseenter="this.style.color='var(--lime)'" onmouseleave="this.style.color='rgba(255,255,255,.3)'">
+          <i class="fas fa-camera"></i>
+        </button>
+        <input type="file" id="photoInput" accept="image/*" class="d-none" onchange="previewPhoto(this)">
+        <textarea id="chatInput" rows="1" placeholder="Message Plantain AI... or send a photo 📷" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+      </div>
+      <div style="text-align:center;margin-top:7px;font-size:.68rem;color:rgba(255,255,255,.18);">Plantain AI · Send a photo for instant crop analysis · Conversations saved</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentSessionId = {{ current_session_id or 'null' }};
+const userInit = "{{ session['user_name'][0]|upper }}";
+const msgsEl   = document.getElementById('chatMessages');
+const inputEl  = document.getElementById('chatInput');
+const typingRow= document.getElementById('typingRow');
+const sendBtn  = document.getElementById('sendBtn');
+
+msgsEl.scrollTop = msgsEl.scrollHeight;
+
+function autoResize(el){
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight,120)+'px';
+}
+
+function handleKey(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}
+}
+
+function scrollBottom(){ msgsEl.scrollTop=msgsEl.scrollHeight; }
+
+function hideWelcome(){
+  const w=document.getElementById('welcomeScreen');
+  if(w) w.style.display='none';
+}
+
+function usePrompt(text){
+  inputEl.value=text; inputEl.focus(); autoResize(inputEl); hideWelcome();
+}
+
+function addBubble(text, role){
+  hideWelcome();
+  const isUser=role==='user';
+  const now=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  const row=document.createElement('div');
+  row.className='msg-row'+(isUser?' user-row':'');
+  const safe=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                 .replace(/\n/g,'<br>')
+                 .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+                 .replace(/📞\s*(0[17]\d{8})/g, '📞 <a href="tel:$1" style="color:var(--lime);font-weight:700;text-decoration:none;background:rgba(46,139,74,.15);border:1px solid rgba(46,139,74,.3);padding:2px 10px;border-radius:20px;">Call $1</a>')
+                 .replace(/→/g,'<span style="color:var(--lime);">→</span>');
+  row.innerHTML=`
+    <div class="msg-avatar ${isUser?'user-av':'ai-av'}">${isUser?userInit:'🌿'}</div>
+    <div>
+      <div class="msg-bubble ${isUser?'user':'ai'}">${safe}</div>
+      <div class="msg-time ${isUser?'d-flex justify-content-end':''}">${now}</div>
+    </div>`;
+  msgsEl.insertBefore(row,typingRow);
+  scrollBottom();
+}
+
+let pendingPhoto = null;
+
+function previewPhoto(input){
+  const file = input.files[0];
+  if(!file) return;
+  pendingPhoto = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('photoThumb').src = e.target.result;
+    document.getElementById('photoName').textContent = file.name.length > 30 ? file.name.substring(0,30)+'...' : file.name;
+    const bar = document.getElementById('photoPreviewBar');
+    bar.style.display = 'flex';
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearPhoto(){
+  pendingPhoto = null;
+  document.getElementById('photoInput').value = '';
+  document.getElementById('photoPreviewBar').style.display = 'none';
+}
+
+async function sendMessage(){
+  const msg = inputEl.value.trim();
+  if(!msg && !pendingPhoto) return;
+  if(!currentSessionId) currentSessionId = Date.now();
+
+  const displayMsg = msg || '📷 Photo sent for analysis';
+  inputEl.value = ''; inputEl.style.height = 'auto';
+  sendBtn.disabled = true;
+  addBubble(displayMsg, 'user');
+
+  // Show photo in chat if attached
+  if(pendingPhoto){
+    const reader = new FileReader();
+    reader.onload = e => {
+      const row = document.createElement('div');
+      row.className = 'msg-row user-row';
+      row.innerHTML = `<div class="msg-avatar user-av">${userInit}</div>
+        <div><img src="${e.target.result}" style="max-width:220px;border-radius:12px;border:2px solid rgba(46,139,74,.3);"></div>`;
+      msgsEl.insertBefore(row, typingRow);
+      scrollBottom();
+    };
+    reader.readAsDataURL(pendingPhoto);
+  }
+
+  typingRow.classList.remove('d-none'); typingRow.style.display='flex';
+  scrollBottom();
+
+  try{
+    let r;
+    if(pendingPhoto){
+      const fd = new FormData();
+      fd.append('message', msg);
+      fd.append('session_id', currentSessionId);
+      fd.append('image', pendingPhoto);
+      r = await fetch('/chat/send', {method:'POST', body:fd});
+    } else {
+      r = await fetch('/chat/send', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({message:msg, session_id:currentSessionId})
+      });
+    }
+    const data = await r.json();
+    typingRow.classList.add('d-none'); typingRow.style.display='none';
+    addBubble(data.reply, 'ai');
+    updateSidebar(currentSessionId, displayMsg);
+    clearPhoto();
+  } catch(e){
+    typingRow.classList.add('d-none'); typingRow.style.display='none';
+    addBubble('Sorry, something went wrong. Try again 🌱','ai');
+  }
+  sendBtn.disabled=false; inputEl.focus();
+}
+
+async function startNewChat(){
+  document.querySelectorAll('.hist-item').forEach(i=>i.classList.remove('active'));
+  msgsEl.querySelectorAll('.msg-row').forEach(r=>r.remove());
+  const w=document.getElementById('welcomeScreen');
+  if(w){w.style.display='flex';w.style.flexDirection='column';w.style.alignItems='center';w.style.justifyContent='center';}
+  currentSessionId=Date.now();
+  await fetch('/chat/new',{method:'POST'});
+  inputEl.focus();
+}
+
+function loadSession(sid){ window.location.href='/chat/'+sid; }
+
+function updateSidebar(sid,preview){
+  const list=document.getElementById('historyList');
+  if(document.getElementById('hist-'+sid)){
+    document.getElementById('hist-'+sid).classList.add('active'); return;
+  }
+  list.querySelectorAll('.hist-item').forEach(i=>i.classList.remove('active'));
+  const short=preview.length>50?preview.substring(0,50)+'...':preview;
+  const div=document.createElement('div');
+  div.className='hist-item active'; div.id='hist-'+sid;
+  div.innerHTML=`<i class="fas fa-comment" style="font-size:.72rem;color:var(--muted);flex-shrink:0;"></i><div class="hist-text">${short}</div><button class="hist-del" onclick="deleteSession(event,${sid})"><i class="fas fa-trash"></i></button>`;
+  div.onclick=(e)=>{if(!e.target.closest('.hist-del'))loadSession(sid);};
+  list.prepend(div);
+}
+
+async function deleteSession(e,sid){
+  e.stopPropagation();
+  if(!confirm('Delete this conversation?')) return;
+  await fetch('/chat/delete/'+sid,{method:'POST'});
+  const el=document.getElementById('hist-'+sid);
+  if(el) el.remove();
+  if(currentSessionId==sid) startNewChat();
+}
+
+function toggleSidebar(){
+  const sb=document.getElementById('chatSidebar');
+  sb.classList.toggle('collapsed');
+  sb.classList.toggle('mobile-open');
+}
+
+let expanded=false;
+function toggleExpand(){
+  expanded=!expanded;
+  document.getElementById('chatShell').classList.toggle('expanded',expanded);
+  document.getElementById('expandIcon').className=expanded?'fas fa-compress':'fas fa-expand';
+  document.body.style.overflow=expanded?'hidden':'';
+}
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&expanded)toggleExpand();});
+</script>
+{% endblock %}

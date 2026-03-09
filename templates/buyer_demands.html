@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Buyer Demand Feed{% endblock %}
+{% block head %}<style>
+.pg-eyebrow{font-family:"Syne",sans-serif;font-size:.62rem;color:var(--lime);text-transform:uppercase;letter-spacing:2px;margin-bottom:5px;}
+.pg-title{font-family:"Cormorant Garamond",serif;font-size:clamp(1.6rem,3vw,2.2rem);font-weight:800;color:white;margin:0;}
+.panel{background:rgba(8,20,12,.9);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:22px;margin-bottom:16px;}
+.panel-title{font-family:"Syne",sans-serif;font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.3);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
+.card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:16px;transition:all .2s;}
+.card:hover{border-color:rgba(255,255,255,.14);transform:translateY(-2px);}
+.sf-input{background:rgba(20,40,25,.95);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:10px 13px;color:white;font-family:"DM Sans",sans-serif;font-size:.84rem;outline:none;width:100%;box-sizing:border-box;transition:border-color .2s;}
+.sf-input:focus{border-color:rgba(46,139,74,.4);}
+.sf-label{font-family:"Syne",sans-serif;font-size:.7rem;color:rgba(255,255,255,.35);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
+.btn-green{background:linear-gradient(135deg,var(--lime),#4DB86A);color:white;border:none;padding:10px 22px;border-radius:10px;font-family:"Syne",sans-serif;font-weight:700;cursor:pointer;font-size:.84rem;}
+.btn-cyan{background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.2);color:#22d3ee;padding:9px 18px;border-radius:9px;font-family:"Syne",sans-serif;font-weight:700;cursor:pointer;font-size:.8rem;text-decoration:none;display:inline-block;}
+.btn-amber{background:rgba(212,160,23,.1);border:1px solid rgba(212,160,23,.2);color:var(--amber);padding:9px 18px;border-radius:9px;font-family:"Syne",sans-serif;font-weight:700;cursor:pointer;font-size:.8rem;text-decoration:none;display:inline-block;}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-family:"Syne",sans-serif;font-size:.62rem;font-weight:700;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:768px){.grid2{grid-template-columns:1fr;}}
+.flash-ok{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.18);color:#4ade80;padding:11px 16px;border-radius:9px;margin-bottom:14px;font-size:.84rem;}
+.flash-err{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.18);color:#f87171;padding:11px 16px;border-radius:9px;margin-bottom:14px;font-size:.84rem;}
+
+</style>{% endblock %}
+{% block content %}
+{% with msgs=get_flashed_messages(with_categories=true) %}{% for c,m in msgs %}<div class="flash-{{ 'ok' if c=='success' else 'err' }}">{{ m }}</div>{% endfor %}{% endwith %}
+<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+  <div><div class="pg-eyebrow">Marketplace</div><h1 class="pg-title">🛒 Buyer Demand Feed</h1><div style="font-size:.78rem;color:rgba(255,255,255,.3);margin-top:4px;">Buyers post what they need · Farmers supply direct</div></div>
+  <button onclick="document.getElementById('postModal').style.display='flex'" class="btn-green">+ Post Demand</button>
+</div>
+<div class="card-grid">
+  {% for d in demands %}
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <span style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.9rem;text-transform:capitalize;">{{ d.crop_type }}</span>
+      <span class="badge" style="background:rgba(74,222,128,.1);color:#4ade80;">WANTED</span>
+    </div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:var(--amber);line-height:1;margin-bottom:3px;">KSh {{ '{:,}'.format((d.price_offered or 0)|int) }}<span style="font-size:.75rem;color:rgba(255,255,255,.3);font-family:'DM Sans';">/kg</span></div>
+    <div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-bottom:8px;">Quantity: {{ d.quantity_kg }}kg · {{ d.buyer_county or 'Kenya' }}</div>
+    {% if d.deadline %}<div style="font-size:.72rem;color:#fbbf24;margin-bottom:6px;">⏰ Deadline: {{ d.deadline }}</div>{% endif %}
+    {% if d.notes %}<div style="font-size:.76rem;color:rgba(255,255,255,.35);margin-bottom:10px;font-style:italic;">{{ d.notes }}</div>{% endif %}
+    <div style="font-size:.72rem;color:rgba(255,255,255,.3);">Buyer: {{ d.buyer_name or 'Anonymous' }}</div>
+    {% if d.buyer_phone %}<a href="tel:{{ d.buyer_phone }}" style="display:block;margin-top:10px;background:rgba(46,139,74,.12);border:1px solid rgba(46,139,74,.2);color:var(--lime);padding:8px;border-radius:8px;text-align:center;text-decoration:none;font-family:'Syne',sans-serif;font-size:.76rem;font-weight:700;">📞 Contact Buyer</a>{% endif %}
+  </div>
+  {% else %}<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,.2);">No open demands yet. Be the first to post!</div>{% endfor %}
+</div>
+<!-- Post Modal -->
+<div id="postModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#0A1A0E;border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:28px;width:100%;max-width:480px;">
+    <div style="display:flex;justify-content:space-between;margin-bottom:18px;"><div style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:800;color:white;">Post Buy Demand</div><button onclick="document.getElementById('postModal').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:1.2rem;cursor:pointer;">✕</button></div>
+    <form method="POST" action="{{ url_for('post_buyer_demand') }}" style="display:flex;flex-direction:column;gap:12px;">
+      <div><label class="sf-label">Crop / Product *</label><input class="sf-input" name="crop" required placeholder="e.g. maize, tomatoes, milk"></div>
+      <div class="grid2">
+        <div><label class="sf-label">Quantity (kg)</label><input type="number" class="sf-input" name="quantity_kg" required></div>
+        <div><label class="sf-label">Price Offered (KSh/kg)</label><input type="number" class="sf-input" name="price_offered" required></div>
+      </div>
+      <div class="grid2">
+        <div><label class="sf-label">Your County</label><input class="sf-input" name="county" placeholder="Delivery county"></div>
+        <div><label class="sf-label">Deadline</label><input type="date" class="sf-input" name="deadline"></div>
+      </div>
+      <div><label class="sf-label">Notes</label><textarea class="sf-input" name="notes" rows="2" placeholder="Quality requirements, packaging, delivery..."></textarea></div>
+      <button type="submit" class="btn-green">Post Demand</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

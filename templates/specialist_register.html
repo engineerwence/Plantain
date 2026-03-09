@@ -1,0 +1,75 @@
+﻿{% extends "base.html" %}
+{% block title %}Join as Specialist{% endblock %}
+{% block content %}
+<div style="max-width:680px;margin:0 auto;">
+<div class="fu" style="margin-bottom:24px;">
+  <div class="ptag">Join Plantain AI</div>
+  <h1 class="ptitle">Register as a Specialist</h1>
+  <p class="psub">Connect with thousands of Kenyan farmers who need your expertise</p>
+</div>
+{% if success %}
+<div class="pc fu fu1" style="text-align:center;padding:48px 24px;">
+  <div style="font-size:3rem;margin-bottom:16px;">✅</div>
+  <h2 style="font-family:'Syne',sans-serif;color:white;margin-bottom:10px;">Application Submitted!</h2>
+  <p style="color:var(--muted);font-size:.88rem;margin-bottom:24px;">Your profile is under review. We will approve it within 24 hours and you will start receiving consultation requests.</p>
+  <a href="{{ url_for('specialists') }}" style="background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:12px 28px;border-radius:10px;font-family:'Syne',sans-serif;font-weight:700;text-decoration:none;">View Specialists</a>
+</div>
+{% else %}
+{% if error %}<div style="background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);border-radius:10px;padding:12px 16px;margin-bottom:20px;color:#F87171;font-size:.85rem;">⚠️ {{ error }}</div>{% endif %}
+<div class="pc fu fu1">
+  <form method="POST">
+    <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--lime);font-size:.75rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;">Personal Information</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+      <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">Full Name *</label>
+      <input name="name" required placeholder="Dr. John Kamau" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;box-sizing:border-box;"></div>
+      <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">Phone Number *</label>
+      <input name="phone" required placeholder="07XX XXX XXX" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;box-sizing:border-box;"></div>
+      <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">Email Address *</label>
+      <input name="email" type="email" required placeholder="email@example.com" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;box-sizing:border-box;"></div>
+      <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">County *</label>
+      <select name="county" required style="width:100%;background:rgba(20,40,25,.95);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;box-sizing:border-box;">
+        <option value="">Select county</option>
+        {% for c in counties %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+      </select></div>
+      <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">Specialization *</label>
+      <select name="specialization" required style="width:100%;background:rgba(20,40,25,.95);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;box-sizing:border-box;">
+        <option value="">Select specialization</option>
+        {% for t in types %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+      </select></div>
+      <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">Years of Experience *</label>
+      <input name="experience_yrs" type="number" min="0" max="50" placeholder="e.g. 5" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;box-sizing:border-box;"></div>
+    </div>
+    <div style="margin-bottom:14px;"><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">Your Bio / Qualifications</label>
+    <textarea name="bio" rows="4" placeholder="Tell farmers about your qualifications, experience and how you can help..." style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;resize:vertical;box-sizing:border-box;"></textarea></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;">
+      <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">Consultation Fee (KSh)</label>
+      <input name="consult_fee" type="number" min="0" placeholder="e.g. 1500" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;box-sizing:border-box;"></div>
+      <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">Availability</label>
+      <div style="display:flex;gap:10px;padding-top:8px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;color:rgba(255,255,255,.7);cursor:pointer;"><input type="checkbox" name="available_online" value="1" style="accent-color:var(--lime);"> Online</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;color:rgba(255,255,255,.7);cursor:pointer;"><input type="checkbox" name="available_visit" value="1" style="accent-color:var(--lime);"> Farm Visit</label>
+      </div></div>
+    </div>
+    <div style="background:rgba(212,160,23,.08);border:1px solid rgba(212,160,23,.2);border-radius:12px;padding:20px;margin-bottom:20px;">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--amber);font-size:.85rem;margin-bottom:4px;">💳 Registration Fee — KSh 1,000 (One Time)</div>
+      <p style="font-size:.8rem;color:rgba(255,255,255,.55);margin-bottom:14px;">Pay via M-Pesa, bank transfer or cash. Your profile goes live after payment is confirmed.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">Payment Method</label>
+        <select name="payment_method" style="width:100%;background:rgba(20,40,25,.95);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;box-sizing:border-box;">
+          <option value="mpesa">M-Pesa</option>
+          <option value="bank">Bank Transfer</option>
+          <option value="cash">Cash at Office</option>
+        </select></div>
+        <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">M-Pesa/Reference No.</label>
+        <input name="mpesa_ref" placeholder="e.g. QHJ7K8L9M2" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;box-sizing:border-box;"></div>
+      </div>
+      <div style="margin-top:12px;font-size:.78rem;color:rgba(255,255,255,.4);">Send M-Pesa to: <strong style="color:var(--amber);">0712 345 678</strong> (Plantain AI Ltd) then enter the reference number above.</div>
+    </div>
+    <button type="submit" style="width:100%;background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:14px;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-weight:800;font-size:.95rem;cursor:pointer;">
+      Submit Application →
+    </button>
+  </form>
+</div>
+{% endif %}
+</div>
+{% endblock %}

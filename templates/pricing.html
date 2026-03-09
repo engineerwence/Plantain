@@ -1,0 +1,251 @@
+﻿{% extends "base.html" %}
+{% block title %}Plans & Pricing — Plantain AI{% endblock %}
+{% block content %}
+
+<div style="max-width:1000px;margin:0 auto;">
+
+<!-- Header -->
+<div style="text-align:center;margin-bottom:48px;" class="fu">
+  <div class="ptag">Choose Your Plan</div>
+  <h1 class="ptitle" style="font-size:2.4rem;">Grow at your own pace</h1>
+  <p class="psub" style="max-width:500px;margin:0 auto;">From your first crop to a full agribusiness — Plantain AI scales with you.</p>
+</div>
+
+<!-- Current plan banner -->
+{% if current_plan != 'free' %}
+<div style="background:rgba(46,139,74,.08);border:1px solid rgba(46,139,74,.2);border-radius:12px;padding:12px 20px;margin-bottom:32px;text-align:center;font-size:.85rem;color:rgba(255,255,255,.6);">
+  You are on the <strong style="color:{{ plan_color }};">{{ plan_name }}</strong> plan &nbsp;·&nbsp; <a href="{{ url_for('dashboard') }}" style="color:var(--lime);text-decoration:none;">Go to Dashboard →</a>
+</div>
+{% endif %}
+
+<!-- Pricing cards -->
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:20px;">
+
+  <!-- SHAMBA FREE -->
+  <div class="pc fu fu1" style="padding:28px;position:relative;{% if current_plan=='free' %}border-color:rgba(74,222,128,.4);{% endif %}">
+    {% if current_plan=='free' %}<div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--lime);color:var(--ink);font-family:'Syne',sans-serif;font-size:.65rem;font-weight:800;padding:4px 14px;border-radius:20px;white-space:nowrap;">YOUR CURRENT PLAN</div>{% endif %}
+    <div style="font-size:1.8rem;margin-bottom:8px;">🌱</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;color:white;margin-bottom:4px;">Shamba</div>
+    <div style="font-size:.78rem;color:var(--muted);margin-bottom:16px;">Small-scale farming</div>
+    <div style="margin-bottom:20px;">
+      <span style="font-family:'Cormorant Garamond',serif;font-size:2.8rem;color:white;font-weight:700;">Free</span>
+      <span style="font-size:.78rem;color:var(--muted);"> forever</span>
+    </div>
+    <div style="margin-bottom:24px;">
+      {% for perk in features.free.perks %}
+      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;font-size:.8rem;color:rgba(255,255,255,.65);">
+        <span style="color:#4ade80;flex-shrink:0;margin-top:1px;">✓</span> {{ perk }}
+      </div>
+      {% endfor %}
+      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;font-size:.8rem;color:rgba(255,255,255,.25);">
+        <span style="flex-shrink:0;margin-top:1px;">✗</span> Bulk photo diagnosis
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;font-size:.8rem;color:rgba(255,255,255,.25);">
+        <span style="flex-shrink:0;margin-top:1px;">✗</span> Farm PDF reports
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:8px;font-size:.8rem;color:rgba(255,255,255,.25);">
+        <span style="flex-shrink:0;margin-top:1px;">✗</span> IoT dashboard
+      </div>
+    </div>
+    {% if current_plan == 'free' %}
+    <div style="width:100%;background:rgba(255,255,255,.06);border:1px solid var(--border);color:rgba(255,255,255,.4);padding:11px;border-radius:10px;text-align:center;font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;">Current Plan</div>
+    {% else %}
+    <form method="POST" action="{{ url_for('subscribe') }}">
+      <input type="hidden" name="plan" value="free">
+      <button type="submit" style="width:100%;background:rgba(255,255,255,.06);border:1px solid var(--border);color:rgba(255,255,255,.5);padding:11px;border-radius:10px;cursor:pointer;font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;">Downgrade to Free</button>
+    </form>
+    {% endif %}
+  </div>
+
+  <!-- KILIMO PRO -->
+  <div class="pc fu fu2" style="padding:28px;position:relative;border-color:rgba(251,176,36,.3);background:rgba(251,176,36,.04);{% if current_plan=='pro' %}border-color:rgba(251,176,36,.6);{% endif %}">
+    <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);font-family:'Syne',sans-serif;font-size:.65rem;font-weight:800;padding:4px 14px;border-radius:20px;white-space:nowrap;">{% if current_plan=='pro' %}YOUR CURRENT PLAN{% else %}MOST POPULAR{% endif %}</div>
+    <div style="font-size:1.8rem;margin-bottom:8px;">🌾</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;color:white;margin-bottom:4px;">Kilimo</div>
+    <div style="font-size:.78rem;color:var(--muted);margin-bottom:16px;">Mid-scale production</div>
+    <div style="margin-bottom:20px;">
+      <span style="font-family:'Cormorant Garamond',serif;font-size:2.8rem;color:var(--amber);font-weight:700;">500</span>
+      <span style="font-size:.78rem;color:var(--muted);"> KSh / month</span>
+    </div>
+    <div style="margin-bottom:24px;">
+      {% for perk in features.pro.perks %}
+      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;font-size:.8rem;color:rgba(255,255,255,.75);">
+        <span style="color:var(--amber);flex-shrink:0;margin-top:1px;">✓</span> {{ perk }}
+      </div>
+      {% endfor %}
+      <div style="display:flex;align-items:flex-start;gap:8px;font-size:.8rem;color:rgba(255,255,255,.25);">
+        <span style="flex-shrink:0;margin-top:1px;">✗</span> Multi-farm management
+      </div>
+    </div>
+    {% if current_plan == 'pro' %}
+    <div style="width:100%;background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:11px;border-radius:10px;text-align:center;font-family:'Syne',sans-serif;font-size:.8rem;font-weight:800;">Current Plan</div>
+    {% else %}
+    <button onclick="openUpgrade('pro','Kilimo','500')" style="width:100%;background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:12px;border:none;border-radius:10px;cursor:pointer;font-family:'Syne',sans-serif;font-size:.85rem;font-weight:800;">
+      Upgrade to Kilimo →
+    </button>
+    {% endif %}
+  </div>
+
+  <!-- BIASHARA ENTERPRISE -->
+  <div class="pc fu fu3" style="padding:28px;position:relative;border-color:rgba(167,139,250,.3);background:rgba(167,139,250,.04);{% if current_plan=='enterprise' %}border-color:rgba(167,139,250,.6);{% endif %}">
+    {% if current_plan=='enterprise' %}<div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#a78bfa,#7c3aed);color:white;font-family:'Syne',sans-serif;font-size:.65rem;font-weight:800;padding:4px 14px;border-radius:20px;white-space:nowrap;">YOUR CURRENT PLAN</div>{% endif %}
+    <div style="font-size:1.8rem;margin-bottom:8px;">🏢</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;color:white;margin-bottom:4px;">Biashara</div>
+    <div style="font-size:.78rem;color:var(--muted);margin-bottom:16px;">Full agribusiness platform</div>
+    <div style="margin-bottom:20px;">
+      <span style="font-family:'Cormorant Garamond',serif;font-size:2.8rem;color:#a78bfa;font-weight:700;">2,000</span>
+      <span style="font-size:.78rem;color:var(--muted);"> KSh / month</span>
+    </div>
+    <div style="margin-bottom:24px;">
+      {% for perk in features.enterprise.perks %}
+      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;font-size:.8rem;color:rgba(255,255,255,.75);">
+        <span style="color:#a78bfa;flex-shrink:0;margin-top:1px;">✓</span> {{ perk }}
+      </div>
+      {% endfor %}
+    </div>
+    {% if current_plan == 'enterprise' %}
+    <div style="width:100%;background:linear-gradient(135deg,#a78bfa,#7c3aed);color:white;padding:11px;border-radius:10px;text-align:center;font-family:'Syne',sans-serif;font-size:.8rem;font-weight:800;">Current Plan</div>
+    {% else %}
+    <button onclick="openUpgrade('enterprise','Biashara','2000')" style="width:100%;background:linear-gradient(135deg,#a78bfa,#7c3aed);color:white;padding:12px;border:none;border-radius:10px;cursor:pointer;font-family:'Syne',sans-serif;font-size:.85rem;font-weight:800;">
+      Upgrade to Biashara →
+    </button>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- SHAMBA SMART -->
+<div class="pc fu" style="padding:28px;position:relative;border-color:rgba(34,211,238,.3);background:rgba(34,211,238,.04);grid-column:1/-1;{% if current_plan=='smart' %}border-color:rgba(34,211,238,.6);{% endif %}">
+  {% if current_plan=='smart' %}<div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#22d3ee,#0891b2);color:white;font-family:'Syne',sans-serif;font-size:.65rem;font-weight:800;padding:4px 14px;border-radius:20px;white-space:nowrap;">YOUR CURRENT PLAN</div>{% endif %}
+  <div style="display:grid;grid-template-columns:auto 1fr auto;gap:20px;align-items:center;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div style="font-size:2.5rem;">🤖</div>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:white;">Shamba Smart</div>
+        <div style="font-size:.78rem;color:rgba(34,211,238,.7);">Fully automated smart farm</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      {% for perk in features.smart.perks[:6] %}
+      <span style="background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.15);color:rgba(34,211,238,.8);padding:4px 12px;border-radius:20px;font-size:.72rem;font-family:'Syne',sans-serif;font-weight:600;">{{ perk }}</span>
+      {% endfor %}
+    </div>
+    <div style="text-align:right;">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:2.5rem;color:#22d3ee;font-weight:700;line-height:1;">5,000</div>
+      <div style="font-size:.75rem;color:rgba(255,255,255,.3);">KSh / month</div>
+      {% if current_plan != 'smart' %}
+      <button onclick="openUpgrade('smart','Shamba Smart','5000')" style="margin-top:10px;background:linear-gradient(135deg,#22d3ee,#0891b2);color:white;padding:10px 24px;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-weight:800;cursor:pointer;font-size:.85rem;">
+        Upgrade to Smart →
+      </button>
+      {% else %}
+      <a href="{{ url_for('smart_farm') }}" style="display:inline-block;margin-top:10px;background:linear-gradient(135deg,#22d3ee,#0891b2);color:white;padding:10px 24px;border-radius:10px;font-family:'Syne',sans-serif;font-weight:800;font-size:.85rem;text-decoration:none;">Open Control Panel →</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Feature comparison table -->
+<div class="pc fu" style="padding:28px;margin-bottom:32px;">
+  <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:1rem;margin-bottom:20px;">Feature Comparison</div>
+  <div style="overflow-x:auto;">
+  <table style="width:100%;border-collapse:collapse;font-size:.82rem;">
+    <thead>
+      <tr>
+        <th style="text-align:left;padding:10px 12px;color:var(--muted);font-family:'Syne',sans-serif;font-weight:600;border-bottom:1px solid var(--border);">Feature</th>
+        <th style="text-align:center;padding:10px 12px;color:#4ade80;font-family:'Syne',sans-serif;font-weight:700;border-bottom:1px solid var(--border);">🌱 Shamba</th>
+        <th style="text-align:center;padding:10px 12px;color:var(--amber);font-family:'Syne',sans-serif;font-weight:700;border-bottom:1px solid var(--border);">🌾 Kilimo</th>
+        <th style="text-align:center;padding:10px 12px;color:#a78bfa;font-family:'Syne',sans-serif;font-weight:700;border-bottom:1px solid var(--border);">🏢 Biashara</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% set rows = [
+        ('AI Assistant','Basic advice','Detailed plans','Shamba Intelligence'),
+        ('Crops tracked','5','50','Unlimited'),
+        ('Marketplace listings','3','Unlimited','Unlimited + Top placement'),
+        ('Bulk photo diagnosis','✗','10 photos','Unlimited'),
+        ('Farm PDF report','✗','✓','✓ + Financial reports'),
+        ('Yield prediction','✗','✓','✓ + Revenue forecast'),
+        ('Specialist booking','View only','✓','✓ + Direct hotline'),
+        ('Agrovet directory','✓','✓','✓'),
+        ('IoT dashboard','✗','✗','✓'),
+        ('Multi-farm management','✗','✗','✓'),
+        ('Staff accounts','✗','✗','✓'),
+        ('Animal & livestock AI','Basic','Full','Full + Business planning'),
+        ('Price','Free','KSh 500/mo','KSh 2,000/mo'),
+      ] %}
+      {% for row in rows %}
+      <tr style="border-bottom:1px solid rgba(255,255,255,.04);">
+        <td style="padding:11px 12px;color:rgba(255,255,255,.6);">{{ row[0] }}</td>
+        <td style="padding:11px 12px;text-align:center;color:{% if row[1]=='✗' %}rgba(255,255,255,.2){% else %}rgba(255,255,255,.75){% endif %};">{{ row[1] }}</td>
+        <td style="padding:11px 12px;text-align:center;color:{% if row[2]=='✗' %}rgba(255,255,255,.2){% else %}rgba(255,255,255,.85){% endif %};">{{ row[2] }}</td>
+        <td style="padding:11px 12px;text-align:center;color:{% if row[3]=='✗' %}rgba(255,255,255,.2){% else %}white{% endif %};">{{ row[3] }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<!-- Payment modal -->
+<div id="upgradeModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#0D2B1A;border:1px solid var(--border);border-radius:18px;padding:32px;max-width:440px;width:90%;margin:auto;">
+    <div style="font-size:2rem;margin-bottom:12px;" id="modalEmoji">🌾</div>
+    <h3 style="font-family:'Syne',sans-serif;color:white;margin-bottom:6px;" id="modalTitle">Upgrade to Kilimo</h3>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:20px;" id="modalSub">KSh 500/month — cancel anytime</p>
+
+    <div style="background:rgba(212,160,23,.08);border:1px solid rgba(212,160,23,.2);border-radius:10px;padding:16px;margin-bottom:20px;">
+      <div style="font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;color:var(--amber);margin-bottom:8px;">Pay via M-Pesa</div>
+      <div style="font-size:.82rem;color:rgba(255,255,255,.55);line-height:1.6;">
+        1. Go to M-Pesa → Send Money<br>
+        2. Send <strong style="color:var(--amber);" id="modalAmount">KSh 500</strong> to <strong style="color:var(--amber);">0712 345 678</strong><br>
+        3. Enter M-Pesa confirmation code below
+      </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('subscribe') }}">
+      <input type="hidden" name="plan" id="modalPlanInput" value="pro">
+      <div style="margin-bottom:14px;">
+        <label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">M-Pesa Confirmation Code</label>
+        <input name="mpesa_ref" placeholder="e.g. QHJ7K8L9M2" required
+          style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;box-sizing:border-box;">
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">Payment Method</label>
+        <select name="payment_method" style="width:100%;background:rgba(20,40,25,.95);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;box-sizing:border-box;">
+          <option value="mpesa">M-Pesa</option>
+          <option value="bank">Bank Transfer</option>
+          <option value="cash">Cash at Office</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button type="submit" id="modalBtn" style="flex:1;background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:12px;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-weight:800;cursor:pointer;font-size:.88rem;">
+          Activate Plan →
+        </button>
+        <button type="button" onclick="closeUpgrade()" style="background:rgba(255,255,255,.05);border:1px solid var(--border);color:rgba(255,255,255,.5);padding:12px 16px;border-radius:10px;cursor:pointer;font-family:'Syne',sans-serif;">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function openUpgrade(plan, name, amount){
+  const emojis = {pro:'🌾', enterprise:'🏢'};
+  const colors = {pro:'linear-gradient(135deg,var(--gold),var(--amber))', enterprise:'linear-gradient(135deg,#a78bfa,#7c3aed)', smart:'linear-gradient(135deg,#22d3ee,#0891b2)'};
+  document.getElementById('modalEmoji').textContent = emojis[plan]||'🌾';
+  document.getElementById('modalTitle').textContent = `Upgrade to ${name}`;
+  document.getElementById('modalSub').textContent = `KSh ${parseInt(amount).toLocaleString()}/month — cancel anytime`;
+  document.getElementById('modalAmount').textContent = `KSh ${parseInt(amount).toLocaleString()}`;
+  document.getElementById('modalPlanInput').value = plan;
+  document.getElementById('modalBtn').style.background = colors[plan]||colors.pro;
+  document.getElementById('upgradeModal').style.display = 'flex';
+}
+function closeUpgrade(){ document.getElementById('upgradeModal').style.display = 'none'; }
+document.getElementById('upgradeModal').addEventListener('click', e => {
+  if(e.target===document.getElementById('upgradeModal')) closeUpgrade();
+});
+</script>
+{% endblock %}

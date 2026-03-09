@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Become a Seller{% endblock %}
+{% block content %}
+<div style="max-width:640px;margin:0 auto;">
+<div class="fu" style="margin-bottom:24px;">
+  <div class="ptag">Join as Seller</div>
+  <h1 class="ptitle">Seller Registration</h1>
+  <p class="psub">Sell feeds, medicines, equipment and inputs directly to farmers on Plantain AI</p>
+</div>
+{% if success %}
+<div class="pc fu fu1" style="text-align:center;padding:48px 24px;">
+  <div style="font-size:3rem;margin-bottom:16px;">✅</div>
+  <h2 style="font-family:'Syne',sans-serif;color:white;margin-bottom:10px;">Registration Submitted!</h2>
+  <p style="color:var(--muted);font-size:.88rem;margin-bottom:24px;">Your seller profile is under review. We will approve it within 24 hours.</p>
+  <a href="{{ url_for('seller_dashboard') }}" style="background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:12px 28px;border-radius:10px;font-family:'Syne',sans-serif;font-weight:700;text-decoration:none;">Open Seller Dashboard</a>
+</div>
+{% else %}
+<div class="pc fu fu1">
+<form method="POST">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+    <div style="grid-column:span 2;"><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">Business Name *</label>
+    <input name="business_name" required placeholder="e.g. Kamau Feeds & Supplies" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-size:.88rem;outline:none;box-sizing:border-box;"></div>
+    <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">Phone *</label>
+    <input name="phone" required placeholder="07XX XXX XXX" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-size:.88rem;outline:none;box-sizing:border-box;"></div>
+    <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">County *</label>
+    <select name="county" required style="width:100%;background:rgba(20,40,25,.95);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-size:.88rem;outline:none;box-sizing:border-box;">
+      <option value="">Select county</option>{% for c in counties %}<option>{{ c }}</option>{% endfor %}
+    </select></div>
+    <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">Town</label>
+    <input name="town" placeholder="e.g. Thika" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-size:.88rem;outline:none;box-sizing:border-box;"></div>
+    <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">Min Order (KSh)</label>
+    <input name="min_order_ksh" type="number" placeholder="e.g. 500" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-size:.88rem;outline:none;box-sizing:border-box;"></div>
+  </div>
+  <div style="margin-bottom:14px;"><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:8px;">Product Categories</label>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;">
+    {% for cat in ['Animal Feeds','Veterinary Drugs','Seeds','Fertilizers','Pesticides','Equipment','Irrigation','Poultry Supplies','Dairy Supplies','Organic Inputs'] %}
+    <label style="cursor:pointer;"><input type="checkbox" name="categories" value="{{ cat }}" style="display:none;">
+    <span class="cat-opt" onclick="toggleCat(this)" style="display:inline-block;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px 14px;font-size:.78rem;color:rgba(255,255,255,.6);transition:all .15s;">{{ cat }}</span></label>
+    {% endfor %}
+  </div></div>
+  <div style="margin-bottom:14px;"><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">Delivery Zones (counties you deliver to)</label>
+  <input name="delivery_zones" placeholder="e.g. Nairobi, Kiambu, Machakos" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-size:.88rem;outline:none;box-sizing:border-box;"></div>
+  <div style="margin-bottom:20px;"><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">Business Description</label>
+  <textarea name="description" rows="3" placeholder="What you sell and why farmers should choose you..." style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-size:.88rem;outline:none;resize:vertical;box-sizing:border-box;"></textarea></div>
+  <button type="submit" style="width:100%;background:linear-gradient(135deg,var(--gold),var(--amber));color:var(--ink);padding:14px;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-weight:800;font-size:.95rem;cursor:pointer;">Register as Seller →</button>
+</form></div>
+{% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function toggleCat(el){
+  const sel=el.style.borderColor==='var(--lime)';
+  el.style.borderColor=sel?'rgba(255,255,255,.1)':'var(--lime)';
+  el.style.color=sel?'rgba(255,255,255,.6)':'var(--lime)';
+  el.style.background=sel?'rgba(255,255,255,.04)':'rgba(46,139,74,.1)';
+  el.previousElementSibling.checked=!sel;
+}
+</script>
+{% endblock %}

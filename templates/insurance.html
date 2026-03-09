@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Farm Insurance{% endblock %}
+{% block head %}<style>
+.pg-eyebrow{font-family:"Syne",sans-serif;font-size:.62rem;color:var(--lime);text-transform:uppercase;letter-spacing:2px;margin-bottom:5px;}
+.pg-title{font-family:"Cormorant Garamond",serif;font-size:clamp(1.6rem,3vw,2.2rem);font-weight:800;color:white;margin:0;}
+.panel{background:rgba(8,20,12,.9);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:22px;margin-bottom:16px;}
+.panel-title{font-family:"Syne",sans-serif;font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.3);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
+.card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:16px;transition:all .2s;}
+.card:hover{border-color:rgba(255,255,255,.14);transform:translateY(-2px);}
+.sf-input{background:rgba(20,40,25,.95);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:10px 13px;color:white;font-family:"DM Sans",sans-serif;font-size:.84rem;outline:none;width:100%;box-sizing:border-box;transition:border-color .2s;}
+.sf-input:focus{border-color:rgba(46,139,74,.4);}
+.sf-label{font-family:"Syne",sans-serif;font-size:.7rem;color:rgba(255,255,255,.35);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
+.btn-green{background:linear-gradient(135deg,var(--lime),#4DB86A);color:white;border:none;padding:10px 22px;border-radius:10px;font-family:"Syne",sans-serif;font-weight:700;cursor:pointer;font-size:.84rem;}
+.btn-cyan{background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.2);color:#22d3ee;padding:9px 18px;border-radius:9px;font-family:"Syne",sans-serif;font-weight:700;cursor:pointer;font-size:.8rem;text-decoration:none;display:inline-block;}
+.btn-amber{background:rgba(212,160,23,.1);border:1px solid rgba(212,160,23,.2);color:var(--amber);padding:9px 18px;border-radius:9px;font-family:"Syne",sans-serif;font-weight:700;cursor:pointer;font-size:.8rem;text-decoration:none;display:inline-block;}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-family:"Syne",sans-serif;font-size:.62rem;font-weight:700;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:768px){.grid2{grid-template-columns:1fr;}}
+.flash-ok{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.18);color:#4ade80;padding:11px 16px;border-radius:9px;margin-bottom:14px;font-size:.84rem;}
+.flash-err{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.18);color:#f87171;padding:11px 16px;border-radius:9px;margin-bottom:14px;font-size:.84rem;}
+
+
+.plan-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:18px;cursor:pointer;transition:all .2s;}
+.plan-card:hover{border-color:rgba(46,139,74,.3);transform:translateY(-2px);}
+.plan-card.selected{border-color:rgba(46,139,74,.5);background:rgba(46,139,74,.07);}
+</style>{% endblock %}
+{% block content %}
+{% with msgs=get_flashed_messages(with_categories=true) %}{% for c,m in msgs %}<div class="flash-{{ 'ok' if c=='success' else 'err' }}">{{ m }}</div>{% endfor %}{% endwith %}
+<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+  <div><div class="pg-eyebrow">Risk Management</div><h1 class="pg-title">🛡️ Farm Insurance</h1><div style="font-size:.78rem;color:rgba(255,255,255,.3);margin-top:4px;">Index-based crop & livestock insurance · Paid via M-Pesa</div></div>
+</div>
+<div style="background:rgba(212,160,23,.04);border:1px solid rgba(212,160,23,.12);border-radius:12px;padding:14px 18px;margin-bottom:20px;font-size:.82rem;color:rgba(255,255,255,.5);">
+  🛡️ Plantain AI partners with <strong style="color:rgba(255,255,255,.7);">Pula Advisors, UAP, Jubilee & CIC Insurance</strong>. Premiums are paid via M-Pesa. Claims are triggered automatically by satellite weather data — no paperwork needed.
+</div>
+<!-- Available Plans -->
+<div class="panel">
+  <div class="panel-title">Available Plans</div>
+  <div class="card-grid">
+    {% for key, plan in plans.items() %}
+    <div class="plan-card" onclick="selectPlan('{{ key }}', this)">
+      <div style="font-size:1.4rem;margin-bottom:8px;">{% if 'maize' in key %}🌽{% elif 'livestock' in key %}🐄{% elif 'horticulture' in key %}🥦{% else %}🌾{% endif %}</div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.86rem;margin-bottom:4px;">{{ plan.name }}</div>
+      <div style="font-size:.75rem;color:rgba(255,255,255,.4);margin-bottom:8px;">{{ plan.provider }}</div>
+      {% if plan.get('premium_per_acre') %}
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--lime);">KSh {{ '{:,}'.format(plan.premium_per_acre) }}<span style="font-size:.72rem;color:rgba(255,255,255,.3);font-family:'DM Sans';">/acre/season</span></div>
+      <div style="font-size:.72rem;color:rgba(255,255,255,.35);margin-top:2px;">Cover: KSh {{ '{:,}'.format(plan.cover_per_acre) }}/acre</div>
+      {% else %}
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--lime);">KSh {{ '{:,}'.format(plan.premium_per_head) }}<span style="font-size:.72rem;color:rgba(255,255,255,.3);font-family:'DM Sans';">/head/season</span></div>
+      <div style="font-size:.72rem;color:rgba(255,255,255,.35);margin-top:2px;">Cover: KSh {{ '{:,}'.format(plan.cover_per_head) }}/head</div>
+      {% endif %}
+      <div style="font-size:.7rem;color:rgba(255,255,255,.3);margin-top:6px;font-style:italic;">Trigger: {{ plan.trigger }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+<!-- Apply Form -->
+<div class="panel" id="applyPanel" style="display:none;">
+  <div class="panel-title">Apply for Insurance</div>
+  <form method="POST" action="{{ url_for('insurance_apply') }}" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end;">
+    <input type="hidden" name="plan_key" id="selectedPlan">
+    <div><label class="sf-label">Acres</label><input type="number" class="sf-input" name="acres" value="1" min="0.5" step="0.5"></div>
+    <div><label class="sf-label">No. of Heads (livestock)</label><input type="number" class="sf-input" name="heads" value="0"></div>
+    <div><label class="sf-label">County</label><input class="sf-input" name="county" placeholder="Your county"></div>
+    <button type="submit" class="btn-green">Apply & Pay</button>
+  </form>
+  <div id="premiumCalc" style="margin-top:12px;font-size:.84rem;color:rgba(255,255,255,.5);"></div>
+</div>
+<!-- My Policies -->
+{% if my_policies %}
+<div class="panel">
+  <div class="panel-title">My Policies</div>
+  {% for p in my_policies %}
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04);flex-wrap:wrap;gap:8px;">
+    <div>
+      <div style="font-size:.88rem;font-weight:600;color:white;">{{ p.plan_name }}</div>
+      <div style="font-size:.74rem;color:rgba(255,255,255,.35);">{{ p.county }} · {{ p.acres }}ac · {{ p.provider }}</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--amber);">Cover: KSh {{ '{:,}'.format((p.cover_amount or 0)|int) }}</div>
+      <span class="badge" style="background:rgba({% if p.status=='active' %}74,222,128{% elif p.status=='pending_payment' %}251,191,36{% else %}248,113,113{% endif %},.1);color:{% if p.status=='active' %}#4ade80{% elif p.status=='pending_payment' %}#fbbf24{% else %}#f87171{% endif %};">{{ p.status|replace('_',' ')|upper }}</span>
+    </div>
+    {% if p.status == 'active' %}
+    <form method="POST" action="{{ url_for('insurance_claim') }}" style="display:flex;gap:8px;width:100%;">
+      <input type="hidden" name="policy_id" value="{{ p.id }}">
+      <input class="sf-input" name="event" placeholder="Describe the loss event..." style="flex:1;" required>
+      <button type="submit" style="background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);color:#f87171;padding:9px 16px;border-radius:8px;font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;cursor:pointer;">File Claim</button>
+    </form>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script>
+const plans = {{ plans | tojson }};
+function selectPlan(key, el){
+  document.querySelectorAll('.plan-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('selectedPlan').value=key;
+  document.getElementById('applyPanel').style.display='';
+  document.getElementById('applyPanel').scrollIntoView({behavior:'smooth'});
+}
+</script>
+{% endblock %}

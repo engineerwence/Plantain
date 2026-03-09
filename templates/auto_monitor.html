@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+{% block title %}Auto Monitor — Unattended Farm{% endblock %}
+{% block content %}
+<style>
+.am-card{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.am-alert{display:flex;align-items:flex-start;gap:14px;padding:14px 18px;border-radius:12px;margin-bottom:10px;}
+.am-alert.health{background:rgba(198,40,40,.12);border:1px solid rgba(198,40,40,.3);}
+.am-alert.sensor{background:rgba(8,145,178,.12);border:1px solid rgba(8,145,178,.3);}
+.am-alert.crop{background:rgba(46,139,74,.12);border:1px solid rgba(46,139,74,.3);}
+.am-alert.vaccine{background:rgba(124,58,237,.12);border:1px solid rgba(124,58,237,.3);}
+.am-alert.milk{background:rgba(212,160,23,.12);border:1px solid rgba(212,160,23,.3);}
+.am-alert.market{background:rgba(46,139,74,.15);border:1px solid rgba(46,139,74,.4);}
+.am-icon{font-size:1.8rem;flex-shrink:0;margin-top:2px;}
+.am-title{font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:.9rem;margin-bottom:3px;}
+.am-msg{font-size:.8rem;color:rgba(255,255,255,.6);line-height:1.4;}
+.am-btn{display:inline-block;margin-top:8px;padding:5px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:20px;font-size:.75rem;color:rgba(255,255,255,.8);text-decoration:none;font-family:'Syne',sans-serif;}
+.am-btn:hover{background:rgba(255,255,255,.14);color:white;}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:24px;}
+.stat-box{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;}
+.stat-val{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:700;color:var(--lime);}
+.stat-lbl{font-size:.72rem;color:var(--muted);margin-top:4px;}
+.pulse{animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.live-dot{display:inline-block;width:8px;height:8px;background:#4ade80;border-radius:50%;margin-right:6px;}
+</style>
+
+<!-- Header -->
+<div class="fu" style="margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+  <div>
+    <div class="ptag">🤖 Shamba Intelligence Pro</div>
+    <h1 class="ptitle">Auto Farm Monitor</h1>
+    <p class="psub">Your farm is being watched 24/7 — even when you're not there</p>
+  </div>
+  <div style="text-align:right;">
+    <div style="font-size:.75rem;color:var(--muted);">Status</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:700;color:#4ade80;font-size:.85rem;">
+      <span class="live-dot pulse"></span>MONITORING ACTIVE
+    </div>
+    <div style="font-size:.7rem;color:var(--muted);margin-top:2px;" id="lastRefresh">Last checked: just now</div>
+  </div>
+</div>
+
+<!-- What this does for small-scale farmers -->
+<div style="background:linear-gradient(135deg,rgba(26,77,46,.6),rgba(26,77,46,.3));border:1px solid rgba(46,139,74,.3);border-radius:14px;padding:20px 24px;margin-bottom:24px;">
+  <div style="font-family:'Syne',sans-serif;font-size:.7rem;color:var(--lime);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">How This Protects Your Farm</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
+    {% for icon, title, desc in [
+      ('🌿','Crop Health Checks','Flags crops not diagnosed in 14+ days'),
+      ('💧','Soil Moisture Alerts','Triggers irrigation automatically when dry'),
+      ('🐄','Livestock Health','Alerts when animal health score drops below 3'),
+      ('🥛','Milk Drop Detection','Catches production drops above 20%'),
+      ('💉','Vaccine Reminders','Alerts when vaccination is overdue (90+ days)'),
+      ('💰','Market Timing','Flags when your crop prices are rising'),
+    ] %}
+    <div style="display:flex;align-items:flex-start;gap:10px;">
+      <span style="font-size:1.3rem;">{{ icon }}</span>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;color:white;">{{ title }}</div>
+        <div style="font-size:.72rem;color:var(--muted);">{{ desc }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Live alert count stats -->
+<div class="stat-grid">
+  <div class="stat-box">
+    <div class="stat-val" style="color:{% if alerts|selectattr('type','eq','health')|list|length > 0 %}#f87171{% else %}#4ade80{% endif %};">
+      {{ alerts|selectattr('type','eq','health')|list|length }}
+    </div>
+    <div class="stat-lbl">Health Alerts</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-val" style="color:#22d3ee;">{{ alerts|selectattr('type','eq','sensor')|list|length }}</div>
+    <div class="stat-lbl">Sensor Alerts</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-val" style="color:#a78bfa;">{{ alerts|selectattr('type','eq','vaccine')|list|length }}</div>
+    <div class="stat-lbl">Vaccine Due</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-val" style="color:var(--amber);">{{ alerts|selectattr('type','eq','milk')|list|length }}</div>
+    <div class="stat-lbl">Production Drops</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-val" style="color:var(--lime);">{{ alerts|selectattr('type','eq','market')|list|length }}</div>
+    <div class="stat-lbl">Market Opportunities</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-val">{{ alerts|length }}</div>
+    <div class="stat-lbl">Total Alerts</div>
+  </div>
+</div>
+
+<!-- Active Alerts -->
+<div style="margin-bottom:24px;">
+  <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;margin-bottom:14px;font-size:1rem;">
+    🔔 Active Alerts
+    {% if alerts %}<span style="background:rgba(198,40,40,.3);color:#f87171;padding:2px 10px;border-radius:20px;font-size:.72rem;margin-left:8px;">{{ alerts|length }} issues found</span>{% endif %}
+  </div>
+
+  {% if alerts %}
+    {% for alert in alerts %}
+    <div class="am-alert {{ alert.type }}">
+      <div class="am-icon">{{ alert.icon }}</div>
+      <div style="flex:1;">
+        <div class="am-title">{{ alert.title }}</div>
+        <div class="am-msg">{{ alert.msg }}</div>
+        <a href="{{ alert.url }}" class="am-btn">→ {{ alert.action }}</a>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div style="background:rgba(46,139,74,.08);border:1px solid rgba(46,139,74,.2);border-radius:12px;padding:32px;text-align:center;">
+      <div style="font-size:2.5rem;margin-bottom:10px;">✅</div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;margin-bottom:6px;">All Clear</div>
+      <div style="font-size:.83rem;color:var(--muted);">No issues detected. Your farm looks healthy.</div>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Animal & Product Prices -->
+{% if animal_prices %}
+<div style="margin-bottom:24px;">
+  <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;margin-bottom:14px;font-size:1rem;">📊 Live Animal & Product Prices</div>
+  {% set categories = ['dairy','beef','poultry','bees','pigs','fish','sheep'] %}
+  {% for cat in categories %}
+  {% set cat_items = animal_prices.items()|selectattr('1.category','eq',cat)|list %}
+  {% if cat_items %}
+  <div style="margin-bottom:16px;">
+    <div style="font-family:'Syne',sans-serif;font-size:.72rem;color:var(--lime);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">
+      {% if cat=='dairy' %}🥛 Dairy{% elif cat=='beef' %}🥩 Beef & Goats{% elif cat=='poultry' %}🐔 Poultry{% elif cat=='bees' %}🍯 Honey & Bees{% elif cat=='pigs' %}🐷 Pigs{% elif cat=='fish' %}🐟 Fish{% else %}🐑 Sheep{% endif %}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;">
+    {% for name, p in cat_items %}
+    <div class="am-card" style="padding:14px 16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <div style="font-family:'Syne',sans-serif;font-size:.82rem;font-weight:700;color:white;">{{ p.emoji }} {{ name|title }}</div>
+        <span style="font-size:.7rem;padding:2px 8px;border-radius:10px;
+          background:{% if p.trend=='rising' %}rgba(46,139,74,.2){% elif p.trend=='falling' %}rgba(198,40,40,.2){% else %}rgba(255,255,255,.06){% endif %};
+          color:{% if p.trend=='rising' %}#4ade80{% elif p.trend=='falling' %}#f87171{% else %}var(--muted){% endif %};">
+          {% if p.trend=='rising' %}▲ Rising{% elif p.trend=='falling' %}▼ Falling{% else %}→ Stable{% endif %}
+        </span>
+      </div>
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:8px;">{{ p.price_unit }}</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;text-align:center;">
+        <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:6px;">
+          <div style="font-family:'Syne',sans-serif;font-size:.85rem;font-weight:700;color:var(--lime);">{{ p.farm_gate }}</div>
+          <div style="font-size:.65rem;color:var(--muted);">Farm Gate</div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:6px;">
+          <div style="font-family:'Syne',sans-serif;font-size:.85rem;font-weight:700;color:var(--amber);">{{ p.wholesale }}</div>
+          <div style="font-size:.65rem;color:var(--muted);">Wholesale</div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:6px;">
+          <div style="font-family:'Syne',sans-serif;font-size:.85rem;font-weight:700;color:white;">{{ p.retail }}</div>
+          <div style="font-size:.65rem;color:var(--muted);">Retail</div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Smart Devices Status -->
+{% if devices %}
+<div style="margin-bottom:24px;">
+  <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;margin-bottom:14px;font-size:1rem;">🤖 Device Status</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;">
+  {% for d in devices %}
+  <div class="am-card" style="padding:14px;text-align:center;">
+    <div style="font-size:1.6rem;margin-bottom:6px;">
+      {% if d.device_type=='irrigation' %}💧{% elif d.device_type=='drone' %}🚁{% elif d.device_type=='sensor' %}📡{% elif d.device_type=='greenhouse' %}🌡️{% else %}⚙️{% endif %}
+    </div>
+    <div style="font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;color:white;margin-bottom:4px;">{{ d.device_name }}</div>
+    <div style="font-size:.7rem;color:var(--muted);margin-bottom:8px;">Zone {{ d.zone }}</div>
+    <span style="padding:3px 12px;border-radius:20px;font-size:.72rem;font-family:'Syne',sans-serif;font-weight:700;
+      background:{% if d.status=='on' %}rgba(74,222,128,.2){% elif d.status=='auto' %}rgba(8,145,178,.2){% else %}rgba(255,255,255,.06){% endif %};
+      color:{% if d.status=='on' %}#4ade80{% elif d.status=='auto' %}#22d3ee{% else %}var(--muted){% endif %};">
+      {{ d.status|upper }}
+    </span>
+  </div>
+  {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- AI Recommendations -->
+<div class="am-card" style="margin-bottom:24px;">
+  <div style="font-family:'Syne',sans-serif;font-size:.7rem;color:var(--lime);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">🤖 Shamba Intelligence Pro — Unattended Farm Tips</div>
+  {% for tip in [
+    ('Morning (6am–8am)', 'Best time for soil moisture checks and crop inspection. Diseases show early symptoms in morning light.'),
+    ('Midday (12pm–2pm)', 'Check soil temperature sensor. Irrigate before 10am or after 4pm to reduce evaporation loss by 30%.'),
+    ('Evening (6pm–8pm)', 'Record milk production, egg count and animal feed intake. Log in the app for AI trend detection.'),
+    ('Weekly', 'Weigh livestock, inspect hive strength, check water quality for fish. Upload one crop photo per field.'),
+    ('Monthly', 'Deworm livestock, test soil pH, review production records to spot any downward trends early.'),
+  ] %}
+  <div style="display:flex;gap:12px;margin-bottom:10px;">
+    <div style="font-family:'Syne',sans-serif;font-size:.72rem;font-weight:700;color:var(--amber);min-width:110px;flex-shrink:0;">{{ tip[0] }}</div>
+    <div style="font-size:.8rem;color:rgba(255,255,255,.65);line-height:1.5;">{{ tip[1] }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Refresh button -->
+<div style="text-align:center;margin-bottom:32px;">
+  <button onclick="location.reload()" class="bg" style="padding:12px 32px;">
+    🔄 Refresh Monitoring Data
+  </button>
+  <a href="{{ url_for('smart_farm') }}" class="bgg" style="padding:12px 32px;margin-left:12px;">
+    ⚙️ Smart Farm Control
+  </a>
+</div>
+
+<script>
+// Auto-refresh every 5 minutes
+let countdown = 300;
+const el = document.getElementById('lastRefresh');
+setInterval(()=>{
+  countdown--;
+  if(countdown <= 0){ location.reload(); }
+  const m = Math.floor(countdown/60);
+  const s = countdown%60;
+  if(el) el.textContent = `Next check in ${m}:${s.toString().padStart(2,'0')}`;
+}, 1000);
+</script>
+{% endblock %}

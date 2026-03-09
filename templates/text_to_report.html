@@ -1,0 +1,80 @@
+﻿{% extends "base.html" %}
+{% block title %}Text to Report{% endblock %}
+{% block content %}
+<div style="max-width:720px;margin:0 auto;">
+
+  <div class="fu" style="margin-bottom:28px;">
+    <div class="ptag">AI Report Generator</div>
+    <h1 class="ptitle">Convert Text to PDF Report</h1>
+    <p class="psub">Paste any farm notes, observations, or diagnosis results — AI structures them into a professional printable report.</p>
+  </div>
+
+  {% if error %}
+  <div style="background:rgba(220,53,69,.1);border:1px solid rgba(220,53,69,.3);border-radius:10px;padding:14px 18px;margin-bottom:20px;color:#dc3545;font-size:.88rem;">⚠️ {{ error }}</div>
+  {% endif %}
+
+  <div class="pc fu fu1" style="padding:32px;">
+    <form method="POST" action="{{ url_for('text_to_report') }}" id="reportForm">
+
+      <div class="mb-4">
+        <label class="plbl">Report Title</label>
+        <input type="text" name="report_title" class="pip"
+               placeholder="e.g. Weekly Farm Inspection, Monthly Crop Report..."
+               value="Farm Report">
+      </div>
+
+      <div class="mb-4">
+        <label class="plbl">Paste Your Notes or Text</label>
+        <textarea name="raw_text" class="pip" rows="12"
+                  style="resize:vertical;font-family:monospace;font-size:.85rem;"
+                  placeholder="Paste anything here — field observations, diagnosis notes, crop updates, weather notes, market prices...
+
+Example:
+Visited maize field today. North section showing yellowing on leaves. About 30% of plants affected. 
+Tomato crop looks healthy, ready to harvest in 2 weeks.
+Beans need more water, dry spell affecting growth.
+Prices for maize at KSh 42/kg today in Nakuru market.
+Need to apply fertiliser to cassava field this week."
+                  required></textarea>
+        <p style="font-size:.76rem;color:var(--muted);margin-top:6px;">AI will structure this into: Summary, Observations, Issues, Recommendations, Conclusion</p>
+      </div>
+
+      <div style="background:rgba(46,139,74,.06);border:1px solid rgba(46,139,74,.12);border-radius:12px;padding:14px 18px;margin-bottom:24px;">
+        <p style="font-family:'Syne',sans-serif;font-size:.75rem;font-weight:700;color:var(--lime);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">
+          <i class="fas fa-lightbulb me-2" style="color:var(--amber);"></i>What you can convert
+        </p>
+        <ul style="margin:0;padding-left:18px;color:var(--muted);font-size:.83rem;line-height:1.9;">
+          <li>Field inspection notes from your workers</li>
+          <li>WhatsApp messages about crop conditions</li>
+          <li>Diagnosis results you want to share with buyers or banks</li>
+          <li>Market price observations</li>
+          <li>Any unstructured farming notes</li>
+        </ul>
+      </div>
+
+      <button type="submit" id="genBtn" class="bg w-100 justify-content-center" style="padding:15px;font-size:.95rem;">
+        <i class="fas fa-file-pdf"></i> Generate PDF Report
+      </button>
+    </form>
+  </div>
+
+  <div style="margin-top:16px;text-align:center;">
+    <p style="color:var(--muted);font-size:.83rem;">
+      Want your full farm data as PDF?
+      <a href="{{ url_for('farm_report_pdf') }}" style="color:var(--lime);text-decoration:none;font-weight:600;">
+        <i class="fas fa-download me-1"></i>Download Full Farm Report PDF →
+      </a>
+    </p>
+  </div>
+
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('reportForm').addEventListener('submit', function(){
+  const b = document.getElementById('genBtn');
+  b.disabled = true;
+  b.innerHTML = '<i class="fas fa-spinner fa-spin"></i> AI is writing your report...';
+});
+</script>
+{% endblock %}

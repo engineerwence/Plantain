@@ -1,0 +1,457 @@
+﻿{% extends "base.html" %}
+{% block title %}Dashboard — Plantain AI{% endblock %}
+
+{% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+/* ── IoT Dashboard Styles ──────────────────────────── */
+.iot-grid{display:grid;gap:16px;}
+.iot-card{background:rgba(8,20,12,.85);border:1px solid rgba(46,139,74,.18);border-radius:16px;padding:20px;position:relative;overflow:hidden;transition:border-color .2s;}
+.iot-card:hover{border-color:rgba(46,139,74,.4);}
+.iot-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(46,139,74,.5),transparent);}
+.iot-label{font-family:'Syne',sans-serif;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.35);margin-bottom:4px;}
+.iot-value{font-family:'Syne',sans-serif;font-size:2.4rem;font-weight:800;line-height:1;color:white;}
+.iot-unit{font-size:.9rem;color:rgba(255,255,255,.4);margin-left:3px;}
+.iot-sub{font-size:.72rem;color:rgba(255,255,255,.35);margin-top:4px;}
+.iot-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-family:'Syne',sans-serif;font-size:.65rem;font-weight:700;letter-spacing:.5px;}
+.badge-ok{background:rgba(46,139,74,.15);border:1px solid rgba(46,139,74,.3);color:#4ade80;}
+.badge-warn{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.25);color:#FBB024;}
+.badge-alert{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.25);color:#F87171;}
+
+/* Gauge */
+.gauge-wrap{position:relative;width:160px;height:90px;margin:0 auto;}
+.gauge-svg{width:160px;height:100px;}
+.gauge-val{position:absolute;bottom:0;left:50%;transform:translateX(-50%);text-align:center;}
+
+/* Pulse dot */
+.pulse-dot{width:8px;height:8px;border-radius:50%;background:#4ade80;display:inline-block;animation:pulseDot 2s infinite;}
+@keyframes pulseDot{0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,.4);}50%{box-shadow:0 0 0 6px rgba(74,222,128,0);}}
+
+/* Slider indicator */
+.slider-track{position:relative;height:120px;width:28px;background:rgba(255,255,255,.06);border-radius:14px;border:1px solid rgba(255,255,255,.08);margin:0 auto;}
+.slider-fill{position:absolute;bottom:0;left:0;right:0;border-radius:14px;transition:height .8s ease;background:linear-gradient(180deg,var(--lime),rgba(46,139,74,.3));}
+.slider-marker{position:absolute;left:50%;transform:translateX(-50%);width:22px;height:22px;border-radius:50%;background:var(--lime);border:3px solid rgba(8,20,12,.9);box-shadow:0 0 10px rgba(74,222,128,.5);transition:bottom .8s ease;}
+.slider-val{font-family:'Syne',sans-serif;font-weight:800;font-size:.85rem;color:var(--lime);text-align:center;margin-top:6px;}
+.slider-label{font-family:'Syne',sans-serif;font-size:.6rem;color:rgba(255,255,255,.3);text-align:center;text-transform:uppercase;letter-spacing:.5px;}
+
+/* Spinner */
+.spinner-ring{animation:spinRing 3s linear infinite;}
+@keyframes spinRing{from{stroke-dashoffset:0;}to{stroke-dashoffset:-283;}}
+
+/* Crop row */
+.crop-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.crop-row:last-child{border:none;}
+
+/* Alert item */
+.alert-item{display:flex;align-items:flex-start;gap:12px;padding:12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:10px;margin-bottom:8px;}
+.alert-item.disease{border-left:3px solid #F87171;}
+.alert-item.harvest{border-left:3px solid #4ade80;}
+.alert-item.price{border-left:3px solid var(--amber);}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── HEADER BAR ──────────────────────────────────── -->
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+  <div>
+    <div style="font-family:'Syne',sans-serif;font-size:.68rem;font-weight:700;color:var(--lime);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px;">
+      <span class="pulse-dot"></span> &nbsp;Farm Monitoring · Live
+    </div>
+    <h1 style="font-family:'Cormorant Garamond',serif;font-size:2rem;color:white;margin:0;line-height:1;">{{ session['user_name'] }}</h1>
+    <div style="font-size:.78rem;color:rgba(255,255,255,.35);margin-top:2px;">Your autonomous AI is actively monitoring your farm</div>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;">
+    <div id="clockDisplay" style="font-family:'Syne',sans-serif;font-size:.78rem;color:rgba(255,255,255,.3);"></div>
+    <button class="bg" data-bs-toggle="modal" data-bs-target="#addCropModal"><i class="fas fa-plus"></i> Add Crop</button>
+  </div>
+</div>
+
+<!-- ── ROW 1: KPI GAUGES ───────────────────────────── -->
+<div class="iot-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-bottom:16px;">
+
+  <!-- Water / Soil moisture gauge -->
+  <div class="iot-card" style="text-align:center;">
+    <div class="iot-label">Soil Health Score</div>
+    <div class="gauge-wrap">
+      <svg class="gauge-svg" viewBox="0 0 160 100">
+        <path d="M20,90 A70,70 0 0,1 140,90" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="14" stroke-linecap="round"/>
+        <path id="soilGauge" d="M20,90 A70,70 0 0,1 140,90" fill="none" stroke="url(#soilGrad)" stroke-width="14" stroke-linecap="round" stroke-dasharray="220" stroke-dashoffset="220"/>
+        <defs>
+          <linearGradient id="soilGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#F87171"/>
+            <stop offset="50%" stop-color="#FBB024"/>
+            <stop offset="100%" stop-color="#4ade80"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <div class="gauge-val">
+        <div style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:white;line-height:1;" id="soilVal">--</div>
+        <div style="font-size:.65rem;color:rgba(255,255,255,.3);">/ 100</div>
+      </div>
+    </div>
+    <div class="iot-sub" style="margin-top:8px;">Based on crop diagnoses</div>
+  </div>
+
+  <!-- Temperature -->
+  <div class="iot-card" style="text-align:center;">
+    <div class="iot-label">Outside Temperature</div>
+    <div style="margin:12px 0;">
+      <div class="iot-value" id="tempVal" style="color:#FBB024;">--<span class="iot-unit">°C</span></div>
+    </div>
+    <div style="width:100%;height:4px;background:rgba(255,255,255,.06);border-radius:4px;margin:10px 0;">
+      <div id="tempBar" style="height:4px;border-radius:4px;background:linear-gradient(90deg,#4ade80,#FBB024,#F87171);transition:width .8s;width:0%;"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:.65rem;color:rgba(255,255,255,.25);">
+      <span>0°</span><span>25°</span><span>50°</span>
+    </div>
+    <div class="iot-sub" id="tempDesc" style="margin-top:8px;">Loading...</div>
+  </div>
+
+  <!-- Humidity -->
+  <div class="iot-card" style="text-align:center;">
+    <div class="iot-label">Humidity</div>
+    <div style="margin:12px 0 6px;">
+      <div class="iot-value" id="humVal" style="color:rgba(56,189,248,.9);">--<span class="iot-unit">%</span></div>
+    </div>
+    <svg viewBox="0 0 100 6" style="width:100%;margin:8px 0;">
+      <rect width="100" height="6" rx="3" fill="rgba(255,255,255,.06)"/>
+      <rect id="humBar" width="0" height="6" rx="3" fill="rgba(56,189,248,.7)"/>
+    </svg>
+    <div class="iot-sub" id="humDesc">Loading...</div>
+  </div>
+
+  <!-- Active crops -->
+  <div class="iot-card" style="text-align:center;">
+    <div class="iot-label">Active Crops</div>
+    <div style="margin:16px 0 8px;">
+      <div class="iot-value" style="color:var(--lime);">{{ total_crops }}<span class="iot-unit">crops</span></div>
+    </div>
+    <div style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:8px;">
+      {% for crop in crops[:4] %}
+      <span class="iot-badge badge-ok">{{ crop.crop_type[:10] }}</span>
+      {% endfor %}
+      {% if crops|length > 4 %}<span class="iot-badge" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4);">+{{ crops|length - 4 }} more</span>{% endif %}
+    </div>
+  </div>
+
+  <!-- Diagnoses -->
+  <div class="iot-card" style="text-align:center;">
+    <div class="iot-label">AI Diagnoses</div>
+    <div style="margin:16px 0 8px;">
+      <div class="iot-value" style="color:var(--amber);">{{ total_diagnoses }}</div>
+    </div>
+    <div class="iot-badge badge-ok" style="margin:0 auto;display:inline-flex;">
+      <i class="fas fa-robot" style="font-size:.6rem;"></i> Autonomous
+    </div>
+  </div>
+
+  <!-- Alerts -->
+  <div class="iot-card" style="text-align:center;">
+    <div class="iot-label">Unread Alerts</div>
+    <div style="margin:16px 0 8px;">
+      <div class="iot-value" style="color:{% if unread_alerts > 0 %}#F87171{% else %}#4ade80{% endif %};">{{ unread_alerts }}</div>
+    </div>
+    {% if unread_alerts > 0 %}
+    <span class="iot-badge badge-alert"><i class="fas fa-bell" style="font-size:.6rem;"></i> Action needed</span>
+    {% else %}
+    <span class="iot-badge badge-ok"><i class="fas fa-check" style="font-size:.6rem;"></i> All clear</span>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- ── ROW 2: CHART + SLIDERS + SPINNERS ──────────── -->
+<div class="iot-grid" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:16px;">
+
+  <!-- Temperature & Humidity Chart (col-span 2) -->
+  <div class="iot-card" style="grid-column:span 2;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div class="iot-label" style="margin:0;">Temperature & Humidity — Live</div>
+      <div style="display:flex;gap:14px;font-size:.72rem;">
+        <span style="color:#FBB024;"><span style="display:inline-block;width:20px;height:2px;background:#FBB024;vertical-align:middle;margin-right:4px;"></span>Temperature</span>
+        <span style="color:rgba(56,189,248,.8);"><span style="display:inline-block;width:20px;height:2px;background:rgba(56,189,248,.8);vertical-align:middle;margin-right:4px;"></span>Humidity</span>
+      </div>
+    </div>
+    <canvas id="weatherChart" height="90"></canvas>
+  </div>
+
+  <!-- Water level spinner -->
+  <div class="iot-card" style="text-align:center;">
+    <div class="iot-label">Rainfall Level</div>
+    <div style="position:relative;width:110px;height:110px;margin:12px auto;">
+      <svg viewBox="0 0 110 110" width="110" height="110">
+        <circle cx="55" cy="55" r="45" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="10"/>
+        <circle id="rainfallRing" cx="55" cy="55" r="45" fill="none" stroke="rgba(56,189,248,.7)" stroke-width="10"
+          stroke-linecap="round" stroke-dasharray="283" stroke-dashoffset="283"
+          transform="rotate(-90 55 55)" style="transition:stroke-dashoffset .8s ease;"/>
+        <text x="55" y="50" text-anchor="middle" font-family="Syne,sans-serif" font-size="18" font-weight="800" fill="white" id="rainfallVal">--</text>
+        <text x="55" y="65" text-anchor="middle" font-family="Syne,sans-serif" font-size="9" fill="rgba(255,255,255,.35)">mm</text>
+      </svg>
+    </div>
+    <div class="iot-sub" id="rainfallDesc">Loading...</div>
+  </div>
+
+</div>
+
+<!-- ── ROW 3: SENSOR SLIDERS ──────────────────────── -->
+<div class="iot-grid" style="grid-template-columns:repeat(auto-fit,minmax(90px,1fr));margin-bottom:16px;">
+  {% set sensors = [
+    ('Wind', 'windVal', 'windFill', 'windMarker', 'km/h', 'rgba(255,255,255,.6)'),
+    ('Dew Point', 'dewVal', 'dewFill', 'dewMarker', '°C', '#4ade80'),
+    ('Rain', 'rainSVal', 'rainSFill', 'rainSMarker', 'mm', 'rgba(56,189,248,.8)'),
+    ('Humidity', 'humSVal', 'humSFill', 'humSMarker', '%', 'rgba(56,189,248,.6)'),
+    ('Temp', 'tempSVal', 'tempSFill', 'tempSMarker', '°C', '#FBB024'),
+  ] %}
+  {% for label, vid, vfill, vmark, unit, col in sensors %}
+  <div class="iot-card" style="text-align:center;padding:16px 12px;">
+    <div class="iot-label">{{ label }}</div>
+    <div class="slider-track">
+      <div class="slider-fill" id="{{ vfill }}" style="height:0%;background:linear-gradient(180deg,{{ col }},rgba(0,0,0,.1));"></div>
+      <div class="slider-marker" id="{{ vmark }}" style="bottom:calc(0% - 11px);background:{{ col }};box-shadow:0 0 10px {{ col }};"></div>
+    </div>
+    <div class="slider-val" id="{{ vid }}" style="color:{{ col }};">--</div>
+    <div class="slider-label">{{ unit }}</div>
+  </div>
+  {% endfor %}
+
+  <!-- Drip Irrigation Status -->
+  <div class="iot-card" style="text-align:center;padding:16px 12px;">
+    <div class="iot-label">Irrigation</div>
+    <div style="position:relative;width:70px;height:70px;margin:10px auto;">
+      <svg viewBox="0 0 70 70" width="70" height="70">
+        <circle cx="35" cy="35" r="28" fill="rgba(46,139,74,.1)" stroke="rgba(46,139,74,.2)" stroke-width="2"/>
+        <path id="irrigationArc" d="M35,7 A28,28 0 0,1 63,35" fill="none" stroke="#4ade80" stroke-width="5" stroke-linecap="round" class="spinner-ring"/>
+        <text x="35" y="32" text-anchor="middle" font-family="Syne,sans-serif" font-size="7" fill="rgba(255,255,255,.4)">DRIP</text>
+        <text x="35" y="43" text-anchor="middle" font-family="Syne,sans-serif" font-size="8" font-weight="800" fill="#4ade80">ON</text>
+      </svg>
+    </div>
+    <div class="slider-label">Active</div>
+  </div>
+
+  <!-- Sprinkler Status -->
+  <div class="iot-card" style="text-align:center;padding:16px 12px;">
+    <div class="iot-label">Sprinkler</div>
+    <div style="position:relative;width:70px;height:70px;margin:10px auto;">
+      <svg viewBox="0 0 70 70" width="70" height="70">
+        <circle cx="35" cy="35" r="28" fill="rgba(248,113,113,.05)" stroke="rgba(248,113,113,.15)" stroke-width="2"/>
+        <text x="35" y="32" text-anchor="middle" font-family="Syne,sans-serif" font-size="7" fill="rgba(255,255,255,.4)">SPRINKLER</text>
+        <text x="35" y="43" text-anchor="middle" font-family="Syne,sans-serif" font-size="8" font-weight="800" fill="rgba(248,113,113,.7)">OFF</text>
+      </svg>
+    </div>
+    <div class="slider-label">Standby</div>
+  </div>
+
+</div>
+
+<!-- ── ROW 4: CROPS + ALERTS ──────────────────────── -->
+<div class="iot-grid" style="grid-template-columns:1fr 1fr;">
+
+  <!-- My Crops -->
+  <div class="iot-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div class="iot-label" style="margin:0;">My Crops</div>
+      <button class="bgg" style="font-size:.72rem;padding:5px 12px;" data-bs-toggle="modal" data-bs-target="#addCropModal"><i class="fas fa-plus"></i></button>
+    </div>
+    {% if crops %}
+      {% for crop in crops %}
+      <div class="crop-row">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:{% if crop.status=='healthy' %}#4ade80{% elif crop.status=='at_risk' %}#FBB024{% else %}#F87171{% endif %};box-shadow:0 0 6px {% if crop.status=='healthy' %}rgba(74,222,128,.5){% elif crop.status=='at_risk' %}rgba(251,176,36,.5){% else %}rgba(248,113,113,.5){% endif %};flex-shrink:0;"></div>
+          <div>
+            <div style="font-size:.88rem;font-weight:600;color:white;">{{ crop.crop_type }}</div>
+            <div style="font-size:.7rem;color:rgba(255,255,255,.3);">Planted {{ crop.planting_date or 'N/A' }}</div>
+          </div>
+        </div>
+        <span class="iot-badge {% if crop.status=='healthy' %}badge-ok{% elif crop.status=='at_risk' %}badge-warn{% else %}badge-alert{% endif %}">{{ crop.status|replace('_',' ') }}</span>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div style="text-align:center;padding:30px 0;color:rgba(255,255,255,.3);font-size:.85rem;">No crops yet — add your first crop</div>
+    {% endif %}
+  </div>
+
+  <!-- Alerts -->
+  <div class="iot-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div class="iot-label" style="margin:0;">Autonomous Alerts</div>
+      <a href="{{ url_for('alerts') }}" style="font-size:.7rem;color:var(--lime);text-decoration:none;font-family:'Syne',sans-serif;font-weight:600;">View all →</a>
+    </div>
+    {% if alerts %}
+      {% for alert in alerts[:5] %}
+      <div class="alert-item {{ alert.alert_type }}">
+        <div style="font-size:1.1rem;line-height:1;flex-shrink:0;">{% if alert.alert_type=='disease' %}🦠{% elif alert.alert_type=='harvest' %}🌾{% elif alert.alert_type=='price' %}💰{% else %}⚠️{% endif %}</div>
+        <div>
+          <div style="font-size:.8rem;color:rgba(255,255,255,.75);line-height:1.4;">{{ alert.message[:100] }}{% if alert.message|length > 100 %}...{% endif %}</div>
+          <div style="font-size:.68rem;color:rgba(255,255,255,.25);margin-top:3px;">{{ alert.created_at }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div style="text-align:center;padding:30px 0;">
+        <div style="font-size:1.8rem;margin-bottom:8px;">✅</div>
+        <div style="color:rgba(255,255,255,.3);font-size:.82rem;">All clear — no alerts</div>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- ADD CROP MODAL -->
+<div class="modal fade" id="addCropModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="mtop d-flex justify-content-between align-items-center">
+        <h5>🌱 Add New Crop</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="mbody">
+        <form method="POST" action="{{ url_for('add_crop') }}">
+          <div class="mb-3">
+            <label class="plbl">Crop Name</label>
+            <input type="text" name="crop_type" class="pip" placeholder="e.g. Maize, Tomato, Kale..." required autocomplete="off" list="crop-suggestions">
+            <datalist id="crop-suggestions">
+              <option value="Maize"><option value="Tomato"><option value="Banana"><option value="Plantain">
+              <option value="Kale"><option value="Sukuma Wiki"><option value="Avocado"><option value="Beans">
+              <option value="Potato"><option value="Cassava"><option value="Mango"><option value="Coffee">
+              <option value="Tea"><option value="Rice"><option value="Sorghum"><option value="Peas">
+            </datalist>
+          </div>
+          <div class="mb-4">
+            <label class="plbl">Planting Date <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+            <input type="date" name="planting_date" class="pip">
+          </div>
+          <button type="submit" class="bg w-100 justify-content-center" style="padding:13px;">
+            <i class="fas fa-seedling"></i> Add Crop
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── Clock ──────────────────────────────────────────
+function updateClock(){
+  const n = new Date();
+  document.getElementById('clockDisplay').textContent =
+    n.toLocaleDateString('en-KE',{weekday:'short',day:'numeric',month:'short'}) + ' · ' +
+    n.toLocaleTimeString('en-KE',{hour:'2-digit',minute:'2-digit'});
+}
+updateClock(); setInterval(updateClock, 1000);
+
+// ── Soil health score from diagnoses ─────────────
+{% set ns = namespace(total=0, count=0) %}
+{% for crop in crops %}
+  {% if crop.status == 'healthy' %}{% set ns.total = ns.total + 90 %}{% set ns.count = ns.count + 1 %}
+  {% elif crop.status == 'at_risk' %}{% set ns.total = ns.total + 55 %}{% set ns.count = ns.count + 1 %}
+  {% else %}{% set ns.total = ns.total + 25 %}{% set ns.count = ns.count + 1 %}{% endif %}
+{% endfor %}
+{% if ns.count > 0 %}
+const SOIL_SCORE = Math.round({{ ns.total }} / {{ ns.count }});
+{% else %}
+const SOIL_SCORE = 75;
+{% endif %}
+
+// Animate gauge
+window.addEventListener('load', () => {
+  document.getElementById('soilVal').textContent = SOIL_SCORE;
+  const pct = SOIL_SCORE / 100;
+  setTimeout(() => {
+    document.getElementById('soilGauge').style.transition = 'stroke-dashoffset 1.2s ease';
+    document.getElementById('soilGauge').style.strokeDashoffset = 220 - (220 * pct);
+  }, 300);
+});
+
+// ── Weather data (Open-Meteo) ─────────────────────
+const tempHistory = [], humHistory = [], timeLabels = [];
+const MAX_POINTS = 10;
+
+function addPoint(temp, hum) {
+  const t = new Date().toLocaleTimeString('en-KE',{hour:'2-digit',minute:'2-digit'});
+  tempHistory.push(temp); humHistory.push(hum); timeLabels.push(t);
+  if(tempHistory.length > MAX_POINTS){ tempHistory.shift(); humHistory.shift(); timeLabels.shift(); }
+}
+
+// Chart
+const ctx = document.getElementById('weatherChart').getContext('2d');
+const weatherChart = new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: timeLabels,
+    datasets: [
+      { label:'Temperature', data: tempHistory, borderColor:'#FBB024', backgroundColor:'rgba(251,176,36,.08)', borderWidth:2, pointRadius:3, pointBackgroundColor:'#FBB024', tension:.4, fill:true },
+      { label:'Humidity',    data: humHistory,  borderColor:'rgba(56,189,248,.8)', backgroundColor:'rgba(56,189,248,.05)', borderWidth:2, pointRadius:3, pointBackgroundColor:'rgba(56,189,248,.8)', tension:.4, fill:true }
+    ]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:true,
+    plugins:{ legend:{display:false} },
+    scales:{
+      x:{ grid:{color:'rgba(255,255,255,.04)'}, ticks:{color:'rgba(255,255,255,.3)',font:{size:10}} },
+      y:{ grid:{color:'rgba(255,255,255,.04)'}, ticks:{color:'rgba(255,255,255,.3)',font:{size:10}} }
+    },
+    animation:{ duration:500 }
+  }
+});
+
+function updateChart(){ weatherChart.update(); }
+
+// Fetch weather
+async function fetchWeather(){
+  try {
+    const r = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-1.2921&longitude=36.8219&current=temperature_2m,relative_humidity_2m,precipitation,weathercode,windspeed_10m,dewpoint_2m&daily=precipitation_sum,temperature_2m_max,temperature_2m_min&timezone=Africa%2FNairobi&forecast_days=1');
+    const d = await r.json();
+    const c = d.current || {};
+    const temp = Math.round(c.temperature_2m || 22);
+    const hum  = Math.round(c.relative_humidity_2m || 60);
+    const wind = Math.round(c.windspeed_10m || 0);
+    const rain = Math.round((c.precipitation || 0) * 10) / 10;
+    const dew  = Math.round(c.dewpoint_2m || 15);
+
+    // Update KPI cards
+    document.getElementById('tempVal').textContent = temp + '°C';
+    document.getElementById('tempBar').style.width = Math.min(temp/50*100,100) + '%';
+    document.getElementById('tempDesc').textContent = temp > 32 ? 'Hot — irrigate early' : temp < 14 ? 'Cool — watch fungi' : 'Optimal range';
+
+    document.getElementById('humVal').textContent = hum + '%';
+    document.getElementById('humBar').setAttribute('width', hum);
+    document.getElementById('humDesc').textContent = hum > 80 ? 'High — disease risk' : hum < 30 ? 'Low — water crops' : 'Good humidity';
+
+    // Rainfall ring
+    const rainPct = Math.min(rain / 20, 1);
+    document.getElementById('rainfallRing').style.strokeDashoffset = 283 - (283 * rainPct);
+    document.getElementById('rainfallVal').textContent = rain;
+    document.getElementById('rainfallDesc').textContent = rain > 5 ? 'Hold off spraying' : rain > 0 ? 'Light rain' : 'No rainfall';
+
+    // Sliders
+    setSlider('windVal','windFill','windMarker', wind, 60, 'rgba(255,255,255,.6)');
+    setSlider('dewVal','dewFill','dewMarker', dew, 30, '#4ade80');
+    setSlider('rainSVal','rainSFill','rainSMarker', rain, 20, 'rgba(56,189,248,.8)');
+    setSlider('humSVal','humSFill','humSMarker', hum, 100, 'rgba(56,189,248,.6)');
+    setSlider('tempSVal','tempSFill','tempSMarker', temp, 50, '#FBB024');
+
+    // Add to chart
+    addPoint(temp, hum);
+    updateChart();
+
+  } catch(e) { console.log('Weather error', e); }
+}
+
+function setSlider(valId, fillId, markId, value, max, color){
+  const pct = Math.min(value / max * 100, 100);
+  document.getElementById(valId).textContent = value;
+  document.getElementById(fillId).style.height = pct + '%';
+  document.getElementById(markId).style.bottom = `calc(${pct}% - 11px)`;
+}
+
+// Initial load + refresh every 5 minutes
+fetchWeather();
+// Seed chart with a few fake historical points while real data loads
+for(let i=5;i>0;i--){ addPoint(0,0); } updateChart();
+setInterval(fetchWeather, 300000);
+</script>
+{% endblock %}

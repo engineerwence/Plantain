@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Breeding Calendar{% endblock %}
+{% block head %}<style>
+.pg-eyebrow{font-family:"Syne",sans-serif;font-size:.62rem;color:var(--lime);text-transform:uppercase;letter-spacing:2px;margin-bottom:5px;}
+.pg-title{font-family:"Cormorant Garamond",serif;font-size:clamp(1.6rem,3vw,2.2rem);font-weight:800;color:white;margin:0;}
+.panel{background:rgba(8,20,12,.9);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:22px;margin-bottom:16px;}
+.panel-title{font-family:"Syne",sans-serif;font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.3);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
+.card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:16px;transition:all .2s;}
+.card:hover{border-color:rgba(255,255,255,.14);transform:translateY(-2px);}
+.sf-input{background:rgba(20,40,25,.95);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:10px 13px;color:white;font-family:"DM Sans",sans-serif;font-size:.84rem;outline:none;width:100%;box-sizing:border-box;transition:border-color .2s;}
+.sf-input:focus{border-color:rgba(46,139,74,.4);}
+.sf-label{font-family:"Syne",sans-serif;font-size:.7rem;color:rgba(255,255,255,.35);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
+.btn-green{background:linear-gradient(135deg,var(--lime),#4DB86A);color:white;border:none;padding:10px 22px;border-radius:10px;font-family:"Syne",sans-serif;font-weight:700;cursor:pointer;font-size:.84rem;}
+.btn-cyan{background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.2);color:#22d3ee;padding:9px 18px;border-radius:9px;font-family:"Syne",sans-serif;font-weight:700;cursor:pointer;font-size:.8rem;text-decoration:none;display:inline-block;}
+.btn-amber{background:rgba(212,160,23,.1);border:1px solid rgba(212,160,23,.2);color:var(--amber);padding:9px 18px;border-radius:9px;font-family:"Syne",sans-serif;font-weight:700;cursor:pointer;font-size:.8rem;text-decoration:none;display:inline-block;}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-family:"Syne",sans-serif;font-size:.62rem;font-weight:700;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:768px){.grid2{grid-template-columns:1fr;}}
+.flash-ok{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.18);color:#4ade80;padding:11px 16px;border-radius:9px;margin-bottom:14px;font-size:.84rem;}
+.flash-err{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.18);color:#f87171;padding:11px 16px;border-radius:9px;margin-bottom:14px;font-size:.84rem;}
+
+</style>{% endblock %}
+{% block content %}
+{% with msgs=get_flashed_messages(with_categories=true) %}{% for c,m in msgs %}<div class="flash-{{ 'ok' if c=='success' else 'err' }}">{{ m }}</div>{% endfor %}{% endwith %}
+<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+  <div><div class="pg-eyebrow">Livestock</div><h1 class="pg-title">🐄 Breeding Calendar</h1><div style="font-size:.78rem;color:rgba(255,255,255,.3);margin-top:4px;">Heat detection · AI breeding advice · Gestation tracking</div></div>
+</div>
+<!-- AI Quick Advice -->
+<div class="panel">
+  <div class="panel-title">🤖 Get AI Breeding Advice</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:10px;align-items:end;">
+    <div><label class="sf-label">Animal Type</label><select class="sf-input" id="bType"><option value="cattle">Cattle</option><option value="dairy cow">Dairy Cow</option><option value="goat">Goat</option><option value="sheep">Sheep</option><option value="pig">Pig</option></select></div>
+    <div><label class="sf-label">Weight (kg)</label><input type="number" class="sf-input" id="bWeight" placeholder="e.g. 250"></div>
+    <div><label class="sf-label">Age (months)</label><input type="number" class="sf-input" id="bAge" placeholder="e.g. 18"></div>
+    <div><label class="sf-label">Last Heat Date</label><input type="date" class="sf-input" id="bHeat"></div>
+    <button onclick="getBreedingAdvice()" class="btn-green">Ask AI</button>
+  </div>
+  <div id="breedingAdvice" style="display:none;margin-top:14px;"></div>
+</div>
+<!-- Log Breeding Event -->
+{% if animals %}
+<div class="panel">
+  <div class="panel-title">Log Breeding Event</div>
+  <form method="POST" action="{{ url_for('log_breeding') }}" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:10px;align-items:end;">
+    <div><label class="sf-label">Animal *</label><select name="livestock_id" class="sf-input" required>{% for a in animals %}<option value="{{ a.id }}">{{ a.name or a.animal_type }} ({{ a.animal_type }})</option>{% endfor %}</select></div>
+    <div><label class="sf-label">Event Type</label><select name="event_type" class="sf-input"><option value="heat">Heat Detected</option><option value="insemination">Insemination</option><option value="pregnancy_check">Pregnancy Check</option><option value="birth">Birth</option><option value="weaning">Weaning</option></select></div>
+    <div><label class="sf-label">Date</label><input type="date" class="sf-input" name="event_date" required></div>
+    <div><label class="sf-label">Notes</label><input class="sf-input" name="notes" placeholder="Optional notes"></div>
+    <button type="submit" class="btn-green">Log</button>
+  </form>
+</div>
+{% endif %}
+<!-- Predictions -->
+{% if predictions %}
+<div class="panel">
+  <div class="panel-title">🔮 Next Heat Predictions</div>
+  <div class="card-grid">
+    {% for p in predictions %}
+    <div class="card">
+      <div style="font-size:1.4rem;margin-bottom:6px;">🐄</div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;color:white;margin-bottom:4px;">{{ p.animal }}</div>
+      <div style="font-size:.8rem;color:rgba(255,255,255,.4);">Cycle: every {{ p.cycle }} days</div>
+      {% if p.next_heat %}
+      <div style="margin-top:8px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.15);border-radius:8px;padding:8px;text-align:center;">
+        <div style="font-size:.68rem;color:rgba(255,255,255,.3);font-family:'Syne',sans-serif;text-transform:uppercase;letter-spacing:.5px;">Expected Heat</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:#fbbf24;">{{ p.next_heat.strftime("%d %b") if p.next_heat else "—" }}</div>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+<!-- Records -->
+{% if records %}
+<div class="panel">
+  <div class="panel-title">Recent Breeding Events</div>
+  {% for r in records %}
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+    <div>
+      <div style="font-size:.86rem;color:white;">{{ r.animal_name or r.animal_type }} — {{ r.event_type|replace('_',' ')|title }}</div>
+      <div style="font-size:.73rem;color:rgba(255,255,255,.3);">{{ r.notes or '' }}</div>
+    </div>
+    <div style="font-size:.76rem;color:rgba(255,255,255,.35);">{{ r.recorded_at.strftime("%d %b %Y") if r.recorded_at else "—" }}</div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% if not animals %}
+<div class="panel" style="text-align:center;padding:30px;"><div style="font-size:2rem;margin-bottom:10px;">🐄</div><div style="color:rgba(255,255,255,.3);margin-bottom:14px;">Register livestock first to use the breeding calendar</div><a href="{{ url_for('livestock') }}" class="btn-green">Go to Livestock →</a></div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script>
+async function getBreedingAdvice(){
+  const el=document.getElementById('breedingAdvice'); el.style.display=''; el.innerHTML='<div style="color:rgba(255,255,255,.4);font-size:.82rem;">🤖 Getting advice...</div>';
+  const r=await fetch('/breeding/ai-advice',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({animal_type:document.getElementById('bType').value,weight:document.getElementById('bWeight').value,age_months:document.getElementById('bAge').value,last_heat:document.getElementById('bHeat').value})});
+  const d=await r.json();
+  if(d.advice){el.innerHTML=`<div style="background:rgba(46,139,74,.06);border:1px solid rgba(46,139,74,.15);border-radius:12px;padding:16px;font-size:.84rem;color:rgba(255,255,255,.75);line-height:1.7;white-space:pre-wrap;">${d.advice}</div>`;}
+  else{el.innerHTML=`<div style="color:#f87171;">${d.error||'Error'}</div>`;}
+}
+</script>
+{% endblock %}
