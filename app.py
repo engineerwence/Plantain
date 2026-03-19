@@ -1085,7 +1085,7 @@ def subscribe():
         (plan, session['user_id'])
     )
     # Log upgrade alert
-    plan_name = PLAN_NAMES.get(plan,'Shamba')
+    plan_name = PLAN_NAMES.get(plan,'Plantain AI')
     cursor.execute("INSERT INTO alerts (user_id,alert_type,message) VALUES (%s,%s,%s)",
         (session['user_id'], 'upgrade',
          f"✅ Welcome to {plan_name}! Your plan has been upgraded. {'Ref: '+mpesa_ref if mpesa_ref else ''} All new features are now unlocked."))
@@ -1312,7 +1312,7 @@ Include cost-benefit analysis when relevant. Responses can be up to 250 words.
 Mention Biashara (Enterprise) plan for multi-farm management and IoT features when the farmer seems to be scaling up."""
 
     elif ai_level == 'smart':
-        ai_persona = f"""You are Shamba Intelligence Pro — the world's most advanced African smart farming AI for {session['user_name']}'s automated farm operation.
+        ai_persona = f"""You are Plantain AI — the world's most advanced African smart farming AI for {session['user_name']}'s automated farm operation.
 You control physical devices: irrigation systems, sprinklers, drone schedules, soil sensors, greenhouse equipment.
 You monitor real-time market prices from KACE and Wakulima Market.
 You automatically list produce at optimal market prices.
@@ -1321,7 +1321,7 @@ Always include ROI analysis, automated scheduling recommendations, and market ti
 You are the complete brain of the farm — agronomic, financial, operational and mechanical."""
 
     else:  # business
-        ai_persona = f"""You are Shamba Intelligence — the dedicated AI farm manager for {session['user_name']}'s agribusiness operation.
+        ai_persona = f"""You are Plantain AI — the dedicated AI farm manager for {session['user_name']}'s agribusiness operation.
 You are NOT a basic chatbot. You are a full agribusiness intelligence system.
 Give BUSINESS-GRADE analysis: ROI calculations, staff action plans, market positioning, risk assessment, seasonal strategies.
 Format responses like a professional farm report when needed. You can write up to 400 words.
@@ -1330,7 +1330,7 @@ Address the farmer as a business owner, not a small-scale farmer."""
 
     system_prompt = f"""{ai_persona}
 
-FARMER: {session['user_name']} | PLAN: {PLAN_NAMES.get(user_plan,'Shamba')} | FARM TYPE: {session.get('farm_type','crops')}
+FARMER: {session['user_name']} | PLAN: {PLAN_NAMES.get(user_plan,'Plantain AI')} | FARM TYPE: {session.get('farm_type','crops')}
 THEIR CROPS: {[f"{c['crop_type']} ({c['status']})" for c in crops]}
 RECENT DIAGNOSES: {[f"{d['disease_name']} — {d['severity']} severity" for d in recent]}
 
@@ -1385,7 +1385,7 @@ PLATFORM NAVIGATION — you know every screen, button and flow on Plantain AI. G
 - Step 2 → Upload up to 10 photos at once (Kilimo) or unlimited (Biashara)
 - Step 3 → Each photo is analysed by AI separately
 - Step 4 → Download the full batch report as PDF
-- Shamba users → "Upgrade to Kilimo to unlock bulk diagnosis"
+- Plantain AI users → "Upgrade to Kilimo to unlock bulk diagnosis"
 
 ━━ MARKETPLACE (Buy & Sell) ━━
 - TO SELL your crops:
@@ -1396,7 +1396,7 @@ PLATFORM NAVIGATION — you know every screen, button and flow on Plantain AI. G
   Step 5 → Click **Post Listing** — buyers can now see and contact you
 - TO BUY / see prices → Browse the Marketplace to see what other farmers are selling and at what price
 - TO RECEIVE inquiries → buyers click "Send Inquiry" on your listing — you get an alert notification
-- Shamba plan → 3 free listings maximum
+- Plantain AI plan → 3 free listings maximum
 - Kilimo/Biashara → unlimited listings with priority placement
 
 ━━ ALERTS (AI Notifications) ━━
@@ -1477,7 +1477,7 @@ Click **Farm Tools** in the navigation to access:
 - ✕ Exit button → return to dashboard
 
 ━━ PRICING & PLANS ━━
-- Current plan badge shows in top nav (🌱 green = Shamba free, 🌾 amber = Kilimo, 🏢 purple = Biashara)
+- Current plan badge shows in top nav (🌱 green = Plantain AI, 🌾 amber = Kilimo, 🏢 purple = Biashara)
 - Click your plan badge in top nav → goes to Pricing page
 - Pricing page shows full feature comparison table
 - To upgrade → click Upgrade button → enter M-Pesa code → plan activates instantly
@@ -1496,9 +1496,9 @@ NAVIGATION RESPONSE RULES:
 5. After guiding them → offer to answer follow-up questions
 
 TIER-BASED BEHAVIOUR:
-- Shamba (free) farmer asks for PDF report → give a brief summary verbally, then say "Upgrade to **Kilimo (KSh 500/month)** at the Pricing page to get full PDF farm reports"
-- Shamba farmer asks for yield prediction → give a rough estimate, then nudge: "Kilimo gives you exact yield and revenue forecasts"
-- Shamba farmer asks about multi-farm → "The **Biashara plan (KSh 2,000/month)** supports multiple farms — visit the Pricing page to upgrade"
+- Plantain AI (free) farmer asks for PDF report → give a brief summary verbally, then say "Upgrade to **Kilimo (KSh 500/month)** at the Pricing page to get full PDF farm reports"
+- Plantain AI farmer asks for yield prediction → give a rough estimate, then nudge: "Kilimo gives you exact yield and revenue forecasts"
+- Plantain AI farmer asks about multi-farm → "The **Biashara plan (KSh 2,000/month)** supports multiple farms — visit the Pricing page to upgrade"
 - Kilimo farmer asks about IoT or staff accounts → "That is a **Biashara** feature — upgrade for IoT dashboards, staff accounts and dedicated farm manager AI"
 - NEVER make the farmer feel bad for their plan — always be encouraging and positive about upgrading
 
@@ -2090,10 +2090,10 @@ def update_crop_field():
 
 
 # ════════════════════════════════════════════════════════════════
-#  TIER SYSTEM — Shamba / Kilimo / Biashara
+#  TIER SYSTEM — Plantain AI / Kilimo / Biashara
 # ════════════════════════════════════════════════════════════════
 
-PLAN_NAMES   = {'free': 'Shamba', 'pro': 'Kilimo', 'enterprise': 'Biashara', 'smart': 'Shamba Smart'}
+PLAN_NAMES   = {'free': 'Plantain AI', 'pro': 'Kilimo', 'enterprise': 'Biashara', 'smart': 'Plantain AI'}
 PLAN_PRICES  = {'free': 0, 'pro': 500, 'enterprise': 2000, 'smart': 5000}
 PLAN_COLORS  = {'free': '#4ade80', 'pro': '#FBB024', 'enterprise': '#a78bfa', 'smart': '#22d3ee'}
 PLAN_EMOJIS  = {'free': '🌱', 'pro': '🌾', 'enterprise': '🏢', 'smart': '🤖'}
@@ -2131,7 +2131,7 @@ PLAN_FEATURES = {
         'auto_irrigation': True, 'soil_sensors': True,
         'greenhouse': True, 'real_market_prices': True,
         'ai_level': 'smart',
-        'ai_name': 'Shamba Intelligence Pro',
+        'ai_name': 'Plantain AI',
         'description': 'Fully automated smart farm — AI controls everything',
         'perks': ['Everything in Biashara','🤖 AI-controlled irrigation & sprinklers',
                   '🚁 Drone spraying scheduler','🌡️ Soil sensor monitoring',
@@ -2146,9 +2146,9 @@ PLAN_FEATURES = {
         'multi_farm': True, 'staff_accounts': True,
         'iot_dashboard': True, 'specialist_hotline': True,
         'ai_level': 'business',
-        'ai_name': 'Shamba Intelligence',
+        'ai_name': 'Plantain AI',
         'description': 'Full agribusiness platform for large-scale operations',
-        'perks': ['Unlimited farms & crops','Dedicated AI farm manager — Shamba Intelligence',
+        'perks': ['Unlimited farms & crops','Dedicated AI farm manager — Plantain AI',
                   'IoT sensor dashboard','Multi-farm management','Staff accounts',
                   'Direct specialist hotline','Full financial & business reports',
                   'Top marketplace placement','Custom farm branding']
@@ -2196,7 +2196,7 @@ def pricing():
     plan = session.get('subscription_plan','free')
     return render_template('pricing.html',
         current_plan=plan,
-        plan_name=PLAN_NAMES.get(plan,'Shamba'),
+        plan_name=PLAN_NAMES.get(plan,'Plantain AI'),
         plan_color=PLAN_COLORS.get(plan,'#4ade80'),
         features=PLAN_FEATURES)
 
@@ -2204,140 +2204,161 @@ def pricing():
 @app.route('/agrovets')
 @login_required
 def agrovets():
-    db = get_db(); cursor = db.cursor(dictionary=True)
+    db = get_db();
+    cursor = db.cursor(dictionary=True)
     uid = session['user_id']
-    # Get user county for nearby filter
+
     cursor.execute("SELECT location FROM users WHERE id=%s", (uid,))
     u = cursor.fetchone()
-    user_county = (u or {}).get('location','')
-    # Get all approved agrovets
-    cursor.execute("""SELECT * FROM agrovets WHERE status='approved'
+    user_county = (u or {}).get('location', '')
+
+    # Show all agrovets (since they're all approved now)
+    cursor.execute("""SELECT * FROM agrovets
         ORDER BY CASE WHEN LOWER(county) LIKE %s THEN 0 ELSE 1 END, name ASC""",
-        (f"%{user_county.lower()[:6]}%",))
+                   (f"%{user_county.lower()[:6]}%",))
     all_agrovets = cursor.fetchall()
-    cursor.close(); db.close()
-    return render_template('agrovets.html', agrovets=all_agrovets,
-        user_county=user_county, counties=KENYA_COUNTIES, products=AGROVET_PRODUCTS)
+
+    cursor.close();
+    db.close()
+    return render_template('agrovets.html',
+                           agrovets=all_agrovets,
+                           user_county=user_county,
+                           counties=KENYA_COUNTIES,
+                           products=AGROVET_PRODUCTS)
 
 
-@app.route('/agrovets/register', methods=['GET','POST'])
+@app.route('/agrovets/register', methods=['GET', 'POST'])
 def agrovet_register():
     if request.method == 'GET':
         return render_template('agrovet_register.html',
-            counties=KENYA_COUNTIES, products=AGROVET_PRODUCTS)
-    db = get_db(); cursor = db.cursor(dictionary=True)
-    name        = clean(request.form.get('name',''), 100)
-    owner_name  = clean(request.form.get('owner_name',''), 100)
-    email       = clean(request.form.get('email',''), 100)
-    phone       = clean(request.form.get('phone',''), 20)
-    county      = clean(request.form.get('county',''), 50)
-    town        = clean(request.form.get('town',''), 100)
-    address     = clean(request.form.get('address',''), 200)
-    products    = request.form.getlist('products')
-    description = clean(request.form.get('description',''), 500)
-    payment_method = clean(request.form.get('payment_method',''), 50)
-    mpesa_ref   = clean(request.form.get('mpesa_ref',''), 50)
+                               counties=KENYA_COUNTIES, products=AGROVET_PRODUCTS)
+
+    db = get_db();
+    cursor = db.cursor(dictionary=True)
+
+    name = clean(request.form.get('name', ''), 100)
+    owner_name = clean(request.form.get('owner_name', ''), 100)
+    email = clean(request.form.get('email', ''), 100)
+    phone = clean(request.form.get('phone', ''), 20)
+    county = clean(request.form.get('county', ''), 50)
+    town = clean(request.form.get('town', ''), 100)
+    address = clean(request.form.get('address', ''), 200)
+    products = request.form.getlist('products')
+    description = clean(request.form.get('description', ''), 500)
+    payment_method = clean(request.form.get('payment_method', ''), 50)
+    mpesa_ref = clean(request.form.get('mpesa_ref', ''), 50)
+
     if not all([name, email, phone, county]):
-        cursor.close(); db.close()
-        return render_template('agrovet_register.html', error='Please fill all required fields.',
-            counties=KENYA_COUNTIES, products=AGROVET_PRODUCTS)
+        cursor.close();
+        db.close()
+        return render_template('agrovet_register.html',
+                               error='Please fill all required fields.',
+                               counties=KENYA_COUNTIES,
+                               products=AGROVET_PRODUCTS)
+
     try:
+        # CHANGED: status set to 'approved' instead of 'pending'
         cursor.execute("""INSERT INTO agrovets
-            (name,owner_name,email,phone,county,town,address,products,description,
-             payment_method,mpesa_ref,status)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'pending')""",
-            (name,owner_name,email,phone,county,town,address,
-             ','.join(products),description,payment_method,mpesa_ref))
+            (name, owner_name, email, phone, county, town, address, 
+             products, description, payment_method, mpesa_ref, status)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'approved')""",
+                       (name, owner_name, email, phone, county, town, address,
+                        ','.join(products), description, payment_method, mpesa_ref))
+
         db.commit()
-        cursor.close(); db.close()
+        cursor.close();
+        db.close()
         return render_template('agrovet_register.html', success=True)
+
     except Exception as e:
         print(f"Agrovet register error: {e}")
-        cursor.close(); db.close()
+        cursor.close();
+        db.close()
         return render_template('agrovet_register.html',
-            error='Registration failed. Please try again.',
-            counties=KENYA_COUNTIES, products=AGROVET_PRODUCTS)
-
+                               error='Registration failed. Please try again.',
+                               counties=KENYA_COUNTIES,
+                               products=AGROVET_PRODUCTS)
 
 # ── Specialists ───────────────────────────────────────────────
 @app.route('/specialists')
 @login_required
 def specialists():
-    db = get_db(); cursor = db.cursor(dictionary=True)
+    db = get_db();
+    cursor = db.cursor(dictionary=True)
     uid = session['user_id']
+
     cursor.execute("SELECT location FROM users WHERE id=%s", (uid,))
     u = cursor.fetchone()
-    user_county = (u or {}).get('location','')
-    cursor.execute("""SELECT * FROM specialists WHERE status='approved'
+    user_county = (u or {}).get('location', '')
+
+    # Show all specialists (since they're all approved now)
+    cursor.execute("""SELECT * FROM specialists
         ORDER BY CASE WHEN LOWER(county) LIKE %s THEN 0 ELSE 1 END, rating DESC""",
-        (f"%{user_county.lower()[:6]}%",))
+                   (f"%{user_county.lower()[:6]}%",))
     all_specialists = cursor.fetchall()
-    cursor.close(); db.close()
-    return render_template('specialists.html', specialists=all_specialists,
-        user_county=user_county, counties=KENYA_COUNTIES, types=SPECIALIST_TYPES)
+
+    cursor.close();
+    db.close()
+    return render_template('specialists.html',
+                           specialists=all_specialists,
+                           user_county=user_county,
+                           counties=KENYA_COUNTIES,
+                           types=SPECIALIST_TYPES)
 
 
-@app.route('/specialists/register', methods=['GET','POST'])
+@app.route('/specialists/register', methods=['GET', 'POST'])
 def specialist_register():
     if request.method == 'GET':
         return render_template('specialist_register.html',
-            counties=KENYA_COUNTIES, types=SPECIALIST_TYPES)
-    db = get_db(); cursor = db.cursor(dictionary=True)
-    name            = clean(request.form.get('name',''), 100)
-    email           = clean(request.form.get('email',''), 100)
-    phone           = clean(request.form.get('phone',''), 20)
-    county          = clean(request.form.get('county',''), 50)
-    specialization  = clean(request.form.get('specialization',''), 100)
-    experience_yrs  = int(request.form.get('experience_yrs') or 0)
-    bio             = clean(request.form.get('bio',''), 1000)
-    consult_fee     = float(request.form.get('consult_fee') or 0)
-    available_online= 1 if request.form.get('available_online') else 0
+                               counties=KENYA_COUNTIES, types=SPECIALIST_TYPES)
+
+    db = get_db();
+    cursor = db.cursor(dictionary=True)
+
+    name = clean(request.form.get('name', ''), 100)
+    email = clean(request.form.get('email', ''), 100)
+    phone = clean(request.form.get('phone', ''), 20)
+    county = clean(request.form.get('county', ''), 50)
+    specialization = clean(request.form.get('specialization', ''), 100)
+    experience_yrs = int(request.form.get('experience_yrs') or 0)
+    bio = clean(request.form.get('bio', ''), 1000)
+    consult_fee = float(request.form.get('consult_fee') or 0)
+    available_online = 1 if request.form.get('available_online') else 0
     available_visit = 1 if request.form.get('available_visit') else 0
-    payment_method  = clean(request.form.get('payment_method',''), 50)
-    mpesa_ref       = clean(request.form.get('mpesa_ref',''), 50)
+    payment_method = clean(request.form.get('payment_method', ''), 50)
+    mpesa_ref = clean(request.form.get('mpesa_ref', ''), 50)
+
     if not all([name, email, phone, county, specialization]):
-        cursor.close(); db.close()
+        cursor.close();
+        db.close()
         return render_template('specialist_register.html',
-            error='Please fill all required fields.',
-            counties=KENYA_COUNTIES, types=SPECIALIST_TYPES)
+                               error='Please fill all required fields.',
+                               counties=KENYA_COUNTIES,
+                               types=SPECIALIST_TYPES)
+
     try:
+        # CHANGED: status set to 'approved' instead of 'pending'
         cursor.execute("""INSERT INTO specialists
-            (name,email,phone,county,specialization,experience_yrs,bio,
-             consult_fee,available_online,available_visit,payment_method,mpesa_ref,
-             status,rating,consultations)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'pending',0,0)""",
-            (name,email,phone,county,specialization,experience_yrs,bio,
-             consult_fee,available_online,available_visit,payment_method,mpesa_ref))
+            (name, email, phone, county, specialization, experience_yrs, bio,
+             consult_fee, available_online, available_visit, payment_method, mpesa_ref,
+             status, rating, consultations)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'approved', 0, 0)""",
+                       (name, email, phone, county, specialization, experience_yrs, bio,
+                        consult_fee, available_online, available_visit, payment_method, mpesa_ref))
+
         db.commit()
-        cursor.close(); db.close()
+        cursor.close();
+        db.close()
         return render_template('specialist_register.html', success=True)
+
     except Exception as e:
         print(f"Specialist register error: {e}")
-        cursor.close(); db.close()
+        cursor.close();
+        db.close()
         return render_template('specialist_register.html',
-            error='Registration failed. Please try again.',
-            counties=KENYA_COUNTIES, types=SPECIALIST_TYPES)
-
-
-@app.route('/specialists/book/<int:spec_id>', methods=['POST'])
-@login_required
-def book_specialist(spec_id):
-    db = get_db(); cursor = db.cursor(dictionary=True)
-    uid     = session['user_id']
-    message = clean(request.form.get('message',''), 500)
-    cursor.execute("SELECT * FROM specialists WHERE id=%s AND status='approved'", (spec_id,))
-    spec = cursor.fetchone()
-    if not spec:
-        cursor.close(); db.close()
-        return jsonify({'error': 'Specialist not found'})
-    cursor.execute("""INSERT INTO specialist_bookings
-        (user_id,specialist_id,message,status) VALUES (%s,%s,%s,'pending')""",
-        (uid, spec_id, message))
-    cursor.execute("""INSERT INTO alerts (user_id,alert_type,message) VALUES (%s,%s,%s)""",
-        (uid,'specialist_booking',
-         f"Your consultation request with {spec['name']} ({spec['specialization']}) has been sent. They will contact you on {spec['phone']}."))
-    db.commit(); cursor.close(); db.close()
-    return jsonify({'ok': True, 'phone': spec['phone'], 'name': spec['name']})
+                               error='Registration failed. Please try again.',
+                               counties=KENYA_COUNTIES,
+                               types=SPECIALIST_TYPES)
 
 
 
@@ -3293,7 +3314,7 @@ def daily_report():
     rising_crops = [k for k,v in prices.items() if v.get('trend')=='rising'][:3]
     rising_animals = [k for k,v in animal_prices_data.items() if v.get('trend')=='rising'][:3]
 
-    prompt = f"""You are Shamba Intelligence Pro — generate a DAILY FARM STATUS REPORT for {session['user_name']}.
+    prompt = f"""You are Plantain AI — generate a DAILY FARM STATUS REPORT for {session['user_name']}.
 Date: {today.strftime('%A, %d %B %Y at %H:%M')}
 
 FARM DATA:
@@ -3492,22 +3513,22 @@ def admin_user_detail(uid):
         diagnoses=diagnoses, livestock=livestock, transactions=transactions, alert_count=alert_count)
 
 
-@app.route('/admin/approvals')
-@admin_required
-def admin_approvals():
-    db = get_db(); cursor = db.cursor(dictionary=True)
-    cursor.execute("SELECT a.*, u.name as owner_name, u.phone as owner_phone FROM agrovets a LEFT JOIN users u ON u.id=a.user_id WHERE a.verified=0 ORDER BY a.created_at DESC")
-    pending_agrovets = cursor.fetchall()
-    cursor.execute("SELECT s.*, u.name as owner_name FROM specialists s LEFT JOIN users u ON u.id=s.user_id WHERE s.verified=0 ORDER BY s.created_at DESC")
-    pending_specialists = cursor.fetchall()
-    cursor.execute("SELECT sp.*, u.name as owner_name FROM seller_profiles sp LEFT JOIN users u ON u.id=sp.user_id WHERE sp.verified=0 ORDER BY sp.created_at DESC")
-    pending_sellers = cursor.fetchall()
-    cursor.execute("SELECT ml.*, u.name as owner_name FROM marketplace_listings ml LEFT JOIN users u ON u.id=ml.user_id WHERE ml.status='pending' ORDER BY ml.created_at DESC LIMIT 30")
-    pending_listings = cursor.fetchall()
-    cursor.close(); db.close()
-    return render_template('admin/approvals.html',
-        pending_agrovets=pending_agrovets, pending_specialists=pending_specialists,
-        pending_sellers=pending_sellers, pending_listings=pending_listings)
+# @app.route('/admin/approvals')
+# @admin_required
+# def admin_approvals():
+#     db = get_db(); cursor = db.cursor(dictionary=True)
+#     cursor.execute("SELECT a.*, u.name as owner_name, u.phone as owner_phone FROM agrovets a LEFT JOIN users u ON u.id=a.user_id WHERE a.verified=0 ORDER BY a.created_at DESC")
+#     pending_agrovets = cursor.fetchall()
+#     cursor.execute("SELECT s.*, u.name as owner_name FROM specialists s LEFT JOIN users u ON u.id=s.user_id WHERE s.verified=0 ORDER BY s.created_at DESC")
+#     pending_specialists = cursor.fetchall()
+#     cursor.execute("SELECT sp.*, u.name as owner_name FROM seller_profiles sp LEFT JOIN users u ON u.id=sp.user_id WHERE sp.verified=0 ORDER BY sp.created_at DESC")
+#     pending_sellers = cursor.fetchall()
+#     cursor.execute("SELECT ml.*, u.name as owner_name FROM marketplace_listings ml LEFT JOIN users u ON u.id=ml.user_id WHERE ml.status='pending' ORDER BY ml.created_at DESC LIMIT 30")
+#     pending_listings = cursor.fetchall()
+#     cursor.close(); db.close()
+#     return render_template('admin/approvals.html',
+#         pending_agrovets=pending_agrovets, pending_specialists=pending_specialists,
+#         pending_sellers=pending_sellers, pending_listings=pending_listings)
 
 
 @app.route('/admin/approve', methods=['POST'])
@@ -3564,48 +3585,48 @@ def admin_transactions():
         page=page, per=per, summary=summary, status_filter=status_filter)
 
 
-@app.route('/admin/settings', methods=['GET','POST'])
-@admin_required
-def admin_settings():
-    db = get_db(); cursor = db.cursor(dictionary=True)
-    if request.method == 'POST':
-        for key in ['site_name','site_tagline','mpesa_shortcode','mpesa_passkey',
-                    'mpesa_consumer_key','mpesa_consumer_secret','plan_free_diagnoses',
-                    'plan_pro_price','plan_enterprise_price','plan_smart_price',
-                    'maintenance_mode','support_phone','support_email']:
-            val = request.form.get(key, '')
-            cursor.execute("""INSERT INTO admin_settings (key_name, value)
-                VALUES (%s,%s) ON DUPLICATE KEY UPDATE value=%s""", (key, val, val))
-        db.commit()
-        flash("Settings saved successfully", "success")
-    cursor.execute("SELECT key_name, value FROM admin_settings")
-    settings = {r['key_name']: r['value'] for r in cursor.fetchall()}
-    cursor.close(); db.close()
-    return render_template('admin/settings.html', settings=settings)
+# @app.route('/admin/settings', methods=['GET','POST'])
+# @admin_required
+# def admin_settings():
+#     db = get_db(); cursor = db.cursor(dictionary=True)
+#     if request.method == 'POST':
+#         for key in ['site_name','site_tagline','mpesa_shortcode','mpesa_passkey',
+#                     'mpesa_consumer_key','mpesa_consumer_secret','plan_free_diagnoses',
+#                     'plan_pro_price','plan_enterprise_price','plan_smart_price',
+#                     'maintenance_mode','support_phone','support_email']:
+#             val = request.form.get(key, '')
+#             cursor.execute("""INSERT INTO admin_settings (key_name, value)
+#                 VALUES (%s,%s) ON DUPLICATE KEY UPDATE value=%s""", (key, val, val))
+#         db.commit()
+#         flash("Settings saved successfully", "success")
+#     cursor.execute("SELECT key_name, value FROM admin_settings")
+#     settings = {r['key_name']: r['value'] for r in cursor.fetchall()}
+#     cursor.close(); db.close()
+#     return render_template('admin/settings.html', settings=settings)
 
-
-@app.route('/admin/logs')
-@admin_required
-def admin_logs():
-    db = get_db(); cursor = db.cursor(dictionary=True)
-    cursor.execute("""SELECT al.*, u.name as user_name FROM admin_logs al
-        LEFT JOIN users u ON u.id=al.user_id
-        ORDER BY al.created_at DESC LIMIT 200""")
-    logs = cursor.fetchall()
-    cursor.close(); db.close()
-    return render_template('admin/logs.html', logs=logs)
-
-
-def admin_log(action, details='', user_id=None):
-    """Write to admin audit log"""
-    try:
-        db = get_db(); cursor = db.cursor()
-        cursor.execute("""INSERT INTO admin_logs (admin_id, user_id, action, details)
-            VALUES (%s,%s,%s,%s)""",
-            (session.get('user_id'), user_id, action, details))
-        db.commit(); cursor.close(); db.close()
-    except:
-        pass
+#
+# @app.route('/admin/logs')
+# @admin_required
+# def admin_logs():
+#     db = get_db(); cursor = db.cursor(dictionary=True)
+#     cursor.execute("""SELECT al.*, u.name as user_name FROM admin_logs al
+#         LEFT JOIN users u ON u.id=al.user_id
+#         ORDER BY al.created_at DESC LIMIT 200""")
+#     logs = cursor.fetchall()
+#     cursor.close(); db.close()
+#     return render_template('admin/logs.html', logs=logs)
+#
+#
+# def admin_log(action, details='', user_id=None):
+#     """Write to admin audit log"""
+#     try:
+#         db = get_db(); cursor = db.cursor()
+#         cursor.execute("""INSERT INTO admin_logs (admin_id, user_id, action, details)
+#             VALUES (%s,%s,%s,%s)""",
+#             (session.get('user_id'), user_id, action, details))
+#         db.commit(); cursor.close(); db.close()
+#     except:
+#         pass
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -3712,7 +3733,7 @@ def mpesa_pay():
     plans = {
         'pro':        {'name':'🌾 Kilimo Pro',       'price':500,  'desc':'Unlimited diagnoses + livestock'},
         'enterprise': {'name':'🏢 Biashara',          'price':2000, 'desc':'Full business features'},
-        'smart':      {'name':'🤖 Shamba Smart',      'price':5000, 'desc':'IoT + drones + AI daily reports'},
+        'smart':      {'name':'🤖 Plantain AI Smart', 'price':5000, 'desc':'IoT + drones + AI daily reports'},
     }
     selected = request.args.get('plan', 'pro')
     if request.method == 'POST':
@@ -4562,7 +4583,7 @@ Batch/Registration No: {batch_no}
 Seller: {seller}
 County: {county}
 
-Respond as JSON with fields:
+Respond as JSON with keys:
 - verified: true/false/unknown
 - risk_level: low/medium/high
 - flags: list of red flags if any
@@ -5047,5 +5068,3 @@ def ussd():
         response = "END Invalid option.\nTry again: *384#\nPlantain AI"
 
     return response, 200, {'Content-Type': 'text/plain'}
-
-
